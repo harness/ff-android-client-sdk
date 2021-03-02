@@ -1,16 +1,19 @@
 package io.harness.cfsdk;
 
 /**
- * Main configuration class used to tune the behaviour of {@link CFClient}. It uses builder pattern.
+ * Main configuration class used to tune the behaviour of {@link CfClient}. It uses builder pattern.
  */
-public class CFConfiguration {
+public class CfConfiguration {
+    private static final String BASE_URL = "https://config.feature-flags.uat.harness.io/api/1.0";
+    private static final String STREAM_URL = BASE_URL + "/stream/environments/";
+
     private final String baseURL;
     private final String streamURL;
     private final boolean streamEnabled;
     private final int pollingInterval;
     private final String target;
 
-    CFConfiguration(String baseURL, String streamURL, boolean streamEnabled, int pollingInterval, String target) {
+    CfConfiguration(String baseURL, String streamURL, boolean streamEnabled, int pollingInterval, String target) {
         this.baseURL = baseURL;
         this.streamURL = streamURL;
         this.streamEnabled = streamEnabled;
@@ -87,10 +90,15 @@ public class CFConfiguration {
             return this;
         }
 
-        public CFConfiguration build() {
-            if (baseURL == null || baseURL.isEmpty()) throw new IllegalArgumentException("Provided base url is not valid!");
-            if (streamEnabled && (streamURL == null || streamURL.isEmpty())) throw new IllegalArgumentException("Stream configuration is wrong!");
-            return new CFConfiguration(baseURL, streamURL, streamEnabled, pollingInterval, target);
+        public CfConfiguration build() {
+            if (baseURL == null || baseURL.isEmpty()) {
+                baseURL = BASE_URL;
+            }
+            if (streamEnabled && (streamURL == null || streamURL.isEmpty())) {
+                streamURL = STREAM_URL;
+            }
+            if (target == null) throw new IllegalArgumentException("target must not be null!");
+            return new CfConfiguration(baseURL, streamURL, streamEnabled, pollingInterval, target);
         }
     }
 }

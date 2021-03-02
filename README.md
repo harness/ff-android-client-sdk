@@ -11,17 +11,17 @@ Harness CF Android SDK
 The library is packed into `cfsdk-release.aar` file. To use it, create a new module in your project and add this library to it. Next step is adding a dependency to our SDK.
 ```
 //TODO Maven dependency is under development
-//implementation 'io.harness.cf-android-client-sdk:1.0.0'
+//implementation 'io.harness:cf-android-client-sdk:1.0.0'
 
 implementation project(path: ':cfsdk')
 ```
-After this step, the SDK elements, primarily `CFClient` should be accessible in main application.
+After this step, the SDK elements, primarily `CfClient` should be accessible in main application.
 
 ### **_Initialization_**
-`CFClient` is base class that provides all features of SDK. This is singleton and it is acessed with `CFClient.getInstance()`. 
+`CfClient` is base class that provides all features of SDK. This is singleton and it is acessed with `CfClient.getInstance()`. 
 
 ``` 
-val sdkConfiguration = CFConfiguration.builder()
+val sdkConfiguration = CfConfiguration.builder()
     .baseUrl("BASE_API_URL")
     .pollingInterval(30) //time in seconds
     .target("your_desired_target")
@@ -29,7 +29,7 @@ val sdkConfiguration = CFConfiguration.builder()
     .streamUrl("STREAM_URL")
     .build()
 
-CFClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration)
+CfClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration)
 ```
 `target` represents a desired target for which we want features to be evaluated.
 
@@ -42,7 +42,7 @@ CFClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration)
 ### **_Public API Methods_** ###
 The Public API exposes a few methods that you can utilize:
 
-* `public void initialize(Context context, String clientId, CFConfiguration configuration, CloudCache cloudCache, AuthCallback authCallback)`
+* `public void initialize(Context context, String clientId, CfConfiguration configuration, CloudCache cloudCache, AuthCallback authCallback)`
 
 * `public boolean boolEvaluation(String evaluationId, String target, boolean defaultValue)`
 
@@ -64,10 +64,10 @@ The Public API exposes a few methods that you can utilize:
 It is possible to fetch a value for a given evaluation. Evaluation is performed based on different type. In case there is no evaluation with provided id, the default value is returned.
 ```
 //get boolean evaluation
-val evaluation: Boolean = CFClient.getInstance().boolEvaluation("demo_evaluation", "demo_target", false)  
+val evaluation: Boolean = CfClient.getInstance().boolEvaluation("demo_evaluation", "demo_target", false)  
 
 //get boolean evaluation
-val intEvaluation: Double = CFClient.getInstance().numberEvaluation("demo_evaluation", "demo_target", 6 )  
+val intEvaluation: Double = CfClient.getInstance().numberEvaluation("demo_evaluation", "demo_target", 6 )  
 ```
 
 #### Register for events
@@ -80,7 +80,7 @@ private final EventsListener eventsListener = statusEvent -> {
     }
 }
 
-CFClient.getInstance().registerEventsListener(eventsListener)
+CfClient.getInstance().registerEventsListener(eventsListener)
 ```
 
 
@@ -98,11 +98,11 @@ public enum EVENT_TYPE {
 Visit documentation for complete list of possible types and values they provide.
 
 To avoid unexpected behaviour, when listener is not needed anymore, a callar should call 
-`CFClient.getInstance().unregisterEventsListener(eventsListener)`
+`CfClient.getInstance().unregisterEventsListener(eventsListener)`
 This way the sdk will remove desired listener from internal list.
 
 #### Shutting down the SDK
 To avoid potential memory leak, when SDK is no longer needed (when the app is closed, for example), a caller should call this method
 ```
-CFClient.getInstance().destroy()
+CfClient.getInstance().destroy()
 ```
