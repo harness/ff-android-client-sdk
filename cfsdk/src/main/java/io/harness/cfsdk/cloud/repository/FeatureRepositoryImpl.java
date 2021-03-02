@@ -65,7 +65,7 @@ public class FeatureRepositoryImpl implements FeatureRepository {
         cloudCache.clear();
     }
 
-    public static String buildKey(String environment, String target, String featureId) {
+    private String buildKey(String environment, String target, String featureId) {
         return environment + "_" + target + "_" + featureId;
     }
 

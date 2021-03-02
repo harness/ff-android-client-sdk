@@ -34,9 +34,9 @@ import io.harness.cfsdk.cloud.sse.SSEController;
 /**
  * Main class used for any operation on SDK. Operations include, but not limited to, reading evaluations and
  * observing changes in state of SDK.
- * Before it can be used, one of the {@link CFClient#initialize} methods <strong>must be</strong>  called
+ * Before it can be used, one of the {@link CfClient#initialize} methods <strong>must be</strong>  called
  */
-public final class CFClient {
+public final class CfClient {
     private volatile boolean ready = false;
 
     private Cloud cloud;
@@ -57,7 +57,7 @@ public final class CFClient {
     private NetworkInfoProvider networkInfoProvider;
     private final CloudFactory cloudFactory;
 
-    private static CFClient instance;
+    private static CfClient instance;
 
     private final EventsListener eventsListener = statusEvent -> {
         if (!ready) return;
@@ -90,18 +90,18 @@ public final class CFClient {
     };
 
     /**
-     * Base constructor, used internally. Use {@link CFClient#getInstance()} to get instance of this class.
+     * Base constructor, used internally. Use {@link CfClient#getInstance()} to get instance of this class.
      */
-    CFClient(CloudFactory cloudFactory) {
+    CfClient(CloudFactory cloudFactory) {
         this.cloudFactory = cloudFactory;
     }
 
     /**
-     * Retrieves the single instance of {@link CFClient} to be used for SDK operation
+     * Retrieves the single instance of {@link CfClient} to be used for SDK operation
      * @return single instance used as entry point of SDK
      */
-    public static CFClient getInstance() {
-        if (instance == null) instance = new CFClient(new CloudFactory());
+    public static CfClient getInstance() {
+        if (instance == null) instance = new CfClient(new CloudFactory());
         return instance;
     }
 
@@ -199,7 +199,7 @@ public final class CFClient {
      * @param cloudCache Custom {@link CloudCache} implementation. If non provided, the default implementation will be used
      * @param authCallback The callback that will be invoked when initialization is finished
      */
-    public void initialize(Context context, String clientId, CFConfiguration configuration, CloudCache cloudCache, AuthCallback authCallback) {
+    public void initialize(Context context, String clientId, CfConfiguration configuration, CloudCache cloudCache, AuthCallback authCallback) {
         executor.execute(() -> {
             unregister();
             this.cloud = cloudFactory.cloud(configuration.getStreamURL(), configuration.getBaseURL(), clientId);
@@ -235,15 +235,15 @@ public final class CFClient {
         });
     }
 
-    public void initialize(Context context, String clientId, CFConfiguration configuration, AuthCallback authCallback) {
+    public void initialize(Context context, String clientId, CfConfiguration configuration, AuthCallback authCallback) {
         initialize(context, clientId, configuration, cloudFactory.defaultCache(context), authCallback);
     }
 
-    public void initialize(Context context, String clientId, CFConfiguration configuration, CloudCache cloudCache) {
+    public void initialize(Context context, String clientId, CfConfiguration configuration, CloudCache cloudCache) {
         initialize(context, clientId, configuration, cloudCache, null);
     }
     
-    public void initialize(Context context, String clientId, CFConfiguration configuration) {
+    public void initialize(Context context, String clientId, CfConfiguration configuration) {
         initialize(context, clientId, configuration, cloudFactory.defaultCache(context), null);
     }
 

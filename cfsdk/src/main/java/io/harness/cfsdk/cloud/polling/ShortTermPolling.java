@@ -5,7 +5,7 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 public class ShortTermPolling implements EvaluationPolling{
-    private static final int MINIMUM_POLLING_INTERVAL = 20_000;
+    private static final int MINIMUM_POLLING_INTERVAL = 10_000;
     private final long pollingInterval;
     private Timer timer;
 

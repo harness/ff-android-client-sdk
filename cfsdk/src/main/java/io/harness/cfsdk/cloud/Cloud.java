@@ -30,7 +30,7 @@ public class Cloud implements FeatureService{
         this.streamUrl = sseUrl;
         this.tokenProvider = cloudFactory.tokenProvider();
         apiClient = cloudFactory.apiClient();
-        apiClient.setDebugging(true);
+        apiClient.setDebugging(false);
         apiClient.setBasePath(baseUrl);
     }
 
