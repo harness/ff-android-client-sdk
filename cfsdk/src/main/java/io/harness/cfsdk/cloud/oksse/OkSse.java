@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
  *   public final OkSse okSseClient = new OkSse(okHttpClient);
  * }</pre>
  * <p>
- * To create a new {@link ServerSentEvent} call {@link OkSse#newServerSentEvent(Request, ServerSentEvent.Listener)}
+ * To create a new {@link ServerSentEvent} call {@link OkSse#newServerSentEvent(Request, ServerSentEvent.Listener, String)}
  * giving the desired {@link Request}. Note that must be a GET request.
  * <p>
  * OkSse will make sure to build the proper parameters needed for SSE conneciton and return the instance.
@@ -82,7 +82,7 @@ public class OkSse {
      * the SSE Server.
      *
      * @param request  the OkHttp {@link Request} with the valid information to create the connection with the server.
-     * @param listener the {@link com.here.oksse.ServerSentEvent.Listener} to attach to this SSE.
+     * @param listener the {@link io.harness.cfsdk.cloud.oksse.ServerSentEvent.Listener} to attach to this SSE.
      * @return a new instance of {@link ServerSentEvent} that will automatically start the connection.
      */
     public ServerSentEvent newServerSentEvent(Request request, ServerSentEvent.Listener listener, String token) {
