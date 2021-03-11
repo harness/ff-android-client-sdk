@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
  *   public final OkSse okSseClient = new OkSse(okHttpClient);
  * }</pre>
  * <p>
- * To create a new {@link ServerSentEvent} call {@link OkSse#newServerSentEvent(Request, ServerSentEvent.Listener, String)}}
+ * To create a new {@link ServerSentEvent} call {@link OkSse#newServerSentEvent(Request, ServerSentEvent.Listener, SSEAuthentication)}}
  * giving the desired {@link Request}. Note that must be a GET request.
  * <p>
  * OkSse will make sure to build the proper parameters needed for SSE conneciton and return the instance.

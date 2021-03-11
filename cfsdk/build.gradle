@@ -26,6 +26,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 }
+apply from: "${rootProject.projectDir}/cfsdk/publish-mavencentral.gradle"
 
 dependencies {
     implementation 'androidx.annotation:annotation:1.1.0'
