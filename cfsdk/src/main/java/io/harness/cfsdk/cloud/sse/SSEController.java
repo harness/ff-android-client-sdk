@@ -6,19 +6,20 @@ import io.harness.cfsdk.cloud.oksse.SSEListener;
 import io.harness.cfsdk.cloud.oksse.EventsListener;
 import io.harness.cfsdk.cloud.oksse.ServerSentEvent;
 import okhttp3.Request;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 public class SSEController {
     private ServerSentEvent serverSentEvent;
 
     public synchronized void start(SSEConfig config, EventsListener eventsListener) {
-        if (config != null && config.getToken() != null) {
+        if (config != null && config.getAuthentication() != null) {
             Request request =
                     new Request.Builder()
                             .url(config.getUrl())
                             .build();
             OkSse okSse = new OkSse();
             serverSentEvent = okSse.newServerSentEvent(request, new SSEListener(eventsListener),
-                    config.getToken());
+                    config.getAuthentication());
         }
     }
 

@@ -20,7 +20,9 @@ import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
+import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.oksse.EventsListener;
+import io.harness.cfsdk.cloud.oksse.SSEAuthentication;
 import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
 import io.harness.cfsdk.cloud.polling.EvaluationPolling;
@@ -54,7 +56,7 @@ public class CfClientTest {
         Mockito.when(cloud.isInitialized()).thenReturn(true);
         Mockito.when(cloud.initialize()).thenReturn(true);
 
-        SSEConfig sseConfig = new SSEConfig("demo_url", "demo_token");
+        SSEConfig sseConfig = new SSEConfig("demo_url", new SSEAuthentication("demo_token", "demo_api_token"));
         Mockito.when(cloud.getConfig()).thenReturn(sseConfig);
         Mockito.when(networkInfoProvider.isNetworkAvailable()).thenReturn(true);
     }
@@ -65,9 +67,9 @@ public class CfClientTest {
 
         CfClient cfClient = new CfClient(cloudFactory);
         CountDownLatch latch  = new CountDownLatch(1);
-        CfConfiguration cfConfiguration = new CfConfiguration("", "demo_url", true, 10, "target");
+        CfConfiguration cfConfiguration = new CfConfiguration("", "demo_url", true, 10);
 
-        cfClient.initialize(context, "", cfConfiguration, (info) -> {
+        cfClient.initialize(context, "", cfConfiguration, new Target().identifier("target"), (info) -> {
             latch.countDown();
         });
 
@@ -94,9 +96,9 @@ public class CfClientTest {
         initTestSetup();
         CfClient cfClient = new CfClient(cloudFactory);
         CountDownLatch latch  = new CountDownLatch(1);
-        CfConfiguration cfConfiguration = new CfConfiguration("", "", false, 10, "target");
+        CfConfiguration cfConfiguration = new CfConfiguration("", "", false, 10);
 
-        cfClient.initialize(context, "", cfConfiguration, (info) -> {
+        cfClient.initialize(context, "", cfConfiguration, new Target().identifier("target"), (info) -> {
             latch.countDown();
         });
 
@@ -107,7 +109,7 @@ public class CfClientTest {
             e.printStackTrace();
         }
 
-        cfClient.boolVariation("","", false);
+        cfClient.boolVariation("", false);
 
         Mockito.verify(cloud, Mockito.times(1)).initialize();
         Mockito.verify(sseController, Mockito.times(0)).start(any(), any());
@@ -208,9 +210,9 @@ public class CfClientTest {
         cfClient.registerEvaluationListener("demo_change", evaluationListener);
 
 
-        CfConfiguration cfConfiguration = new CfConfiguration("", "", true, 10, "target");
+        CfConfiguration cfConfiguration = new CfConfiguration("", "", true, 10);
 
-        cfClient.initialize(context, "", cfConfiguration);
+        cfClient.initialize(context, "", cfConfiguration, new Target().identifier("target"));
 
         try {
             latch.await(10, TimeUnit.SECONDS);
@@ -251,9 +253,9 @@ public class CfClientTest {
         CountDownLatch latch  = new CountDownLatch(1);
 
         CfClient cfClient = new CfClient(cloudFactory);
-        CfConfiguration cfConfiguration = new CfConfiguration("", "demo_url", false, 10, "target");
+        CfConfiguration cfConfiguration = new CfConfiguration("", "demo_url", false, 10);
 
-        cfClient.initialize(context, "", cfConfiguration, (info) -> {
+        cfClient.initialize(context, "", cfConfiguration, new Target().identifier("target"), (info) -> {
             latch.countDown();
         });
 
@@ -270,7 +272,7 @@ public class CfClientTest {
         Mockito.when(featureRepository.getEvaluation(Mockito.anyString(), Mockito.anyString(), Mockito.eq("string_eval"), Mockito.eq(true)))
                 .thenReturn(evaluation);
 
-        String eval = cfClient.stringVariation("string_eval", "target", "string_eval");
+        String eval = cfClient.stringVariation("string_eval", "string_eval");
 
         Evaluation boolEvaluation = new Evaluation();
         boolEvaluation.flag("bool_eval");
@@ -278,7 +280,7 @@ public class CfClientTest {
         Mockito.when(featureRepository.getEvaluation(Mockito.anyString(), Mockito.anyString(), Mockito.eq("bool_eval"), Mockito.eq(true)))
                 .thenReturn(boolEvaluation);
 
-        boolean boolEvalValue = cfClient.boolVariation("bool_eval", "target", false);
+        boolean boolEvalValue = cfClient.boolVariation("bool_eval", false);
 
         Evaluation intEvaluation = new Evaluation();
         intEvaluation.flag("int_evaluation");
@@ -286,8 +288,8 @@ public class CfClientTest {
         Mockito.when(featureRepository.getEvaluation(Mockito.anyString(), Mockito.anyString(), Mockito.eq("int_evaluation"), Mockito.eq(true)))
                 .thenReturn(intEvaluation);
 
-        double intEvalValue = cfClient.numberVariation("int_evaluation", "target", 1);
-        double emptyEvalValue = cfClient.numberVariation("empty_eval", "target", 1);
+        double intEvalValue = cfClient.numberVariation("int_evaluation", 1);
+        double emptyEvalValue = cfClient.numberVariation("empty_eval", 1);
 
         Assert.assertEquals(eval, "string_val");
         Assert.assertTrue(boolEvalValue);

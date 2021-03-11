@@ -5,20 +5,18 @@ package io.harness.cfsdk;
  */
 public class CfConfiguration {
     private static final String BASE_URL = "https://config.feature-flags.uat.harness.io/api/1.0";
-    private static final String STREAM_URL = BASE_URL + "/stream/environments/";
+    private static final String STREAM_URL = BASE_URL + "/stream";
 
     private final String baseURL;
     private final String streamURL;
     private final boolean streamEnabled;
     private final int pollingInterval;
-    private final String target;
 
-    CfConfiguration(String baseURL, String streamURL, boolean streamEnabled, int pollingInterval, String target) {
+    CfConfiguration(String baseURL, String streamURL, boolean streamEnabled, int pollingInterval) {
         this.baseURL = baseURL;
         this.streamURL = streamURL;
         this.streamEnabled = streamEnabled;
         this.pollingInterval = pollingInterval;
-        this.target = target;
     }
 
     public String getBaseURL() {
@@ -41,17 +39,12 @@ public class CfConfiguration {
         return pollingInterval;
     }
 
-    public String getTarget() {
-        return target;
-    }
-
     public static class Builder {
 
         private String baseURL;
         private String streamURL;
         private boolean streamEnabled;
         private int pollingInterval;
-        private String target;
 
         /**
          * Sets the base API url
@@ -85,11 +78,6 @@ public class CfConfiguration {
             return this;
         }
 
-        public Builder target(String target) {
-            this.target = target;
-            return this;
-        }
-
         public CfConfiguration build() {
             if (baseURL == null || baseURL.isEmpty()) {
                 baseURL = BASE_URL;
@@ -97,8 +85,7 @@ public class CfConfiguration {
             if (streamEnabled && (streamURL == null || streamURL.isEmpty())) {
                 streamURL = STREAM_URL;
             }
-            if (target == null) throw new IllegalArgumentException("target must not be null!");
-            return new CfConfiguration(baseURL, streamURL, streamEnabled, pollingInterval, target);
+            return new CfConfiguration(baseURL, streamURL, streamEnabled, pollingInterval);
         }
     }
 }

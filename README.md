@@ -8,13 +8,18 @@ Harness CF Android SDK
 -------------------------
 
 ## Setup
-The library is packed into `cfsdk-release.aar` file. To use it, create a new module in your project and add this library to it. Next step is adding a dependency to our SDK.
-```
-//TODO Maven dependency is under development
-//implementation 'io.harness:cf-android-client-sdk:1.0.0'
 
-implementation project(path: ':cfsdk')
+Add following snippet to root project's `build.gradle` file:
 ```
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+```
+
+In app module's `build.gradle` file add dependency for Harness's SDK
+`implementation 'io.harness:ff-android-client-sdk:0.0.2'`
+
 After this step, the SDK elements, primarily `CfClient` should be accessible in main application.
 
 ### **_Initialization_**
@@ -24,12 +29,13 @@ After this step, the SDK elements, primarily `CfClient` should be accessible in 
 val sdkConfiguration = CfConfiguration.builder()
     .baseUrl("BASE_API_URL")
     .pollingInterval(30) //time in seconds
-    .target("your_desired_target")
     .enableStream(true)
     .streamUrl("STREAM_URL")
     .build()
 
-CfClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration)
+val target = Target().identifier("target")
+
+CfClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration, target)
 ```
 `target` represents a desired target for which we want features to be evaluated.
 
@@ -44,13 +50,13 @@ The Public API exposes a few methods that you can utilize:
 
 * `public void initialize(Context context, String clientId, CfConfiguration configuration, CloudCache cloudCache, AuthCallback authCallback)`
 
-* `public boolean boolEvaluation(String evaluationId, String target, boolean defaultValue)`
+* `public boolean boolEvaluation(String evaluationId, boolean defaultValue)`
 
-* `public String stringEvaluation(String evaluationId, String target, String defaultValue)`
+* `public String stringEvaluation(String evaluationId, String defaultValue)`
 
-* `public double numberEvaluation(String evaluationId, String target, double defaultValue)`
+* `public double numberEvaluation(String evaluationId, double defaultValue)`
 
-* `public JSONObject jsonVariation(String evaluationId, String target, JSONObject defaultValue)`
+* `public JSONObject jsonVariation(String evaluationId, JSONObject defaultValue)`
 
 * `public void registerEventsListener(EventsListener listener)`
 
@@ -64,10 +70,10 @@ The Public API exposes a few methods that you can utilize:
 It is possible to fetch a value for a given evaluation. Evaluation is performed based on different type. In case there is no evaluation with provided id, the default value is returned.
 ```
 //get boolean evaluation
-val evaluation: Boolean = CfClient.getInstance().boolEvaluation("demo_evaluation", "demo_target", false)  
+val evaluation: Boolean = CfClient.getInstance().boolEvaluation("demo_evaluation", false)  
 
 //get boolean evaluation
-val intEvaluation: Double = CfClient.getInstance().numberEvaluation("demo_evaluation", "demo_target", 6 )  
+val intEvaluation: Double = CfClient.getInstance().numberEvaluation("demo_evaluation", 6 )  
 ```
 
 #### Register for events
