@@ -16,12 +16,17 @@
 
 package io.harness.cfsdk.cloud.oksse;
 
-import okhttp3.*;
-import okio.BufferedSource;
-
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import okio.BufferedSource;
 
 class RealServerSentEvent implements ServerSentEvent {
 
@@ -35,10 +40,10 @@ class RealServerSentEvent implements ServerSentEvent {
     private long reconnectTime = TimeUnit.SECONDS.toMillis(3);
     private long readTimeoutMillis = 0;
     private String lastEventId;
-    private String token;
+    private SSEAuthentication authentication;
 
-    RealServerSentEvent(Request request, Listener listener, String token) {
-        this.token = token;
+    RealServerSentEvent(Request request, Listener listener, SSEAuthentication sseAuthentication) {
+        this.authentication = sseAuthentication;
         if (!"GET".equals(request.method())) {
             throw new IllegalArgumentException("Request must be GET: " + request.method());
         }
@@ -60,7 +65,8 @@ class RealServerSentEvent implements ServerSentEvent {
                 .header("Accept-Encoding", "")
                 .header("Accept", "text/event-stream")
                 .header("Cache-Control", "no-cache")
-                .header("Authorization", "Bearer " + this.token);
+                .header("API-Key", this.authentication.getApiToken())
+                .header("Authorization", "Bearer " + this.authentication.getAuthToken());
 
         if (lastEventId != null) {
             requestBuilder.header("Last-Event-Id", lastEventId);
@@ -70,14 +76,17 @@ class RealServerSentEvent implements ServerSentEvent {
     }
 
     private void enqueue() {
+        System.out.println("sse_flow - SSE starting");
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
+                System.out.println("sse_flow - SSE failuer " + e.getClass().getSimpleName());
                 notifyFailure(e, null);
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
+                System.out.println("sse_flow - SSE Response received");
                 if (response.isSuccessful()) {
                     openSse(response);
                 } else {
@@ -100,6 +109,7 @@ class RealServerSentEvent implements ServerSentEvent {
     }
 
     private void notifyFailure(Throwable throwable, Response response) {
+        System.out.println("Error in opening SSE stream");
         throwable.printStackTrace();
         if (!retry(throwable, response)) {
             if (listener != null) listener.onClosed(this);

@@ -90,11 +90,11 @@ public class CloudTest {
         ApiResponse errorSingleResponse = cloud.getEvaluationForId("flag_1", "demo_target");
         Assert.assertNull(errorSingleResponse);
 
-        Assert.assertEquals(cloud.getConfig().getToken(), authToken);
+        Assert.assertEquals(cloud.getConfig().getAuthentication().getAuthToken(), authToken);
 
         cloud.initialize();
 
-        Assert.assertEquals(cloud.getConfig().getToken(), authToken);
+        Assert.assertEquals(cloud.getConfig().getAuthentication().getAuthToken(), authToken);
 
     }
 }

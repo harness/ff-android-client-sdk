@@ -6,9 +6,10 @@ import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
+import io.harness.cfsdk.cloud.oksse.SSEAuthentication;
 import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 
-public class Cloud implements FeatureService{
+public class Cloud implements FeatureService {
 
     private final CloudFactory cloudFactory;
     private final String key;
@@ -55,8 +56,12 @@ public class Cloud implements FeatureService{
 
     }
 
+    private String buildSSEUrl() {
+        return this.streamUrl;
+    }
+
     public SSEConfig getConfig() {
-        return new SSEConfig(this.streamUrl + this.authInfo.getEnvironment(), this.authToken);
+        return new SSEConfig(buildSSEUrl(), new SSEAuthentication(this.authToken, this.key));
     }
 
     public boolean isInitialized() {

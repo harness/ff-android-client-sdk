@@ -1,16 +1,18 @@
 package io.harness.cfsdk.cloud.oksse.model;
 
+import io.harness.cfsdk.cloud.oksse.SSEAuthentication;
+
 public class SSEConfig {
     private String url;
-    private String token;
+    private SSEAuthentication authentication;
 
-    public SSEConfig(String url, String token) {
+    public SSEConfig(String url, SSEAuthentication authentication) {
         this.url = url;
-        this.token = token;
+        this.authentication = authentication;
     }
 
-    public String getToken() {
-        return token;
+    public SSEAuthentication getAuthentication() {
+        return authentication;
     }
 
     public String getUrl() {
@@ -18,6 +20,6 @@ public class SSEConfig {
     }
 
     public boolean isValid() {
-        return token != null && url != null && !url.isEmpty();
+        return authentication.getAuthToken() != null && url != null && !url.isEmpty();
     }
 }

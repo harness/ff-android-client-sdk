@@ -24,6 +24,7 @@ import io.harness.cfsdk.cloud.events.AuthCallback;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
+import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
 import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 import io.harness.cfsdk.cloud.oksse.EventsListener;
@@ -41,7 +42,7 @@ public final class CfClient {
 
     private Cloud cloud;
 
-    private String target;
+    private Target target;
     private AuthInfo authInfo;
     private EvaluationPolling evaluationPolling;
 
@@ -67,7 +68,7 @@ public final class CfClient {
                 break;
             case SSE_END:
                 if (networkInfoProvider.isNetworkAvailable()) {
-                    this.featureRepository.getAllEvaluations(authInfo.getEnvironmentIdentifier(), target, false);
+                    this.featureRepository.getAllEvaluations(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), false);
                     evaluationPolling.start(new Runnable() {
                         @Override
                         public void run() {
@@ -78,12 +79,12 @@ public final class CfClient {
                 break;
             case EVALUATION_CHANGE:
                 Evaluation evaluation = statusEvent.extractPayload();
-                Evaluation e = featureRepository.getEvaluation(authInfo.getEnvironmentIdentifier(), target, evaluation.getFlag(), false);
+                Evaluation e = featureRepository.getEvaluation(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), evaluation.getFlag(), false);
                 notifyListeners(e);
                 break;
             case EVALUATION_REMOVE:
                 Evaluation eval = statusEvent.extractPayload();
-                featureRepository.remove(authInfo.getEnvironmentIdentifier(), target, eval.getFlag());
+                featureRepository.remove(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), eval.getFlag());
                 break;
         }
         sendEvent(statusEvent);
@@ -138,7 +139,7 @@ public final class CfClient {
                     }
                 }
                 if (!ready) return;
-                List<Evaluation> evaluations = this.featureRepository.getAllEvaluations(authInfo.getEnvironmentIdentifier(), target, false);
+                List<Evaluation> evaluations = this.featureRepository.getAllEvaluations(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), false);
                 sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
 
                 if (useStream) startSSE();
@@ -194,21 +195,23 @@ public final class CfClient {
      * Initialize the client and sets up needed dependencies. Upon called, it is dispatched to another thread and result is returned trough
      * provided {@link AuthCallback} instance.
      * @param context Context of application
-     * @param clientId API key used for authentication
+     * @param apiKey API key used for authentication
      * @param configuration Collection of different configuration flags, which defined the behaviour of SDK
+     * @param target Desired target against which we want features to be evaluated
      * @param cloudCache Custom {@link CloudCache} implementation. If non provided, the default implementation will be used
      * @param authCallback The callback that will be invoked when initialization is finished
      */
-    public void initialize(Context context, String clientId, CfConfiguration configuration, CloudCache cloudCache, AuthCallback authCallback) {
+    public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target, CloudCache cloudCache, AuthCallback authCallback) {
         executor.execute(() -> {
+            if (target == null || configuration == null) throw new IllegalArgumentException("Target and configuration must not be null!");
             unregister();
-            this.cloud = cloudFactory.cloud(configuration.getStreamURL(), configuration.getBaseURL(), clientId);
+            this.cloud = cloudFactory.cloud(configuration.getStreamURL(), configuration.getBaseURL(), apiKey);
             setupNetworkInfo(context);
             featureRepository = cloudFactory.getFeatureRepository(cloud, cloudCache);
             sseController = cloudFactory.sseController();
             evaluationPolling = cloudFactory.evaluationPolling(configuration.getPollingInterval(), TimeUnit.SECONDS);
 
-            this.target = configuration.getTarget();
+            this.target = target;
             this.useStream = configuration.getStreamEnabled();
 
             boolean success = cloud.initialize();
@@ -216,7 +219,7 @@ public final class CfClient {
                 this.authInfo = cloud.getAuthInfo();
                 ready = true;
                 if (networkInfoProvider.isNetworkAvailable()) {
-                    featureRepository.getAllEvaluations(this.authInfo.getEnvironmentIdentifier(), target, false);
+                    featureRepository.getAllEvaluations(this.authInfo.getEnvironmentIdentifier(), target.getIdentifier(), false);
                     if (useStream) {
                         startSSE();
                     } else {
@@ -235,16 +238,16 @@ public final class CfClient {
         });
     }
 
-    public void initialize(Context context, String clientId, CfConfiguration configuration, AuthCallback authCallback) {
-        initialize(context, clientId, configuration, cloudFactory.defaultCache(context), authCallback);
+    public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target, AuthCallback authCallback) {
+        initialize(context, apiKey, configuration, target, cloudFactory.defaultCache(context), authCallback);
     }
 
-    public void initialize(Context context, String clientId, CfConfiguration configuration, CloudCache cloudCache) {
-        initialize(context, clientId, configuration, cloudCache, null);
+    public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target, CloudCache cloudCache) {
+        initialize(context, apiKey, configuration, target, cloudCache, null);
     }
     
-    public void initialize(Context context, String clientId, CfConfiguration configuration) {
-        initialize(context, clientId, configuration, cloudFactory.defaultCache(context), null);
+    public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target) {
+        initialize(context, apiKey, configuration, target, cloudFactory.defaultCache(context));
     }
 
     /**
@@ -301,21 +304,21 @@ public final class CfClient {
         return result;
     }
 
-    public boolean boolVariation(String evaluationId, String target, boolean defaultValue) {
-        return getEvaluationById(evaluationId, target, defaultValue).getValue();
+    public boolean boolVariation(String evaluationId, boolean defaultValue) {
+        return getEvaluationById(evaluationId, target.getIdentifier(), defaultValue).getValue();
     }
 
-    public String stringVariation(String evaluationId, String target, String defaultValue) {
-        return getEvaluationById(evaluationId, target, defaultValue).getValue();
+    public String stringVariation(String evaluationId, String defaultValue) {
+        return getEvaluationById(evaluationId, target.getIdentifier(), defaultValue).getValue();
     }
 
-    public double numberVariation(String evaluationId, String target, int defaultValue) {
-        return ((Number)getEvaluationById(evaluationId, target, defaultValue).getValue()).doubleValue();
+    public double numberVariation(String evaluationId, int defaultValue) {
+        return ((Number)getEvaluationById(evaluationId, target.getIdentifier(), defaultValue).getValue()).doubleValue();
     }
 
-    public JSONObject jsonVariation(String evaluationId, String target, JSONObject defaultValue) {
+    public JSONObject jsonVariation(String evaluationId, JSONObject defaultValue) {
         try {
-            return new JSONObject((String)getEvaluationById(evaluationId, target, defaultValue).getValue());
+            return new JSONObject((String)getEvaluationById(evaluationId, target.getIdentifier(), defaultValue).getValue());
         } catch (JSONException e) {
             e.printStackTrace();
         }
