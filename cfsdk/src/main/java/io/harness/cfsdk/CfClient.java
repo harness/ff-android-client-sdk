@@ -219,7 +219,8 @@ public final class CfClient {
                 this.authInfo = cloud.getAuthInfo();
                 ready = true;
                 if (networkInfoProvider.isNetworkAvailable()) {
-                    featureRepository.getAllEvaluations(this.authInfo.getEnvironmentIdentifier(), target.getIdentifier(), false);
+                    List<Evaluation> evaluations = featureRepository.getAllEvaluations(this.authInfo.getEnvironmentIdentifier(), target.getIdentifier(), false);
+                    sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
                     if (useStream) {
                         startSSE();
                     } else {
