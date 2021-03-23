@@ -80,6 +80,7 @@ public final class CfClient {
             case EVALUATION_CHANGE:
                 Evaluation evaluation = statusEvent.extractPayload();
                 Evaluation e = featureRepository.getEvaluation(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), evaluation.getFlag(), false);
+                statusEvent = new StatusEvent(statusEvent.getEventType(), e);
                 notifyListeners(e);
                 break;
             case EVALUATION_REMOVE:
@@ -313,13 +314,13 @@ public final class CfClient {
         return getEvaluationById(evaluationId, target.getIdentifier(), defaultValue).getValue();
     }
 
-    public double numberVariation(String evaluationId, int defaultValue) {
+    public double numberVariation(String evaluationId, double defaultValue) {
         return ((Number)getEvaluationById(evaluationId, target.getIdentifier(), defaultValue).getValue()).doubleValue();
     }
 
     public JSONObject jsonVariation(String evaluationId, JSONObject defaultValue) {
         try {
-            return new JSONObject((String)getEvaluationById(evaluationId, target.getIdentifier(), defaultValue).getValue());
+            return new JSONObject((String)getEvaluationById(evaluationId, target.getIdentifier(), defaultValue.toString()).getValue());
         } catch (JSONException e) {
             e.printStackTrace();
         }
