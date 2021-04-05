@@ -72,8 +72,8 @@ It is possible to fetch a value for a given evaluation. Evaluation is performed 
 //get boolean evaluation
 val evaluation: Boolean = CfClient.getInstance().boolEvaluation("demo_evaluation", false)  
 
-//get boolean evaluation
-val intEvaluation: Double = CfClient.getInstance().numberEvaluation("demo_evaluation", 6 )  
+//get number evaluation
+double numberEvaluation: Double = CfClient.getInstance().numberEvaluation("demo_evaluation", 6.0)
 ```
 
 #### Register for events
@@ -81,7 +81,7 @@ This method provides a way to register a listener for different events that migh
 
 ```
 private final EventsListener eventsListener = statusEvent -> {
-    if (statusEvent.getEventyType() == EVALUATION_CHANGE) {
+    if (statusEvent.getEventType() == EVALUATION_CHANGE) {
         Evaluation evaluation = statusEvent.extractPayload();
     }
 }
