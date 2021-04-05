@@ -19,6 +19,7 @@ import io.harness.cfsdk.cloud.core.model.AuthenticationResponse;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
+import io.harness.cfsdk.cloud.model.Target;
 import io.swagger.annotations.Api;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -51,8 +52,9 @@ public class CloudTest {
         Mockito.when(cloudFactory.apiClient()).thenReturn(apiClient);
         Mockito.when(cloudFactory.defaultApi(any())).thenReturn(defaultApi);
         Mockito.when(cloudFactory.tokenProvider()).thenReturn(tokenProvider);
-
-        Cloud cloud = new Cloud(cloudFactory, "sse_url", "", "demo_key");
+        Target target = new Target();
+        target.identifier("Fiserv");
+        Cloud cloud = new Cloud(cloudFactory, "sse_url", "", "demo_key", target);
         cloud.initialize();
 
         Mockito.verify(apiClient, Mockito.times(1)).addDefaultHeader(eq("Authorization"), eq("Bearer " + authToken));

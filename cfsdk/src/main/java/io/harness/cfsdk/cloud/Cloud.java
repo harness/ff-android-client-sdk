@@ -6,6 +6,7 @@ import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
+import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.oksse.SSEAuthentication;
 import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 
@@ -18,18 +19,20 @@ public class Cloud implements FeatureService {
     private AuthInfo authInfo;
 
     private final ApiClient apiClient;
+    private Target target;
     private String authToken;
     private DefaultApi defaultApi;
 
     private final TokenProvider tokenProvider;
 
-    public Cloud(CloudFactory cloudFactory, String sseUrl, String baseUrl, String key) {
+    public Cloud(CloudFactory cloudFactory, String sseUrl, String baseUrl, String key, Target target) {
         this.cloudFactory = cloudFactory;
         this.key = key;
         this.authResponseDecoder = cloudFactory.getAuthResponseDecoder();
         this.streamUrl = sseUrl;
         this.tokenProvider = cloudFactory.tokenProvider();
         apiClient = cloudFactory.apiClient();
+        this.target = target;
         apiClient.setDebugging(false);
         apiClient.setBasePath(baseUrl);
     }
@@ -43,6 +46,7 @@ public class Cloud implements FeatureService {
         defaultApi = cloudFactory.defaultApi(apiClient);
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.apiKey(this.key);
+        authenticationRequest.setTarget(this.target);
         try {
             authToken = defaultApi.authenticate(authenticationRequest).getAuthToken();
             this.tokenProvider.addToken(this.key, authToken);
