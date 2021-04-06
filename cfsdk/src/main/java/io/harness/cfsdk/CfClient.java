@@ -82,6 +82,7 @@ public final class CfClient {
             case EVALUATION_CHANGE:
                 Evaluation evaluation = statusEvent.extractPayload();
                 Evaluation e = featureRepository.getEvaluation(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), evaluation.getFlag(), false);
+                statusEvent = new StatusEvent(statusEvent.getEventType(), e);
                 notifyListeners(e);
                 break;
             case EVALUATION_REMOVE:

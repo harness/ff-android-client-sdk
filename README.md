@@ -22,10 +22,10 @@ In app module's `build.gradle` file add dependency for Harness's SDK
 
 After this step, the SDK elements, primarily `CfClient` should be accessible in main application.
 
-### **_Initialization_**
+## **_Initialization_**
 `CfClient` is base class that provides all features of SDK. This is singleton and it is acessed with `CfClient.getInstance()`. 
 
-``` 
+```Kotlin
 val sdkConfiguration = CfConfiguration.builder()
     .baseUrl("BASE_API_URL")
     .pollingInterval(30) //time in seconds
@@ -66,20 +66,32 @@ The Public API exposes a few methods that you can utilize:
 <br><br>
 
 
-#### Fetch evaluation's value
+## Fetch evaluation's value
 It is possible to fetch a value for a given evaluation. Evaluation is performed based on different type. In case there is no evaluation with provided id, the default value is returned.
-```
+
+Use appropriate method to fetch the desired Evaluation of a certain type.
+
+### <u>_boolEvaluation(String evaluationId, boolean defaultValue)_</u>
+```Kotlin
 //get boolean evaluation
-val evaluation: Boolean = CfClient.getInstance().boolEvaluation("demo_evaluation", false)  
-
+val evaluation: Boolean = CfClient.getInstance().boolVariation("demo_evaluation", false)  
+```
+### <u>_numberEvaluation(String evaluationId, double defaultValue)_</u>
+```Kotlin
 //get number evaluation
-double numberEvaluation: Double = CfClient.getInstance().numberEvaluation("demo_evaluation", 6.0)
+val numberEvaluation: Double = CfClient.getInstance().numberVariation("demo_number_evaluation", 0)  
 ```
 
-#### Register for events
+### <u>_stringEvaluation(String evaluationId, String defaultValue)_</u>
+```Kotlin
+//get String evaluation
+val stringEvaluation: String = CfClient.getInstance().stringVariation("demo_string_evaluation", "demo_value")  
+```
+
+## _Register for events_
 This method provides a way to register a listener for different events that might be triggered by SDK, indicating specific change in SDK itself.
 
-```
+```Kotlin
 private final EventsListener eventsListener = statusEvent -> {
     if (statusEvent.getEventType() == EVALUATION_CHANGE) {
         Evaluation evaluation = statusEvent.extractPayload();
@@ -89,26 +101,31 @@ private final EventsListener eventsListener = statusEvent -> {
 CfClient.getInstance().registerEventsListener(eventsListener)
 ```
 
-
 Triggered event will have one of the following types:
 
-```   
+```Java
 public enum EVENT_TYPE {
-        SSE_START,
-        SSE_END,
+        SSE_START, 
+        SSE_END, 
         EVALUATION_CHANGE,
-        EVALUATION_REMOVE,
         EVALUATION_RELOAD
     }
 ```
-Visit documentation for complete list of possible types and values they provide.
+Following table provides summary on possible event types and corresponding responses.
 
-To avoid unexpected behaviour, when listener is not needed anymore, a callar should call 
-`CfClient.getInstance().unregisterEventsListener(eventsListener)`
-This way the sdk will remove desired listener from internal list.
+| EVENT_TYPE        | Response          |         
+| -------------     |:-------:          |      
+| SSE_START         | -                 |
+| SSE_END           | -                 |
+| EVALUATION_CHANGE | `Evaluation`      | 
+| EVALUATION_RELOAD | `List<Evaluation>`|
 
-#### Shutting down the SDK
+
+To avoid unexpected behaviour, when listener is not needed anymore, a caller should call 
+`CfClient.getInstance().unregisterEventsListener(eventsListener)`. This way the sdk will remove desired listener from internal list.
+
+## _Shutting down the SDK_
 To avoid potential memory leak, when SDK is no longer needed (when the app is closed, for example), a caller should call this method
-```
+```Kotlin
 CfClient.getInstance().destroy()
 ```
