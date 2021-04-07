@@ -44,7 +44,7 @@ public class CfClientTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        Mockito.when(cloudFactory.cloud(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(cloud);
+        Mockito.when(cloudFactory.cloud(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any())).thenReturn(cloud);
         Mockito.when(cloudFactory.sseController()).thenReturn(sseController);
         Mockito.when(cloudFactory.getFeatureRepository(any(), any())).thenReturn(featureRepository);
         Mockito.when(cloudFactory.evaluationPolling(10, TimeUnit.SECONDS)).thenReturn(polling);

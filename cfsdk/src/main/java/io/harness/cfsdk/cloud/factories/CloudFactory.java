@@ -15,6 +15,7 @@ import io.harness.cfsdk.cloud.cache.StorageCache;
 import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
 import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
+import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.polling.ShortTermPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
@@ -28,8 +29,8 @@ public class CloudFactory {
         return new AuthResponseDecoder();
     }
 
-    public Cloud cloud(String sseUrl, String baseUrl, String key ) {
-        return new Cloud(this, sseUrl, baseUrl, key);
+    public Cloud cloud(String sseUrl, String baseUrl, String key, Target target) {
+        return new Cloud(this, sseUrl, baseUrl, key, target);
     }
 
     public FeatureRepository getFeatureRepository(FeatureService featureService, CloudCache cloudCache) {

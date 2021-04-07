@@ -20,6 +20,8 @@ import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+
+import io.harness.cfsdk.cloud.model.Target;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.IOException;
@@ -31,6 +33,10 @@ public class AuthenticationRequest {
   public static final String SERIALIZED_NAME_API_KEY = "apiKey";
   @SerializedName(SERIALIZED_NAME_API_KEY)
   private String apiKey;
+
+  public static final String SERIALIZED_NAME_TARGET = "target";
+  @SerializedName(SERIALIZED_NAME_TARGET)
+  private Target target;
 
 
   public AuthenticationRequest apiKey(String apiKey) {
@@ -54,6 +60,14 @@ public class AuthenticationRequest {
     this.apiKey = apiKey;
   }
 
+
+  public Target getTarget() {
+    return target;
+  }
+
+  public void setTarget(Target target) {
+    this.target = target;
+  }
 
   @Override
   public boolean equals(Object o) {

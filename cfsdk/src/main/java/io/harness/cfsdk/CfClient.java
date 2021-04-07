@@ -6,10 +6,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -206,13 +208,14 @@ public final class CfClient {
         executor.execute(() -> {
             if (target == null || configuration == null) throw new IllegalArgumentException("Target and configuration must not be null!");
             unregister();
-            this.cloud = cloudFactory.cloud(configuration.getStreamURL(), configuration.getBaseURL(), apiKey);
+            this.target = target;
+            this.cloud = cloudFactory.cloud(configuration.getStreamURL(), configuration.getBaseURL(), apiKey, target);
             setupNetworkInfo(context);
             featureRepository = cloudFactory.getFeatureRepository(cloud, cloudCache);
             sseController = cloudFactory.sseController();
             evaluationPolling = cloudFactory.evaluationPolling(configuration.getPollingInterval(), TimeUnit.SECONDS);
 
-            this.target = target;
+
             this.useStream = configuration.getStreamEnabled();
 
             boolean success = cloud.initialize();
@@ -320,7 +323,12 @@ public final class CfClient {
 
     public JSONObject jsonVariation(String evaluationId, JSONObject defaultValue) {
         try {
-            return new JSONObject((String)getEvaluationById(evaluationId, target.getIdentifier(), defaultValue.toString()).getValue());
+            Evaluation e = getEvaluationById(evaluationId, target.getIdentifier(), defaultValue);
+            if (e.getValue() == null) {
+                Map<String, Object> resultMap = new HashMap<>();
+                resultMap.put(evaluationId, null);
+                return new JSONObject(resultMap);
+            } else return new JSONObject((String)e.getValue());
         } catch (JSONException e) {
             e.printStackTrace();
         }
