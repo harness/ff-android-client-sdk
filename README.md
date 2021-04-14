@@ -18,7 +18,7 @@ buildscript {
 ```
 
 In app module's `build.gradle` file add dependency for Harness's SDK
-`implementation 'io.harness:ff-android-client-sdk:0.0.2'`
+`implementation 'io.harness:ff-android-client-sdk:0.0.4'`
 
 After this step, the SDK elements, primarily `CfClient` should be accessible in main application.
 
@@ -50,11 +50,11 @@ The Public API exposes a few methods that you can utilize:
 
 * `public void initialize(Context context, String clientId, CfConfiguration configuration, CloudCache cloudCache, AuthCallback authCallback)`
 
-* `public boolean boolEvaluation(String evaluationId, boolean defaultValue)`
+* `public boolean boolVariation(String evaluationId, boolean defaultValue)`
 
-* `public String stringEvaluation(String evaluationId, String defaultValue)`
+* `public String stringVariation(String evaluationId, String defaultValue)`
 
-* `public double numberEvaluation(String evaluationId, double defaultValue)`
+* `public double numberVariation(String evaluationId, double defaultValue)`
 
 * `public JSONObject jsonVariation(String evaluationId, JSONObject defaultValue)`
 
@@ -71,18 +71,18 @@ It is possible to fetch a value for a given evaluation. Evaluation is performed 
 
 Use appropriate method to fetch the desired Evaluation of a certain type.
 
-### <u>_boolEvaluation(String evaluationId, boolean defaultValue)_</u>
+### <u>_boolVariation(String evaluationId, boolean defaultValue)_</u>
 ```Kotlin
 //get boolean evaluation
 val evaluation: Boolean = CfClient.getInstance().boolVariation("demo_evaluation", false)  
 ```
-### <u>_numberEvaluation(String evaluationId, double defaultValue)_</u>
+### <u>_numberVariation(String evaluationId, double defaultValue)_</u>
 ```Kotlin
 //get number evaluation
 val numberEvaluation: Double = CfClient.getInstance().numberVariation("demo_number_evaluation", 0)  
 ```
 
-### <u>_stringEvaluation(String evaluationId, String defaultValue)_</u>
+### <u>_stringVariation(String evaluationId, String defaultValue)_</u>
 ```Kotlin
 //get String evaluation
 val stringEvaluation: String = CfClient.getInstance().stringVariation("demo_string_evaluation", "demo_value")  
