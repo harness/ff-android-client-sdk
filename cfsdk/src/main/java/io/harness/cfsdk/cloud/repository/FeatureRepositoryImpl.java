@@ -21,15 +21,23 @@ public class FeatureRepositoryImpl implements FeatureRepository {
     }
 
     @Override
-    public Evaluation getEvaluation(String environment, String target, String evaluationId, boolean useCache) {
+    public Evaluation getEvaluation(
 
+            String environment,
+            String target,
+            String evaluationId,
+            boolean useCache
+    ) {
         if (useCache) {
+
             return cloudCache.getEvaluation(buildKey(environment, target, evaluationId));
         } else {
 
             ApiResponse apiResponse = this.featureService.getEvaluationForId(evaluationId, target);
             if (apiResponse != null && apiResponse.isSuccess()) {
-                cloudCache.saveEvaluation(buildKey(environment, target, evaluationId), apiResponse.body());
+
+                final String key = buildKey(environment, target, evaluationId);
+                cloudCache.saveEvaluation(key, apiResponse.body());
                 return apiResponse.body();
             }
 

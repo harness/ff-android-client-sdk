@@ -15,9 +15,13 @@ import io.harness.cfsdk.cloud.core.model.Evaluation;
 
 public class StorageCache implements CloudCache {
 
+    private final Gson gson;
+    private final WeakReference<Context> appContextWeakRef;
 
-    private WeakReference<Context> appContextWeakRef;
-    private Gson gson = new Gson();
+    {
+
+        gson = new Gson();
+    }
 
     public StorageCache(Context appContext) {
         this.appContextWeakRef = new WeakReference<>(appContext);

@@ -1,14 +1,16 @@
 package io.harness.cfsdk.cloud;
 
 public class ApiResponse {
-    private int code;
-    private String rawResponse;
-    private Object body;
+
+    private final int code;
+    private final Object body;
+    private final String rawResponse;
 
     public ApiResponse(int code, String rawResponse, Object body) {
+
         this.code = code;
-        this.rawResponse = rawResponse;
         this.body = body;
+        this.rawResponse = rawResponse;
     }
 
     public boolean isSuccess(){
