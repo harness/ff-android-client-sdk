@@ -1,6 +1,7 @@
 package io.harness.cfsdk;
 
 import android.content.Context;
+import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,6 +47,7 @@ public final class CfClient {
 
     private Target target;
     private AuthInfo authInfo;
+    private final String logTag;
     private EvaluationPolling evaluationPolling;
 
     private final Executor executor = Executors.newSingleThreadExecutor();
@@ -61,6 +63,11 @@ public final class CfClient {
     private final CloudFactory cloudFactory;
 
     private static CfClient instance;
+
+    {
+
+        logTag = CfClient.class.getSimpleName();
+    }
 
     private final EventsListener eventsListener = statusEvent -> {
         if (!ready) return;
@@ -102,6 +109,7 @@ public final class CfClient {
 
     /**
      * Retrieves the single instance of {@link CfClient} to be used for SDK operation
+     *
      * @return single instance used as entry point of SDK
      */
     public static CfClient getInstance() {
@@ -134,7 +142,7 @@ public final class CfClient {
     private void reschedule() {
         executor.execute(() -> {
             try {
-                if(!ready) {
+                if (!ready) {
                     boolean success = cloud.initialize();
                     if (success) {
                         ready = true;
@@ -197,16 +205,18 @@ public final class CfClient {
     /**
      * Initialize the client and sets up needed dependencies. Upon called, it is dispatched to another thread and result is returned trough
      * provided {@link AuthCallback} instance.
-     * @param context Context of application
-     * @param apiKey API key used for authentication
+     *
+     * @param context       Context of application
+     * @param apiKey        API key used for authentication
      * @param configuration Collection of different configuration flags, which defined the behaviour of SDK
-     * @param target Desired target against which we want features to be evaluated
-     * @param cloudCache Custom {@link CloudCache} implementation. If non provided, the default implementation will be used
-     * @param authCallback The callback that will be invoked when initialization is finished
+     * @param target        Desired target against which we want features to be evaluated
+     * @param cloudCache    Custom {@link CloudCache} implementation. If non provided, the default implementation will be used
+     * @param authCallback  The callback that will be invoked when initialization is finished
      */
     public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target, CloudCache cloudCache, AuthCallback authCallback) {
         executor.execute(() -> {
-            if (target == null || configuration == null) throw new IllegalArgumentException("Target and configuration must not be null!");
+            if (target == null || configuration == null)
+                throw new IllegalArgumentException("Target and configuration must not be null!");
             unregister();
             this.target = target;
             this.cloud = cloudFactory.cloud(configuration.getStreamURL(), configuration.getBaseURL(), apiKey, target);
@@ -250,7 +260,7 @@ public final class CfClient {
     public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target, CloudCache cloudCache) {
         initialize(context, apiKey, configuration, target, cloudCache, null);
     }
-    
+
     public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target) {
         initialize(context, apiKey, configuration, target, cloudFactory.defaultCache(context));
     }
@@ -259,8 +269,9 @@ public final class CfClient {
      * Register a listener to observe changes on a evaluation with given id. The change <strong>will not</strong> be triggered
      * in case of reloading all evaluations, but only when single evaluation is changed.
      * It is possible to register multiple observers for a single evaluatio.
+     *
      * @param evaluationId Evaluation identifier we would like to observe.
-     * @param listener {@link EvaluationListener} instance that will be invoked when evaluation is changed
+     * @param listener     {@link EvaluationListener} instance that will be invoked when evaluation is changed
      */
     public void registerEvaluationListener(String evaluationId, EvaluationListener listener) {
         if (listener == null) return;
@@ -273,8 +284,9 @@ public final class CfClient {
 
     /**
      * Removes specified listener for an evaluation with given id.
+     *
      * @param evaluationId Evaluation identifier.
-     * @param listener {@link EvaluationListener} instance we want to remove
+     * @param listener     {@link EvaluationListener} instance we want to remove
      */
     public void unregisterEvaluationListener(String evaluationId, EvaluationListener listener) {
         if (listener == null) return;
@@ -283,10 +295,10 @@ public final class CfClient {
         set.remove(listener);
     }
 
-
     /**
      * Retrieves single {@link Evaluation instance} based on provided id. If no such evaluation is found,
      * returns one with provided default value.
+     *
      * @param evaluationId Identifier of target evaluation
      * @param defaultValue Default value to be used in case when evaluation is not found
      * @return Evaluation for a given id
@@ -294,7 +306,8 @@ public final class CfClient {
     private <T> Evaluation getEvaluationById(String evaluationId, String target, T defaultValue) {
         Evaluation result = new Evaluation();
         if (ready) {
-            Evaluation evaluation = featureRepository.getEvaluation(authInfo.getEnvironmentIdentifier(), target, evaluationId, true);
+            final String identifier = authInfo.getEnvironmentIdentifier();
+            final Evaluation evaluation = featureRepository.getEvaluation(identifier, target, evaluationId, true);
             if (evaluation == null) {
                 result.value(defaultValue);
                 result.flag(evaluationId);
@@ -310,7 +323,23 @@ public final class CfClient {
     }
 
     public boolean boolVariation(String evaluationId, boolean defaultValue) {
-        return getEvaluationById(evaluationId, target.getIdentifier(), defaultValue).getValue();
+
+        final Evaluation evaluation = getEvaluationById(
+
+                evaluationId,
+                target.getIdentifier(),
+                defaultValue
+        );
+        final Object value = evaluation.getValue();
+        if (value instanceof Boolean) {
+
+            return (Boolean) value;
+        }
+        if (value instanceof String) {
+
+            return "true".equals(value);
+        }
+        return defaultValue;
     }
 
     public String stringVariation(String evaluationId, String defaultValue) {
@@ -318,7 +347,30 @@ public final class CfClient {
     }
 
     public double numberVariation(String evaluationId, double defaultValue) {
-        return ((Number)getEvaluationById(evaluationId, target.getIdentifier(), defaultValue).getValue()).doubleValue();
+
+        final Evaluation evaluation = getEvaluationById(
+
+                evaluationId,
+                target.getIdentifier(),
+                defaultValue
+        );
+        final Object value = evaluation.getValue();
+        if (value instanceof Number) {
+
+            return ((Number) value).doubleValue();
+        }
+        if (value instanceof String) {
+
+            final String strValue = (String) value;
+            try {
+
+                return Double.parseDouble(strValue);
+            } catch (NumberFormatException e) {
+
+                Log.e(logTag, e.getMessage(), e);
+            }
+        }
+        return defaultValue;
     }
 
     public JSONObject jsonVariation(String evaluationId, JSONObject defaultValue) {
@@ -328,7 +380,7 @@ public final class CfClient {
                 Map<String, Object> resultMap = new HashMap<>();
                 resultMap.put(evaluationId, null);
                 return new JSONObject(resultMap);
-            } else return new JSONObject((String)e.getValue());
+            } else return new JSONObject((String) e.getValue());
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -336,9 +388,9 @@ public final class CfClient {
     }
 
 
-
     /**
      * Adds new listener for various SDK events. See {@link StatusEvent.EVENT_TYPE} for possible types.
+     *
      * @param observer {@link EventsListener} implementation that will be triggered when there is a change in state of SDK
      */
     public void registerEventsListener(EventsListener observer) {
@@ -347,6 +399,7 @@ public final class CfClient {
 
     /**
      * Removes registered listener from list of registered events listener
+     *
      * @param observer {@link EventsListener} implementation that needs to be removed
      */
     public void unregisterEventsListener(EventsListener observer) {
