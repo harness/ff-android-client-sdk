@@ -132,15 +132,15 @@ CfClient.getInstance().destroy()
 
 ## Using SDK in unit tests
 
-In order to be able to use the SDK in unit tests it is required to set SDKs logging to the console output:
+To be able to use the SDK in unit tests it is required to set SDKs logging to the console output:
 
 ```Kotlin
 CfLog.testModeOn()
 ```
 
-`testModeOn` will turn on the use of system output logging strategy. 
+`testModeOn` will turn on the use of the system output logging strategy. 
 
-On the other hand, to turn on usage of the Android [log class](https://developer.android.com/reference/android/util/Log) use:
+On the other hand, to turn on the usage of the Android [log class](https://developer.android.com/reference/android/util/Log) use:
 
 ```Kotlin
 CfLog.runtimeModeOn()
