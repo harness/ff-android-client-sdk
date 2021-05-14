@@ -145,3 +145,5 @@ On the other hand, to turn on usage of the Android [log class](https://developer
 ```Kotlin
 CfLog.runtimeModeOn()
 ``` 
+
+Standard Android logging is the default logging strategy so turning on runtime mode is not required. 
