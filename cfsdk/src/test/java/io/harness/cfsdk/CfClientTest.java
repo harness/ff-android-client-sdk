@@ -235,7 +235,8 @@ public class CfClientTest {
 
         EventsListener eventsListener = Mockito.mock(EventsListener.class);
         Mockito.doNothing().when(eventsListener).onEventReceived(Mockito.any());
-        cfClient.registerEventsListener(eventsListener);
+        boolean registerOk = cfClient.registerEventsListener(eventsListener);
+        Assert.assertTrue(registerOk);
 
         EvaluationListener evaluationListener = Mockito.mock(EvaluationListener.class);
 
@@ -244,13 +245,14 @@ public class CfClientTest {
             return null;
         }).when(evaluationListener).onEvaluation(any());
 
-        cfClient.registerEvaluationListener("demo_change", evaluationListener);
+        registerOk = cfClient.registerEvaluationListener("demo_change", evaluationListener);
+        Assert.assertTrue(registerOk);
 
         EvaluationListener newListener = Mockito.mock(EvaluationListener.class);
         Mockito.doNothing().when(newListener).onEvaluation(Mockito.any());
 
-        cfClient.registerEvaluationListener("demo_change", evaluationListener);
-
+        registerOk = cfClient.registerEvaluationListener("demo_change", evaluationListener);
+        Assert.assertFalse(registerOk);
 
         CfConfiguration cfConfiguration = new CfConfiguration("", "", true, 10);
 
@@ -275,7 +277,8 @@ public class CfClientTest {
         Mockito.verify(featureRepository, Mockito.times(1)).remove(
                 Mockito.anyString(), Mockito.anyString(), Mockito.eq("demo_remove"));
 
-        cfClient.unregisterEvaluationListener("demo_change", evaluationListener);
+        boolean unregisterOk = cfClient.unregisterEvaluationListener("demo_change", evaluationListener);
+        Assert.assertTrue(unregisterOk);
         unregisterLatch.countDown();
 
         try {
@@ -288,6 +291,8 @@ public class CfClientTest {
 
         Mockito.verify(evaluationListener, Mockito.times(1)).onEvaluation(payload);
 
+        unregisterOk = cfClient.unregisterEventsListener(eventsListener);
+        Assert.assertTrue(unregisterOk);
     }
 
 

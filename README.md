@@ -98,7 +98,12 @@ private final EventsListener eventsListener = statusEvent -> {
     }
 }
 
-CfClient.getInstance().registerEventsListener(eventsListener)
+val success = CfClient.getInstance().registerEventsListener(eventsListener)
+```
+
+## _Unregister from events_
+```Kotlin
+val success = CfClient.getInstance().unregisterEventsListener(eventsListener)
 ```
 
 Triggered event will have one of the following types:

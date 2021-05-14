@@ -300,13 +300,22 @@ public final class CfClient {
      *
      * @param evaluationId Evaluation identifier we would like to observe.
      * @param listener     {@link EvaluationListener} instance that will be invoked when evaluation is changed
+     * @return Was evaluation registered with success?
      */
-    public void registerEvaluationListener(String evaluationId, EvaluationListener listener) {
-        if (listener == null) return;
-        Set<EvaluationListener> set = this.evaluationListenerSet.get(evaluationId);
-        if (set == null) set = new HashSet<>();
-        set.add(listener);
-        this.evaluationListenerSet.put(evaluationId, set);
+    public boolean registerEvaluationListener(String evaluationId, EvaluationListener listener) {
+
+        if (listener != null) {
+
+            Set<EvaluationListener> set = evaluationListenerSet.get(evaluationId);
+            if (set == null) {
+
+                set = new HashSet<>();
+            }
+            boolean success = set.add(listener);
+            evaluationListenerSet.put(evaluationId, set);
+            return success;
+        }
+        return false;
     }
 
 
@@ -315,12 +324,19 @@ public final class CfClient {
      *
      * @param evaluationId Evaluation identifier.
      * @param listener     {@link EvaluationListener} instance we want to remove
+     * @return Was evaluation un-registered with success?
      */
-    public void unregisterEvaluationListener(String evaluationId, EvaluationListener listener) {
-        if (listener == null) return;
-        Set<EvaluationListener> set = this.evaluationListenerSet.get(evaluationId);
-        if (set == null) return;
-        set.remove(listener);
+    public boolean unregisterEvaluationListener(String evaluationId, EvaluationListener listener) {
+
+        if (listener != null) {
+
+            Set<EvaluationListener> set = this.evaluationListenerSet.get(evaluationId);
+            if (set != null) {
+
+                return set.remove(listener);
+            }
+        }
+        return false;
     }
 
     /**
@@ -421,18 +437,25 @@ public final class CfClient {
      * Adds new listener for various SDK events. See {@link StatusEvent.EVENT_TYPE} for possible types.
      *
      * @param observer {@link EventsListener} implementation that will be triggered when there is a change in state of SDK
+     * @return Was listener registered with success?
      */
-    public void registerEventsListener(EventsListener observer) {
-        if (observer != null) eventsListenerSet.add(observer);
+    public boolean registerEventsListener(final EventsListener observer) {
+
+        if (observer != null) {
+            return eventsListenerSet.add(observer);
+        }
+        return false;
     }
 
     /**
      * Removes registered listener from list of registered events listener
      *
      * @param observer {@link EventsListener} implementation that needs to be removed
+     * @return Was listener un-registered with success?
      */
-    public void unregisterEventsListener(EventsListener observer) {
-        eventsListenerSet.remove(observer);
+    public boolean unregisterEventsListener(final EventsListener observer) {
+
+        return eventsListenerSet.remove(observer);
     }
 
     /**
