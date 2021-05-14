@@ -1,5 +1,6 @@
 package io.harness.cfsdk.cloud;
 
+import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
 import io.harness.cfsdk.cloud.core.client.ApiException;
@@ -12,20 +13,32 @@ import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 
 public class Cloud implements FeatureService {
 
-    private final CloudFactory cloudFactory;
     private final String key;
-    private final AuthResponseDecoder authResponseDecoder;
-    private final String streamUrl;
-    private AuthInfo authInfo;
-
-    private final ApiClient apiClient;
-    private Target target;
     private String authToken;
+    private AuthInfo authInfo;
+    private final String logTag;
+    private final Target target;
     private DefaultApi defaultApi;
-
+    private final String streamUrl;
+    private final ApiClient apiClient;
+    private final CloudFactory cloudFactory;
     private final TokenProvider tokenProvider;
+    private final AuthResponseDecoder authResponseDecoder;
 
-    public Cloud(CloudFactory cloudFactory, String sseUrl, String baseUrl, String key, Target target) {
+    {
+
+        logTag = Cloud.class.getSimpleName();
+    }
+
+    public Cloud(
+
+            CloudFactory cloudFactory,
+            String sseUrl,
+            String baseUrl,
+            String key,
+            Target target
+    ) {
+
         this.cloudFactory = cloudFactory;
         this.key = key;
         this.authResponseDecoder = cloudFactory.getAuthResponseDecoder();
@@ -80,9 +93,11 @@ public class Cloud implements FeatureService {
 
     public ApiResponse getEvaluations(String target) {
         try {
+
             return new ApiResponse(200, "", defaultApi.getEvaluations(this.authInfo.getEnvironment(), target));
         } catch (ApiException e) {
-            e.printStackTrace();
+
+            CfLog.OUT.e(logTag, e.getMessage(), e);
         }
         return null;
     }
@@ -90,14 +105,20 @@ public class Cloud implements FeatureService {
     public ApiResponse getEvaluationForId(String identifier, String target) {
 
         try {
-            return new ApiResponse(200,"",defaultApi.getEvaluationByIdentifier(this.authInfo.getEnvironment(),
-                    identifier, target));
-        } catch (ApiException e) {
-            e.printStackTrace();
-        }
+            return new ApiResponse(
 
+                    200,
+                    "",
+                    defaultApi.getEvaluationByIdentifier(
+                            this.authInfo.getEnvironment(),
+                            identifier,
+                            target
+                    )
+            );
+        } catch (ApiException e) {
+
+            CfLog.OUT.e(logTag, e.getMessage(), e);
+        }
         return null;
     }
-
-
 }

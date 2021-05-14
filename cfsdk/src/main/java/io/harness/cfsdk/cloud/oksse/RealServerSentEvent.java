@@ -16,10 +16,13 @@
 
 package io.harness.cfsdk.cloud.oksse;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import io.harness.cfsdk.logging.CfLog;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -30,17 +33,22 @@ import okio.BufferedSource;
 
 class RealServerSentEvent implements ServerSentEvent {
 
-    public Listener listener;
-    private final Request originalRequest;
-
-    private OkHttpClient client;
     private Call call;
+    public Listener listener;
     private Reader sseReader;
-
-    private long reconnectTime = TimeUnit.SECONDS.toMillis(3);
-    private long readTimeoutMillis = 0;
     private String lastEventId;
-    private SSEAuthentication authentication;
+    private long reconnectTime;
+    private final String logTag;
+    private OkHttpClient client;
+    private long readTimeoutMillis;
+    private final Request originalRequest;
+    private final SSEAuthentication authentication;
+
+    {
+
+        logTag = RealServerSentEvent.class.getSimpleName();
+        reconnectTime = TimeUnit.SECONDS.toMillis(3);
+    }
 
     RealServerSentEvent(Request request, Listener listener, SSEAuthentication sseAuthentication) {
         this.authentication = sseAuthentication;
@@ -76,28 +84,38 @@ class RealServerSentEvent implements ServerSentEvent {
     }
 
     private void enqueue() {
-        System.out.println("sse_flow - SSE starting");
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                System.out.println("sse_flow - SSE failuer " + e.getClass().getSimpleName());
-                notifyFailure(e, null);
-            }
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                System.out.println("sse_flow - SSE Response received");
-                if (response.isSuccessful()) {
-                    openSse(response);
-                } else {
-                    notifyFailure(new IOException(response.message()), response);
+        CfLog.OUT.v(logTag, "sse_flow - SSE starting");
+        call.enqueue(
+                new Callback() {
+
+                    @Override
+                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
+
+                        CfLog.OUT.e(logTag, "sse_flow - SSE failure", e);
+                        notifyFailure(e, null);
+                    }
+
+                    @Override
+                    public void onResponse(@NotNull Call call, @NotNull Response response) {
+
+                        CfLog.OUT.v(logTag, "sse_flow - SSE Response received");
+                        if (response.isSuccessful()) {
+
+                            openSse(response);
+                        } else {
+
+                            notifyFailure(new IOException(response.message()), response);
+                        }
+                    }
                 }
-            }
-        });
+        );
     }
 
     private void openSse(Response response) {
+
         try (ResponseBody body = response.body()) {
+
             sseReader = new Reader(response);
             sseReader.setTimeout(readTimeoutMillis, TimeUnit.MILLISECONDS);
             if (listener != null) listener.onOpen(this, response);
@@ -109,16 +127,17 @@ class RealServerSentEvent implements ServerSentEvent {
     }
 
     private void notifyFailure(Throwable throwable, Response response) {
-        System.out.println("Error in opening SSE stream");
-        throwable.printStackTrace();
+
+        CfLog.OUT.e(logTag, "Error in opening SSE stream", throwable);
         if (!retry(throwable, response)) {
+
             if (listener != null) listener.onClosed(this);
             close();
         }
     }
 
     private boolean retry(Throwable throwable, Response response) {
-        if (!Thread.currentThread().isInterrupted() && !call.isCanceled() && listener != null  && listener.onRetryError(this, throwable, response)) {
+        if (!Thread.currentThread().isInterrupted() && !call.isCanceled() && listener != null && listener.onRetryError(this, throwable, response)) {
             Request request = listener.onPreRetry(this, originalRequest);
             if (request == null) {
                 return false;
@@ -203,7 +222,8 @@ class RealServerSentEvent implements ServerSentEvent {
                 System.out.println("received _ " + line);
                 processLine(line);
             } catch (IOException e) {
-                e.printStackTrace();
+
+                CfLog.OUT.e(logTag, e.getMessage(), e);
                 notifyFailure(e, null);
                 return false;
             }
@@ -214,7 +234,7 @@ class RealServerSentEvent implements ServerSentEvent {
          * Sets a reading timeout, so the read operation will get unblock if this timeout is reached.
          *
          * @param timeout timeout to set
-         * @param unit unit of the timeout to set
+         * @param unit    unit of the timeout to set
          */
         void setTimeout(long timeout, TimeUnit unit) {
             if (source != null) {
@@ -256,7 +276,8 @@ class RealServerSentEvent implements ServerSentEvent {
             if (dataString.endsWith("\n")) {
                 dataString = dataString.substring(0, dataString.length() - 1);
             }
-            if (listener != null) listener.onMessage(RealServerSentEvent.this, lastEventId, eventName, dataString);
+            if (listener != null)
+                listener.onMessage(RealServerSentEvent.this, lastEventId, eventName, dataString);
             data.setLength(0);
             eventName = DEFAULT_EVENT;
         }

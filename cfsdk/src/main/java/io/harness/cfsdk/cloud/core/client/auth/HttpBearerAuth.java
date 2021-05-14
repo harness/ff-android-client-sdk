@@ -13,10 +13,10 @@
 
 package io.harness.cfsdk.cloud.core.client.auth;
 
-import io.harness.cfsdk.cloud.core.client.Pair;
-
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
+
+import io.harness.cfsdk.cloud.core.client.Pair;
 
 public class HttpBearerAuth implements Authentication {
   private final String scheme;

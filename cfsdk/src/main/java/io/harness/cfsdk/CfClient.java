@@ -1,7 +1,6 @@
 package io.harness.cfsdk;
 
 import android.content.Context;
-import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,12 +27,13 @@ import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
-import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
-import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 import io.harness.cfsdk.cloud.oksse.EventsListener;
+import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
+import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
 import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.sse.SSEController;
+import io.harness.cfsdk.logging.CfLog;
 
 /**
  * Main class used for any operation on SDK. Operations include, but not limited to, reading evaluations and
@@ -41,32 +41,31 @@ import io.harness.cfsdk.cloud.sse.SSEController;
  * Before it can be used, one of the {@link CfClient#initialize} methods <strong>must be</strong>  called
  */
 public final class CfClient {
-    private volatile boolean ready = false;
 
     private Cloud cloud;
-
     private Target target;
     private AuthInfo authInfo;
-    private final String logTag;
-    private EvaluationPolling evaluationPolling;
-
-    private final Executor executor = Executors.newSingleThreadExecutor();
-    private final Executor listenerUpdateExecutor = Executors.newSingleThreadExecutor();
     private boolean useStream;
-
-    private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet = new ConcurrentHashMap<>();
-    private final Set<EventsListener> eventsListenerSet = Collections.synchronizedSet(new LinkedHashSet<>());
-
-    private FeatureRepository featureRepository;
-    private SSEController sseController;
-    private NetworkInfoProvider networkInfoProvider;
-    private final CloudFactory cloudFactory;
-
+    private final String logTag;
+    private volatile boolean ready;
+    private final Executor executor;
     private static CfClient instance;
+    private SSEController sseController;
+    private final CloudFactory cloudFactory;
+    private FeatureRepository featureRepository;
+    private EvaluationPolling evaluationPolling;
+    private final Executor listenerUpdateExecutor;
+    private NetworkInfoProvider networkInfoProvider;
+    private final Set<EventsListener> eventsListenerSet;
+    private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet;
 
     {
 
         logTag = CfClient.class.getSimpleName();
+        executor = Executors.newSingleThreadExecutor();
+        evaluationListenerSet = new ConcurrentHashMap<>();
+        listenerUpdateExecutor = Executors.newSingleThreadExecutor();
+        eventsListenerSet = Collections.synchronizedSet(new LinkedHashSet<>());
     }
 
     private final EventsListener eventsListener = statusEvent -> {
@@ -77,13 +76,13 @@ public final class CfClient {
                 break;
             case SSE_END:
                 if (networkInfoProvider.isNetworkAvailable()) {
-                    this.featureRepository.getAllEvaluations(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), false);
-                    evaluationPolling.start(new Runnable() {
-                        @Override
-                        public void run() {
-                            reschedule();
-                        }
-                    });
+                    this.featureRepository.getAllEvaluations(
+
+                            authInfo.getEnvironmentIdentifier(),
+                            target.getIdentifier(),
+                            false
+                    );
+                    evaluationPolling.start(this::reschedule);
                 }
                 break;
             case EVALUATION_CHANGE:
@@ -154,21 +153,12 @@ public final class CfClient {
                 sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
 
                 if (useStream) startSSE();
-                else evaluationPolling.start(new Runnable() {
-                    @Override
-                    public void run() {
-                        reschedule();
-                    }
-                });
+                else evaluationPolling.start(this::reschedule);
             } catch (Exception e) {
-                e.printStackTrace();
+
+                CfLog.OUT.e(logTag, e.getMessage(), e);
                 if (networkInfoProvider.isNetworkAvailable()) {
-                    evaluationPolling.start(new Runnable() {
-                        @Override
-                        public void run() {
-                            reschedule();
-                        }
-                    });
+                    evaluationPolling.start(this::reschedule);
                 }
             }
         });
@@ -180,12 +170,12 @@ public final class CfClient {
             networkInfoProvider.unregisterAll();
         } else networkInfoProvider = cloudFactory.networkInfoProvider(context);
 
-        networkInfoProvider.register(new NetworkInfoProvider.NetworkListener() {
-            @Override
-            public void onChange(NetworkInfoProvider.NetworkStatus status) {
-                if (status == NetworkInfoProvider.NetworkStatus.CONNECTED) {
-                    reschedule();
-                } else evaluationPolling.stop();
+        networkInfoProvider.register(status -> {
+
+            if (status == NetworkInfoProvider.NetworkStatus.CONNECTED) {
+                reschedule();
+            } else {
+                evaluationPolling.stop();
             }
         });
 
@@ -238,12 +228,7 @@ public final class CfClient {
                     if (useStream) {
                         startSSE();
                     } else {
-                        evaluationPolling.start(new Runnable() {
-                            @Override
-                            public void run() {
-                                reschedule();
-                            }
-                        });
+                        evaluationPolling.start(this::reschedule);
                     }
                 }
 
@@ -367,7 +352,7 @@ public final class CfClient {
                 return Double.parseDouble(strValue);
             } catch (NumberFormatException e) {
 
-                Log.e(logTag, e.getMessage(), e);
+                CfLog.OUT.e(logTag, e.getMessage(), e);
             }
         }
         return defaultValue;
@@ -382,7 +367,8 @@ public final class CfClient {
                 return new JSONObject(resultMap);
             } else return new JSONObject((String) e.getValue());
         } catch (JSONException e) {
-            e.printStackTrace();
+
+            CfLog.OUT.e(logTag, e.getMessage(), e);
         }
         return null;
     }

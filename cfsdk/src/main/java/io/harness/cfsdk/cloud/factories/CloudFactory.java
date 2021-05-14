@@ -14,7 +14,6 @@ import io.harness.cfsdk.cloud.cache.InMemoryCacheImpl;
 import io.harness.cfsdk.cloud.cache.StorageCache;
 import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
-import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.polling.ShortTermPolling;
