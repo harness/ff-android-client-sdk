@@ -8,8 +8,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -41,13 +39,20 @@ public class CfClientTest {
         logTag = CfClientTest.class.getSimpleName();
     }
 
-    @Mock CloudFactory cloudFactory;
-    @Mock Cloud cloud;
-    @Mock Context context;
-    @Mock SSEController sseController;
-    @Mock FeatureRepository featureRepository;
-    @Mock EvaluationPolling polling;
-    @Mock NetworkInfoProvider networkInfoProvider;
+    @Mock
+    CloudFactory cloudFactory;
+    @Mock
+    Cloud cloud;
+    @Mock
+    Context context;
+    @Mock
+    SSEController sseController;
+    @Mock
+    FeatureRepository featureRepository;
+    @Mock
+    EvaluationPolling polling;
+    @Mock
+    NetworkInfoProvider networkInfoProvider;
 
     @Before
     public void setup() {
@@ -80,9 +85,20 @@ public class CfClientTest {
         CountDownLatch latch = new CountDownLatch(1);
         CfConfiguration cfConfiguration = new CfConfiguration("", "demo_url", true, 10);
 
-        cfClient.initialize(context, "", cfConfiguration, new Target().identifier("target"), (info) -> {
-            latch.countDown();
-        });
+        cfClient.initialize(
+
+                context,
+                "",
+                cfConfiguration,
+                new Target().identifier("target"),
+                (info, result) -> {
+
+                    Assert.assertNotNull(info);
+                    Assert.assertNotNull(result);
+                    Assert.assertTrue(result.isSuccess());
+                    latch.countDown();
+                }
+        );
 
         try {
 
@@ -110,9 +126,20 @@ public class CfClientTest {
         CountDownLatch latch = new CountDownLatch(1);
         CfConfiguration cfConfiguration = new CfConfiguration("", "", false, 10);
 
-        cfClient.initialize(context, "", cfConfiguration, new Target().identifier("target"), (info) -> {
-            latch.countDown();
-        });
+        cfClient.initialize(
+
+                context,
+                "",
+                cfConfiguration,
+                new Target().identifier("target"),
+                (info, result) -> {
+
+                    Assert.assertNotNull(info);
+                    Assert.assertNotNull(result);
+                    Assert.assertTrue(result.isSuccess());
+                    latch.countDown();
+                }
+        );
 
 
         try {
@@ -157,53 +184,51 @@ public class CfClientTest {
 
         StatusEvent evaluationRemoveEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_REMOVE, removePayload);
 
-        Mockito.doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
+        Mockito.doAnswer(invocation -> {
+            try {
 
-                    CfLog.OUT.e(logTag, e.getMessage(), e);
-                }
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
 
-                ((EventsListener) invocation.getArgument(1)).onEventReceived(sseStartEvent);
-                try {
-
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-
-                    CfLog.OUT.e(logTag, e.getMessage(), e);
-                }
-                ((EventsListener) invocation.getArgument(1)).onEventReceived(sseEndEvent);
-
-                try {
-
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-
-                    CfLog.OUT.e(logTag, e.getMessage(), e);
-                }
-
-                ((EventsListener) invocation.getArgument(1)).onEventReceived(evaluationRemoveEvent);
-                try {
-
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-
-                    CfLog.OUT.e(logTag, e.getMessage(), e);
-                }
-
-                ((EventsListener) invocation.getArgument(1)).onEventReceived(evaluationChangeEvent);
-
-                latch.countDown();
-
-                unregisterLatch.await(5, TimeUnit.SECONDS);
-                ((EventsListener) invocation.getArgument(1)).onEventReceived(evaluationChangeEvent);
-
-                finalLatch.countDown();
-                return null;
+                CfLog.OUT.e(logTag, e.getMessage(), e);
             }
+
+            ((EventsListener) invocation.getArgument(1)).onEventReceived(sseStartEvent);
+            try {
+
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+
+                CfLog.OUT.e(logTag, e.getMessage(), e);
+            }
+            ((EventsListener) invocation.getArgument(1)).onEventReceived(sseEndEvent);
+
+            try {
+
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+
+                CfLog.OUT.e(logTag, e.getMessage(), e);
+            }
+
+            ((EventsListener) invocation.getArgument(1)).onEventReceived(evaluationRemoveEvent);
+            try {
+
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+
+                CfLog.OUT.e(logTag, e.getMessage(), e);
+            }
+
+            ((EventsListener) invocation.getArgument(1)).onEventReceived(evaluationChangeEvent);
+
+            latch.countDown();
+
+            unregisterLatch.await(5, TimeUnit.SECONDS);
+            ((EventsListener) invocation.getArgument(1)).onEventReceived(evaluationChangeEvent);
+
+            finalLatch.countDown();
+            return null;
         }).when(sseController).start(any(), any());
 
         CfClient cfClient = new CfClient(cloudFactory);
@@ -214,12 +239,9 @@ public class CfClientTest {
 
         EvaluationListener evaluationListener = Mockito.mock(EvaluationListener.class);
 
-        Mockito.doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                latch.countDown();
-                return null;
-            }
+        Mockito.doAnswer(invocation -> {
+            latch.countDown();
+            return null;
         }).when(evaluationListener).onEvaluation(any());
 
         cfClient.registerEvaluationListener("demo_change", evaluationListener);
@@ -278,9 +300,20 @@ public class CfClientTest {
         CfClient cfClient = new CfClient(cloudFactory);
         CfConfiguration cfConfiguration = new CfConfiguration("", "demo_url", false, 10);
 
-        cfClient.initialize(context, "", cfConfiguration, new Target().identifier("target"), (info) -> {
-            latch.countDown();
-        });
+        cfClient.initialize(
+
+                context,
+                "",
+                cfConfiguration,
+                new Target().identifier("target"),
+                (info, result) -> {
+
+                    Assert.assertNotNull(info);
+                    Assert.assertNotNull(result);
+                    Assert.assertTrue(result.isSuccess());
+                    latch.countDown();
+                }
+        );
 
         try {
 

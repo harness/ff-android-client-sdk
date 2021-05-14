@@ -2,6 +2,8 @@ package io.harness.cfsdk;
 
 import android.content.Context;
 
+import androidx.annotation.Nullable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -16,6 +18,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import io.harness.cfsdk.cloud.Cloud;
@@ -23,6 +26,7 @@ import io.harness.cfsdk.cloud.NetworkInfoProvider;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.events.AuthCallback;
+import io.harness.cfsdk.cloud.events.AuthResult;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
@@ -203,39 +207,78 @@ public final class CfClient {
      * @param cloudCache    Custom {@link CloudCache} implementation. If non provided, the default implementation will be used
      * @param authCallback  The callback that will be invoked when initialization is finished
      */
-    public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target, CloudCache cloudCache, AuthCallback authCallback) {
-        executor.execute(() -> {
-            if (target == null || configuration == null)
-                throw new IllegalArgumentException("Target and configuration must not be null!");
-            unregister();
-            this.target = target;
-            this.cloud = cloudFactory.cloud(configuration.getStreamURL(), configuration.getBaseURL(), apiKey, target);
-            setupNetworkInfo(context);
-            featureRepository = cloudFactory.getFeatureRepository(cloud, cloudCache);
-            sseController = cloudFactory.sseController();
-            evaluationPolling = cloudFactory.evaluationPolling(configuration.getPollingInterval(), TimeUnit.SECONDS);
+    public void initialize(
 
+            final Context context,
+            final String apiKey,
+            final CfConfiguration configuration,
+            final Target target,
+            final CloudCache cloudCache,
+            @Nullable final AuthCallback authCallback
+    ) {
+        try {
+            executor.execute(() -> {
 
-            this.useStream = configuration.getStreamEnabled();
+                if (target == null || configuration == null) {
+                    if (authCallback != null) {
 
-            boolean success = cloud.initialize();
-            if (success) {
-                this.authInfo = cloud.getAuthInfo();
-                ready = true;
-                if (networkInfoProvider.isNetworkAvailable()) {
-                    List<Evaluation> evaluations = featureRepository.getAllEvaluations(this.authInfo.getEnvironmentIdentifier(), target.getIdentifier(), false);
-                    sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
-                    if (useStream) {
-                        startSSE();
-                    } else {
-                        evaluationPolling.start(this::reschedule);
+                        final String message = "Target and configuration must not be null!";
+                        final IllegalArgumentException error = new IllegalArgumentException(message);
+                        final AuthResult result = new AuthResult(false, error);
+                        authCallback.authorizationSuccess(authInfo, result);
                     }
+                    return;
                 }
 
-                if (authCallback != null)
-                    authCallback.authorizationSuccess(authInfo);
+                unregister();
+                this.target = target;
+                this.cloud = cloudFactory.cloud(configuration.getStreamURL(), configuration.getBaseURL(), apiKey, target);
+                setupNetworkInfo(context);
+                featureRepository = cloudFactory.getFeatureRepository(cloud, cloudCache);
+                sseController = cloudFactory.sseController();
+                evaluationPolling = cloudFactory.evaluationPolling(configuration.getPollingInterval(), TimeUnit.SECONDS);
+
+                this.useStream = configuration.getStreamEnabled();
+
+                boolean success = cloud.initialize();
+                if (success) {
+                    this.authInfo = cloud.getAuthInfo();
+                    ready = true;
+                    if (networkInfoProvider.isNetworkAvailable()) {
+                        List<Evaluation> evaluations = featureRepository.getAllEvaluations(this.authInfo.getEnvironmentIdentifier(), target.getIdentifier(), false);
+                        sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
+                        if (useStream) {
+                            startSSE();
+                        } else {
+                            evaluationPolling.start(this::reschedule);
+                        }
+                    }
+
+                    if (authCallback != null) {
+
+                        final AuthResult result = new AuthResult(true);
+                        authCallback.authorizationSuccess(authInfo, result);
+                    }
+                } else {
+
+                    if (authCallback != null) {
+
+                        final String message = "Authorization was not successful";
+                        final Exception error = new Exception(message);
+                        final AuthResult result = new AuthResult(false, error);
+                        authCallback.authorizationSuccess(authInfo, result);
+                    }
+                }
+            });
+        } catch (RejectedExecutionException e) {
+
+            CfLog.OUT.e(logTag, e.getMessage(), e);
+            if (authCallback != null) {
+
+                final AuthResult result = new AuthResult(false, e);
+                authCallback.authorizationSuccess(authInfo, result);
             }
-        });
+        }
     }
 
     public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target, AuthCallback authCallback) {
