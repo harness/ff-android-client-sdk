@@ -2,6 +2,10 @@ package io.harness.cfsdk.logging;
 
 import android.util.Log;
 
+/**
+ * Default runtime logging strategy.
+ * Logging is performed via Android default @see android.util.Log logger
+ */
 public class CfLogStrategyDefault implements CfLogging {
 
     @Override

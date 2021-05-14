@@ -1,5 +1,9 @@
 package io.harness.cfsdk.logging;
 
+/**
+ * System output logging strategy.
+ * It is used by unit tests mainly.
+ */
 public class CfLogStrategyTest implements CfLogging {
 
     @Override

@@ -130,5 +130,4 @@ public class RepositoryTest {
         repository.clear();
         Mockito.verify(mockCache, Mockito.atMostOnce()).clear();
     }
-
 }
