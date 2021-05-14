@@ -140,7 +140,7 @@ CfLog.testModeOn()
 
 `testModeOn` will turn on the use of system output logging strategy. 
 
-On the other hand, to turn on usage of the Android [https://developer.android.com/reference/android/util/Log](log class) use:
+On the other hand, to turn on usage of the Android [log class](https://developer.android.com/reference/android/util/Log) use:
 
 ```Kotlin
 CfLog.runtimeModeOn()
