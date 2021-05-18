@@ -5,11 +5,19 @@ import org.json.JSONObject;
 
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
+import io.harness.cfsdk.logging.CfLog;
 import okhttp3.Request;
 import okhttp3.Response;
 
 public class SSEListener implements ServerSentEvent.Listener {
-    private EventsListener eventsListener;
+
+    private final String logTag;
+    private final EventsListener eventsListener;
+
+    {
+
+        logTag = SSEListener.class.getSimpleName();
+    }
 
     public SSEListener(EventsListener eventsListener) {
         this.eventsListener = eventsListener;
@@ -17,14 +25,19 @@ public class SSEListener implements ServerSentEvent.Listener {
 
     @Override
     public void onOpen(ServerSentEvent serverSentEvent, Response response) {
-        if (this.eventsListener != null)
-            this.eventsListener.onEventReceived(new StatusEvent(StatusEvent.EVENT_TYPE.SSE_START, serverSentEvent));
+        if (this.eventsListener != null) {
+
+            this.eventsListener.onEventReceived(
+                    new StatusEvent(StatusEvent.EVENT_TYPE.SSE_START, serverSentEvent)
+            );
+        }
     }
 
     @Override
     public void onMessage(ServerSentEvent serverSentEvent, String id, String event, String message) {
-        JSONObject jsonObject = null;
+        JSONObject jsonObject;
         try {
+
             jsonObject = new JSONObject(message);
             String identifier = jsonObject.getString("identifier");
             String eventType = jsonObject.getString("event");
@@ -36,12 +49,10 @@ public class SSEListener implements ServerSentEvent.Listener {
             } else if ("delete".equals(eventType)) {
                 eventsListener.onEventReceived(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_REMOVE, evaluation));
             }
-
-
         } catch (JSONException e) {
-            e.printStackTrace();
-        }
 
+            CfLog.OUT.e(logTag, e.getMessage(), e);
+        }
     }
 
     @Override
@@ -62,7 +73,8 @@ public class SSEListener implements ServerSentEvent.Listener {
 
     @Override
     public void onClosed(ServerSentEvent serverSentEvent) {
-        if (this.eventsListener != null) this.eventsListener.onEventReceived(new StatusEvent(StatusEvent.EVENT_TYPE.SSE_END, serverSentEvent));
+        if (this.eventsListener != null)
+            this.eventsListener.onEventReceived(new StatusEvent(StatusEvent.EVENT_TYPE.SSE_END, serverSentEvent));
     }
 
     @Override

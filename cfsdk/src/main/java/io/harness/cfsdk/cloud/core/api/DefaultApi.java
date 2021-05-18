@@ -13,30 +13,23 @@
 
 package io.harness.cfsdk.cloud.core.api;
 
-import io.harness.cfsdk.cloud.core.client.ApiCallback;
-import io.harness.cfsdk.cloud.core.client.ApiClient;
-import io.harness.cfsdk.cloud.core.client.ApiException;
-import io.harness.cfsdk.cloud.core.client.ApiResponse;
-import io.harness.cfsdk.cloud.core.client.Configuration;
-import io.harness.cfsdk.cloud.core.client.Pair;
-import io.harness.cfsdk.cloud.core.client.ProgressRequestBody;
-import io.harness.cfsdk.cloud.core.client.ProgressResponseBody;
-
 import com.google.gson.reflect.TypeToken;
-
-import java.io.IOException;
-
-
-import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
-import io.harness.cfsdk.cloud.core.model.AuthenticationResponse;
-import io.harness.cfsdk.cloud.core.model.Error;
-import io.harness.cfsdk.cloud.core.model.Evaluation;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import io.harness.cfsdk.cloud.core.client.ApiCallback;
+import io.harness.cfsdk.cloud.core.client.ApiClient;
+import io.harness.cfsdk.cloud.core.client.ApiException;
+import io.harness.cfsdk.cloud.core.client.ApiResponse;
+import io.harness.cfsdk.cloud.core.client.Configuration;
+import io.harness.cfsdk.cloud.core.client.Pair;
+import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
+import io.harness.cfsdk.cloud.core.model.AuthenticationResponse;
+import io.harness.cfsdk.cloud.core.model.Evaluation;
 
 public class DefaultApi {
     private ApiClient localVarApiClient;

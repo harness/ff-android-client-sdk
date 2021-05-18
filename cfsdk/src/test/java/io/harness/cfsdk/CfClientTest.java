@@ -8,8 +8,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -28,21 +26,37 @@ import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
 import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.sse.SSEController;
+import io.harness.cfsdk.logging.CfLog;
 
-import static org.mockito.AdditionalMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 
 public class CfClientTest {
 
-    @Mock CloudFactory cloudFactory;
-    @Mock Cloud cloud;
-    @Mock Context context;
-    @Mock SSEController sseController;
-    @Mock FeatureRepository featureRepository;
-    @Mock EvaluationPolling polling;
-    @Mock NetworkInfoProvider networkInfoProvider;
+    private final String logTag;
+
+    {
+
+        logTag = CfClientTest.class.getSimpleName();
+    }
+
+    @Mock
+    CloudFactory cloudFactory;
+    @Mock
+    Cloud cloud;
+    @Mock
+    Context context;
+    @Mock
+    SSEController sseController;
+    @Mock
+    FeatureRepository featureRepository;
+    @Mock
+    EvaluationPolling polling;
+    @Mock
+    NetworkInfoProvider networkInfoProvider;
+
     @Before
     public void setup() {
+
         MockitoAnnotations.initMocks(this);
         Mockito.when(cloudFactory.cloud(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any())).thenReturn(cloud);
         Mockito.when(cloudFactory.sseController()).thenReturn(sseController);
@@ -52,6 +66,8 @@ public class CfClientTest {
     }
 
     private void initTestSetup() {
+        CfLog.testModeOn();
+
         Mockito.when(cloud.getAuthInfo()).thenReturn(new AuthInfo("", "", "", "", "", ""));
         Mockito.when(cloud.isInitialized()).thenReturn(true);
         Mockito.when(cloud.initialize()).thenReturn(true);
@@ -66,23 +82,35 @@ public class CfClientTest {
         initTestSetup();
 
         CfClient cfClient = new CfClient(cloudFactory);
-        CountDownLatch latch  = new CountDownLatch(1);
+        CountDownLatch latch = new CountDownLatch(1);
         CfConfiguration cfConfiguration = new CfConfiguration("", "demo_url", true, 10);
 
-        cfClient.initialize(context, "", cfConfiguration, new Target().identifier("target"), (info) -> {
-            latch.countDown();
-        });
+        cfClient.initialize(
 
+                context,
+                "",
+                cfConfiguration,
+                new Target().identifier("target"),
+                (info, result) -> {
+
+                    Assert.assertNotNull(info);
+                    Assert.assertNotNull(result);
+                    Assert.assertTrue(result.isSuccess());
+                    latch.countDown();
+                }
+        );
 
         try {
+
             latch.await(3, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+
+            CfLog.OUT.e(logTag, e.getMessage(), e);
         }
 
 
         Mockito.verify(cloud, Mockito.times(1)).initialize();
-        Mockito.verify(featureRepository, Mockito.times(1)).getAllEvaluations("","target", false);
+        Mockito.verify(featureRepository, Mockito.times(1)).getAllEvaluations("", "target", false);
         Mockito.verify(sseController, Mockito.times(1)).start(any(), any());
 
         cfClient.destroy();
@@ -95,32 +123,44 @@ public class CfClientTest {
     public void initTestNoStream() {
         initTestSetup();
         CfClient cfClient = new CfClient(cloudFactory);
-        CountDownLatch latch  = new CountDownLatch(1);
+        CountDownLatch latch = new CountDownLatch(1);
         CfConfiguration cfConfiguration = new CfConfiguration("", "", false, 10);
 
-        cfClient.initialize(context, "", cfConfiguration, new Target().identifier("target"), (info) -> {
-            latch.countDown();
-        });
+        cfClient.initialize(
+
+                context,
+                "",
+                cfConfiguration,
+                new Target().identifier("target"),
+                (info, result) -> {
+
+                    Assert.assertNotNull(info);
+                    Assert.assertNotNull(result);
+                    Assert.assertTrue(result.isSuccess());
+                    latch.countDown();
+                }
+        );
 
 
         try {
             latch.await(3, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+
+            CfLog.OUT.e(logTag, e.getMessage(), e);
         }
 
         cfClient.boolVariation("", false);
 
         Mockito.verify(cloud, Mockito.times(1)).initialize();
         Mockito.verify(sseController, Mockito.times(0)).start(any(), any());
-        Mockito.verify(featureRepository, Mockito.times(1)).getAllEvaluations("","target", false);
+        Mockito.verify(featureRepository, Mockito.times(1)).getAllEvaluations("", "target", false);
 
     }
 
     @Test
     public void listenerTest() {
         initTestSetup();
-        CountDownLatch latch  = new CountDownLatch(2);
+        CountDownLatch latch = new CountDownLatch(2);
         CountDownLatch unregisterLatch = new CountDownLatch(1);
         CountDownLatch finalLatch = new CountDownLatch(1);
 
@@ -139,87 +179,92 @@ public class CfClientTest {
         Evaluation removePayload = new Evaluation();
         removePayload.setFlag("demo_remove");
         Mockito.doNothing().when(featureRepository).remove(
-                        Mockito.anyString(), Mockito.anyString(), Mockito.eq("demo_remove")
+                Mockito.anyString(), Mockito.anyString(), Mockito.eq("demo_remove")
         );
 
         StatusEvent evaluationRemoveEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_REMOVE, removePayload);
 
-        Mockito.doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+        Mockito.doAnswer(invocation -> {
+            try {
 
-                ((EventsListener) invocation.getArgument(1)).onEventReceived(sseStartEvent);
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                ((EventsListener) invocation.getArgument(1)).onEventReceived(sseEndEvent);
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
 
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                ((EventsListener) invocation.getArgument(1)).onEventReceived(evaluationRemoveEvent);
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                ((EventsListener) invocation.getArgument(1)).onEventReceived(evaluationChangeEvent);
-
-                latch.countDown();
-
-                unregisterLatch.await(5, TimeUnit.SECONDS);
-                ((EventsListener) invocation.getArgument(1)).onEventReceived(evaluationChangeEvent);
-
-                finalLatch.countDown();
-                return null;
+                CfLog.OUT.e(logTag, e.getMessage(), e);
             }
+
+            ((EventsListener) invocation.getArgument(1)).onEventReceived(sseStartEvent);
+            try {
+
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+
+                CfLog.OUT.e(logTag, e.getMessage(), e);
+            }
+            ((EventsListener) invocation.getArgument(1)).onEventReceived(sseEndEvent);
+
+            try {
+
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+
+                CfLog.OUT.e(logTag, e.getMessage(), e);
+            }
+
+            ((EventsListener) invocation.getArgument(1)).onEventReceived(evaluationRemoveEvent);
+            try {
+
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+
+                CfLog.OUT.e(logTag, e.getMessage(), e);
+            }
+
+            ((EventsListener) invocation.getArgument(1)).onEventReceived(evaluationChangeEvent);
+
+            latch.countDown();
+
+            unregisterLatch.await(5, TimeUnit.SECONDS);
+            ((EventsListener) invocation.getArgument(1)).onEventReceived(evaluationChangeEvent);
+
+            finalLatch.countDown();
+            return null;
         }).when(sseController).start(any(), any());
 
         CfClient cfClient = new CfClient(cloudFactory);
 
         EventsListener eventsListener = Mockito.mock(EventsListener.class);
         Mockito.doNothing().when(eventsListener).onEventReceived(Mockito.any());
-        cfClient.registerEventsListener(eventsListener);
+        boolean registerOk = cfClient.registerEventsListener(eventsListener);
+        Assert.assertTrue(registerOk);
 
         EvaluationListener evaluationListener = Mockito.mock(EvaluationListener.class);
 
-        Mockito.doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                latch.countDown();
-                return null;
-            }
+        Mockito.doAnswer(invocation -> {
+            latch.countDown();
+            return null;
         }).when(evaluationListener).onEvaluation(any());
 
-        cfClient.registerEvaluationListener("demo_change", evaluationListener);
+        registerOk = cfClient.registerEvaluationListener("demo_change", evaluationListener);
+        Assert.assertTrue(registerOk);
 
         EvaluationListener newListener = Mockito.mock(EvaluationListener.class);
         Mockito.doNothing().when(newListener).onEvaluation(Mockito.any());
 
-        cfClient.registerEvaluationListener("demo_change", evaluationListener);
-
+        registerOk = cfClient.registerEvaluationListener("demo_change", evaluationListener);
+        Assert.assertFalse(registerOk);
 
         CfConfiguration cfConfiguration = new CfConfiguration("", "", true, 10);
 
         cfClient.initialize(context, "", cfConfiguration, new Target().identifier("target"));
 
         try {
+
             latch.await(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
+            CfLog.OUT.e(logTag, e.getMessage(), e);
+        }
 
         Mockito.verify(eventsListener, Mockito.times(1)).onEventReceived(sseStartEvent);
         Mockito.verify(eventsListener, Mockito.times(1)).onEventReceived(sseEndEvent);
@@ -232,17 +277,22 @@ public class CfClientTest {
         Mockito.verify(featureRepository, Mockito.times(1)).remove(
                 Mockito.anyString(), Mockito.anyString(), Mockito.eq("demo_remove"));
 
-        cfClient.unregisterEvaluationListener("demo_change", evaluationListener);
+        boolean unregisterOk = cfClient.unregisterEvaluationListener("demo_change", evaluationListener);
+        Assert.assertTrue(unregisterOk);
         unregisterLatch.countDown();
 
         try {
+
             finalLatch.await(3, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+
+            CfLog.OUT.e(logTag, e.getMessage(), e);
         }
 
         Mockito.verify(evaluationListener, Mockito.times(1)).onEvaluation(payload);
 
+        unregisterOk = cfClient.unregisterEventsListener(eventsListener);
+        Assert.assertTrue(unregisterOk);
     }
 
 
@@ -250,20 +300,32 @@ public class CfClientTest {
     public void initVariations() {
         initTestSetup();
 
-        CountDownLatch latch  = new CountDownLatch(1);
+        CountDownLatch latch = new CountDownLatch(1);
 
         CfClient cfClient = new CfClient(cloudFactory);
         CfConfiguration cfConfiguration = new CfConfiguration("", "demo_url", false, 10);
 
-        cfClient.initialize(context, "", cfConfiguration, new Target().identifier("target"), (info) -> {
-            latch.countDown();
-        });
+        cfClient.initialize(
 
+                context,
+                "",
+                cfConfiguration,
+                new Target().identifier("target"),
+                (info, result) -> {
+
+                    Assert.assertNotNull(info);
+                    Assert.assertNotNull(result);
+                    Assert.assertTrue(result.isSuccess());
+                    latch.countDown();
+                }
+        );
 
         try {
+
             Thread.sleep(3000);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+
+            CfLog.OUT.e(logTag, e.getMessage(), e);
         }
 
         Evaluation evaluation = new Evaluation();
@@ -293,7 +355,7 @@ public class CfClientTest {
 
         Assert.assertEquals(eval, "string_val");
         Assert.assertTrue(boolEvalValue);
-        Assert.assertEquals((int)intEvalValue, 5);
-        Assert.assertEquals((int)emptyEvalValue, 1);
+        Assert.assertEquals((int) intEvalValue, 5);
+        Assert.assertEquals((int) emptyEvalValue, 1);
     }
 }

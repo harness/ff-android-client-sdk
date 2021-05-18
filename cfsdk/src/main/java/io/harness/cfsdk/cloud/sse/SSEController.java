@@ -1,12 +1,11 @@
 package io.harness.cfsdk.cloud.sse;
 
-import io.harness.cfsdk.cloud.oksse.OkSse;
-import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
-import io.harness.cfsdk.cloud.oksse.SSEListener;
 import io.harness.cfsdk.cloud.oksse.EventsListener;
+import io.harness.cfsdk.cloud.oksse.OkSse;
+import io.harness.cfsdk.cloud.oksse.SSEListener;
 import io.harness.cfsdk.cloud.oksse.ServerSentEvent;
+import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 import okhttp3.Request;
-import okhttp3.logging.HttpLoggingInterceptor;
 
 public class SSEController {
     private ServerSentEvent serverSentEvent;

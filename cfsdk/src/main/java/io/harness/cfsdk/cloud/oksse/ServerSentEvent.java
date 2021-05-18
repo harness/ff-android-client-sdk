@@ -16,10 +16,10 @@
 
 package io.harness.cfsdk.cloud.oksse;
 
+import java.util.concurrent.TimeUnit;
+
 import okhttp3.Request;
 import okhttp3.Response;
-
-import java.util.concurrent.TimeUnit;
 
 public interface ServerSentEvent {
 

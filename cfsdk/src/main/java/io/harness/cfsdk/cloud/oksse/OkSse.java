@@ -16,13 +16,10 @@
 
 package io.harness.cfsdk.cloud.oksse;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Protocol;
-import okhttp3.Request;
-import okhttp3.logging.HttpLoggingInterceptor;
-
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 
 /**
  * OkSse is a plugin for OkHttp library that extends its functionality to create a Server Sent Event client.

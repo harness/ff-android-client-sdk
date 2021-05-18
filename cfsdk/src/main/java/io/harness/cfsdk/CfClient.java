@@ -1,7 +1,8 @@
 package io.harness.cfsdk;
 
 import android.content.Context;
-import android.util.Log;
+
+import androidx.annotation.Nullable;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,6 +18,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import io.harness.cfsdk.cloud.Cloud;
@@ -24,16 +26,18 @@ import io.harness.cfsdk.cloud.NetworkInfoProvider;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.events.AuthCallback;
+import io.harness.cfsdk.cloud.events.AuthResult;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
-import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
-import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 import io.harness.cfsdk.cloud.oksse.EventsListener;
+import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
+import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
 import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.sse.SSEController;
+import io.harness.cfsdk.logging.CfLog;
 
 /**
  * Main class used for any operation on SDK. Operations include, but not limited to, reading evaluations and
@@ -41,32 +45,31 @@ import io.harness.cfsdk.cloud.sse.SSEController;
  * Before it can be used, one of the {@link CfClient#initialize} methods <strong>must be</strong>  called
  */
 public final class CfClient {
-    private volatile boolean ready = false;
 
     private Cloud cloud;
-
     private Target target;
     private AuthInfo authInfo;
-    private final String logTag;
-    private EvaluationPolling evaluationPolling;
-
-    private final Executor executor = Executors.newSingleThreadExecutor();
-    private final Executor listenerUpdateExecutor = Executors.newSingleThreadExecutor();
     private boolean useStream;
-
-    private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet = new ConcurrentHashMap<>();
-    private final Set<EventsListener> eventsListenerSet = Collections.synchronizedSet(new LinkedHashSet<>());
-
-    private FeatureRepository featureRepository;
-    private SSEController sseController;
-    private NetworkInfoProvider networkInfoProvider;
-    private final CloudFactory cloudFactory;
-
+    private final String logTag;
+    private volatile boolean ready;
+    private final Executor executor;
     private static CfClient instance;
+    private SSEController sseController;
+    private final CloudFactory cloudFactory;
+    private FeatureRepository featureRepository;
+    private EvaluationPolling evaluationPolling;
+    private final Executor listenerUpdateExecutor;
+    private NetworkInfoProvider networkInfoProvider;
+    private final Set<EventsListener> eventsListenerSet;
+    private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet;
 
     {
 
         logTag = CfClient.class.getSimpleName();
+        executor = Executors.newSingleThreadExecutor();
+        evaluationListenerSet = new ConcurrentHashMap<>();
+        listenerUpdateExecutor = Executors.newSingleThreadExecutor();
+        eventsListenerSet = Collections.synchronizedSet(new LinkedHashSet<>());
     }
 
     private final EventsListener eventsListener = statusEvent -> {
@@ -77,13 +80,13 @@ public final class CfClient {
                 break;
             case SSE_END:
                 if (networkInfoProvider.isNetworkAvailable()) {
-                    this.featureRepository.getAllEvaluations(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), false);
-                    evaluationPolling.start(new Runnable() {
-                        @Override
-                        public void run() {
-                            reschedule();
-                        }
-                    });
+                    this.featureRepository.getAllEvaluations(
+
+                            authInfo.getEnvironmentIdentifier(),
+                            target.getIdentifier(),
+                            false
+                    );
+                    evaluationPolling.start(this::reschedule);
                 }
                 break;
             case EVALUATION_CHANGE:
@@ -154,21 +157,12 @@ public final class CfClient {
                 sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
 
                 if (useStream) startSSE();
-                else evaluationPolling.start(new Runnable() {
-                    @Override
-                    public void run() {
-                        reschedule();
-                    }
-                });
+                else evaluationPolling.start(this::reschedule);
             } catch (Exception e) {
-                e.printStackTrace();
+
+                CfLog.OUT.e(logTag, e.getMessage(), e);
                 if (networkInfoProvider.isNetworkAvailable()) {
-                    evaluationPolling.start(new Runnable() {
-                        @Override
-                        public void run() {
-                            reschedule();
-                        }
-                    });
+                    evaluationPolling.start(this::reschedule);
                 }
             }
         });
@@ -180,12 +174,12 @@ public final class CfClient {
             networkInfoProvider.unregisterAll();
         } else networkInfoProvider = cloudFactory.networkInfoProvider(context);
 
-        networkInfoProvider.register(new NetworkInfoProvider.NetworkListener() {
-            @Override
-            public void onChange(NetworkInfoProvider.NetworkStatus status) {
-                if (status == NetworkInfoProvider.NetworkStatus.CONNECTED) {
-                    reschedule();
-                } else evaluationPolling.stop();
+        networkInfoProvider.register(status -> {
+
+            if (status == NetworkInfoProvider.NetworkStatus.CONNECTED) {
+                reschedule();
+            } else {
+                evaluationPolling.stop();
             }
         });
 
@@ -213,44 +207,78 @@ public final class CfClient {
      * @param cloudCache    Custom {@link CloudCache} implementation. If non provided, the default implementation will be used
      * @param authCallback  The callback that will be invoked when initialization is finished
      */
-    public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target, CloudCache cloudCache, AuthCallback authCallback) {
-        executor.execute(() -> {
-            if (target == null || configuration == null)
-                throw new IllegalArgumentException("Target and configuration must not be null!");
-            unregister();
-            this.target = target;
-            this.cloud = cloudFactory.cloud(configuration.getStreamURL(), configuration.getBaseURL(), apiKey, target);
-            setupNetworkInfo(context);
-            featureRepository = cloudFactory.getFeatureRepository(cloud, cloudCache);
-            sseController = cloudFactory.sseController();
-            evaluationPolling = cloudFactory.evaluationPolling(configuration.getPollingInterval(), TimeUnit.SECONDS);
+    public void initialize(
 
+            final Context context,
+            final String apiKey,
+            final CfConfiguration configuration,
+            final Target target,
+            final CloudCache cloudCache,
+            @Nullable final AuthCallback authCallback
+    ) {
+        try {
+            executor.execute(() -> {
 
-            this.useStream = configuration.getStreamEnabled();
+                if (target == null || configuration == null) {
+                    if (authCallback != null) {
 
-            boolean success = cloud.initialize();
-            if (success) {
-                this.authInfo = cloud.getAuthInfo();
-                ready = true;
-                if (networkInfoProvider.isNetworkAvailable()) {
-                    List<Evaluation> evaluations = featureRepository.getAllEvaluations(this.authInfo.getEnvironmentIdentifier(), target.getIdentifier(), false);
-                    sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
-                    if (useStream) {
-                        startSSE();
-                    } else {
-                        evaluationPolling.start(new Runnable() {
-                            @Override
-                            public void run() {
-                                reschedule();
-                            }
-                        });
+                        final String message = "Target and configuration must not be null!";
+                        final IllegalArgumentException error = new IllegalArgumentException(message);
+                        final AuthResult result = new AuthResult(false, error);
+                        authCallback.authorizationSuccess(authInfo, result);
                     }
+                    return;
                 }
 
-                if (authCallback != null)
-                    authCallback.authorizationSuccess(authInfo);
+                unregister();
+                this.target = target;
+                this.cloud = cloudFactory.cloud(configuration.getStreamURL(), configuration.getBaseURL(), apiKey, target);
+                setupNetworkInfo(context);
+                featureRepository = cloudFactory.getFeatureRepository(cloud, cloudCache);
+                sseController = cloudFactory.sseController();
+                evaluationPolling = cloudFactory.evaluationPolling(configuration.getPollingInterval(), TimeUnit.SECONDS);
+
+                this.useStream = configuration.getStreamEnabled();
+
+                boolean success = cloud.initialize();
+                if (success) {
+                    this.authInfo = cloud.getAuthInfo();
+                    ready = true;
+                    if (networkInfoProvider.isNetworkAvailable()) {
+                        List<Evaluation> evaluations = featureRepository.getAllEvaluations(this.authInfo.getEnvironmentIdentifier(), target.getIdentifier(), false);
+                        sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
+                        if (useStream) {
+                            startSSE();
+                        } else {
+                            evaluationPolling.start(this::reschedule);
+                        }
+                    }
+
+                    if (authCallback != null) {
+
+                        final AuthResult result = new AuthResult(true);
+                        authCallback.authorizationSuccess(authInfo, result);
+                    }
+                } else {
+
+                    if (authCallback != null) {
+
+                        final String message = "Authorization was not successful";
+                        final Exception error = new Exception(message);
+                        final AuthResult result = new AuthResult(false, error);
+                        authCallback.authorizationSuccess(authInfo, result);
+                    }
+                }
+            });
+        } catch (RejectedExecutionException e) {
+
+            CfLog.OUT.e(logTag, e.getMessage(), e);
+            if (authCallback != null) {
+
+                final AuthResult result = new AuthResult(false, e);
+                authCallback.authorizationSuccess(authInfo, result);
             }
-        });
+        }
     }
 
     public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target, AuthCallback authCallback) {
@@ -272,13 +300,22 @@ public final class CfClient {
      *
      * @param evaluationId Evaluation identifier we would like to observe.
      * @param listener     {@link EvaluationListener} instance that will be invoked when evaluation is changed
+     * @return Was evaluation registered with success?
      */
-    public void registerEvaluationListener(String evaluationId, EvaluationListener listener) {
-        if (listener == null) return;
-        Set<EvaluationListener> set = this.evaluationListenerSet.get(evaluationId);
-        if (set == null) set = new HashSet<>();
-        set.add(listener);
-        this.evaluationListenerSet.put(evaluationId, set);
+    public boolean registerEvaluationListener(String evaluationId, EvaluationListener listener) {
+
+        if (listener != null) {
+
+            Set<EvaluationListener> set = evaluationListenerSet.get(evaluationId);
+            if (set == null) {
+
+                set = new HashSet<>();
+            }
+            boolean success = set.add(listener);
+            evaluationListenerSet.put(evaluationId, set);
+            return success;
+        }
+        return false;
     }
 
 
@@ -287,12 +324,19 @@ public final class CfClient {
      *
      * @param evaluationId Evaluation identifier.
      * @param listener     {@link EvaluationListener} instance we want to remove
+     * @return Was evaluation un-registered with success?
      */
-    public void unregisterEvaluationListener(String evaluationId, EvaluationListener listener) {
-        if (listener == null) return;
-        Set<EvaluationListener> set = this.evaluationListenerSet.get(evaluationId);
-        if (set == null) return;
-        set.remove(listener);
+    public boolean unregisterEvaluationListener(String evaluationId, EvaluationListener listener) {
+
+        if (listener != null) {
+
+            Set<EvaluationListener> set = this.evaluationListenerSet.get(evaluationId);
+            if (set != null) {
+
+                return set.remove(listener);
+            }
+        }
+        return false;
     }
 
     /**
@@ -367,7 +411,7 @@ public final class CfClient {
                 return Double.parseDouble(strValue);
             } catch (NumberFormatException e) {
 
-                Log.e(logTag, e.getMessage(), e);
+                CfLog.OUT.e(logTag, e.getMessage(), e);
             }
         }
         return defaultValue;
@@ -382,7 +426,8 @@ public final class CfClient {
                 return new JSONObject(resultMap);
             } else return new JSONObject((String) e.getValue());
         } catch (JSONException e) {
-            e.printStackTrace();
+
+            CfLog.OUT.e(logTag, e.getMessage(), e);
         }
         return null;
     }
@@ -392,18 +437,25 @@ public final class CfClient {
      * Adds new listener for various SDK events. See {@link StatusEvent.EVENT_TYPE} for possible types.
      *
      * @param observer {@link EventsListener} implementation that will be triggered when there is a change in state of SDK
+     * @return Was listener registered with success?
      */
-    public void registerEventsListener(EventsListener observer) {
-        if (observer != null) eventsListenerSet.add(observer);
+    public boolean registerEventsListener(final EventsListener observer) {
+
+        if (observer != null) {
+            return eventsListenerSet.add(observer);
+        }
+        return false;
     }
 
     /**
      * Removes registered listener from list of registered events listener
      *
      * @param observer {@link EventsListener} implementation that needs to be removed
+     * @return Was listener un-registered with success?
      */
-    public void unregisterEventsListener(EventsListener observer) {
-        eventsListenerSet.remove(observer);
+    public boolean unregisterEventsListener(final EventsListener observer) {
+
+        return eventsListenerSet.remove(observer);
     }
 
     /**

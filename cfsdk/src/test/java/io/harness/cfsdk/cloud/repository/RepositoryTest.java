@@ -15,17 +15,14 @@ import io.harness.cfsdk.cloud.ApiResponse;
 import io.harness.cfsdk.cloud.FeatureService;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.logging.CfLog;
 
 public class RepositoryTest {
 
-    @Mock
-    FeatureService mockService;
-    @Mock
-    CloudCache mockCache;
-    @Mock
-    ApiResponse demoFlagResponse;
-    @Mock
-    ApiResponse demoListResponse;
+    @Mock FeatureService mockService;
+    @Mock CloudCache mockCache;
+    @Mock ApiResponse demoFlagResponse;
+    @Mock ApiResponse demoListResponse;
 
     Evaluation demoFlagEvaluation;
     Evaluation secondFlagEvaluation;
@@ -34,6 +31,9 @@ public class RepositoryTest {
 
     @Before
     public void setUp() {
+
+        CfLog.testModeOn();
+
         MockitoAnnotations.initMocks(this);
         mockService = Mockito.mock(FeatureService.class);
 
@@ -72,6 +72,7 @@ public class RepositoryTest {
 
     @Test
     public void repositoryTest() {
+
         Evaluation evaluation =
                 repository.getEvaluation("demo", "target", "demo_flag", true);
 
@@ -128,7 +129,5 @@ public class RepositoryTest {
 
         repository.clear();
         Mockito.verify(mockCache, Mockito.atMostOnce()).clear();
-
     }
-
 }

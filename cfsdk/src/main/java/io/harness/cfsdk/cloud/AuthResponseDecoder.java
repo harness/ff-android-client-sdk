@@ -1,17 +1,22 @@
 package io.harness.cfsdk.cloud;
 
-import androidx.annotation.Nullable;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.util.Base64;
+
+import androidx.annotation.Nullable;
 
 import com.google.gson.Gson;
 
 import io.harness.cfsdk.cloud.model.AuthInfo;
+import io.harness.cfsdk.logging.CfLog;
 
 public class AuthResponseDecoder {
+
+    private final String logTag;
+
+    {
+
+        logTag = AuthResponseDecoder.class.getSimpleName();
+    }
 
     public @Nullable AuthInfo extractInfo(String token) {
         if (token == null) return null;
@@ -24,7 +29,8 @@ public class AuthResponseDecoder {
                 return gson.fromJson(decodeData, AuthInfo.class);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+
+            CfLog.OUT.e(logTag, e.getMessage(), e);
         }
         return null;
     }

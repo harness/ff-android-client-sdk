@@ -2,8 +2,6 @@ package io.harness.cfsdk.cloud.repository;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import io.harness.cfsdk.cloud.ApiResponse;
 import io.harness.cfsdk.cloud.FeatureService;

@@ -98,7 +98,12 @@ private final EventsListener eventsListener = statusEvent -> {
     }
 }
 
-CfClient.getInstance().registerEventsListener(eventsListener)
+val success = CfClient.getInstance().registerEventsListener(eventsListener)
+```
+
+## _Unregister from events_
+```Kotlin
+val success = CfClient.getInstance().unregisterEventsListener(eventsListener)
 ```
 
 Triggered event will have one of the following types:
@@ -129,3 +134,21 @@ To avoid potential memory leak, when SDK is no longer needed (when the app is cl
 ```Kotlin
 CfClient.getInstance().destroy()
 ```
+
+## Using SDK in unit tests
+
+To be able to use the SDK in unit tests it is required to set SDKs logging to the console output:
+
+```Kotlin
+CfLog.testModeOn()
+```
+
+`testModeOn` will turn on the use of the system output logging strategy. 
+
+On the other hand, to turn on the usage of the Android [log class](https://developer.android.com/reference/android/util/Log) use:
+
+```Kotlin
+CfLog.runtimeModeOn()
+``` 
+
+Standard Android logging is the default logging strategy so turning on runtime mode is not required. 
