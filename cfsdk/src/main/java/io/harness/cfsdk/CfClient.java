@@ -53,6 +53,7 @@ public final class CfClient {
     private final String logTag;
     private volatile boolean ready;
     private final Executor executor;
+    private boolean analyticsEnabled;
     private static CfClient instance;
     private SSEController sseController;
     private final CloudFactory cloudFactory;
@@ -152,11 +153,16 @@ public final class CfClient {
                         this.authInfo = cloud.getAuthInfo();
                     }
                 }
-                if (!ready) return;
+                if (!ready) {
+
+                    return;
+                }
                 List<Evaluation> evaluations = this.featureRepository.getAllEvaluations(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), false);
                 sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
 
-                if (useStream) startSSE();
+                if (useStream) {
+                    startSSE();
+                }
                 else evaluationPolling.start(this::reschedule);
             } catch (Exception e) {
 
@@ -186,13 +192,19 @@ public final class CfClient {
     }
 
     private synchronized void startSSE() {
+
         SSEConfig config = cloud.getConfig();
-        if (config.isValid()) sseController.start(config, eventsListener);
+        if (config.isValid()) {
+            sseController.start(config, eventsListener);
+        }
     }
 
     private synchronized void stopSSE() {
+
         this.useStream = false;
-        if (sseController != null) sseController.stop();
+        if (sseController != null) {
+            sseController.stop();
+        }
     }
 
 
@@ -239,6 +251,7 @@ public final class CfClient {
                 evaluationPolling = cloudFactory.evaluationPolling(configuration.getPollingInterval(), TimeUnit.SECONDS);
 
                 this.useStream = configuration.getStreamEnabled();
+                this.analyticsEnabled = configuration.getAnalyticsEnabled();
 
                 boolean success = cloud.initialize();
                 if (success) {

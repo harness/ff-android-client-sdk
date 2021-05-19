@@ -48,6 +48,15 @@ public class CfConfiguration {
         return streamEnabled;
     }
 
+    /**
+     * Are anlytics enabled?
+     *
+     * @return True == Using SDK metrics is enabled.
+     */
+    public boolean getAnalyticsEnabled() {
+        return analyticsEnabled;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
