@@ -92,6 +92,11 @@ publishing {
                         name = 'Stefan Tanovic'
                         email = 'stefan.tanovic@harness.io'
                     }
+                    developer {
+                        id = 'milos85vasic-harness'
+                        name = 'Milos Vasic'
+                        email = 'milos.vasic@harness.io'
+                    }
                 }
                 scm {
                     connection = 'scm:git:https://github.com/drone/ff-android-client-sdk.git'
