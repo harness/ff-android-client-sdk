@@ -267,6 +267,11 @@ public final class CfClient {
                         }
                     }
 
+                    if (analyticsEnabled) {
+
+                        // TODO: Instantiate analytics manager.
+                    }
+
                     if (authCallback != null) {
 
                         final AuthResult result = new AuthResult(true);
