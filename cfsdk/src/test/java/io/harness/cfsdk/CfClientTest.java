@@ -83,7 +83,7 @@ public class CfClientTest {
 
         CfClient cfClient = new CfClient(cloudFactory);
         CountDownLatch latch = new CountDownLatch(1);
-        CfConfiguration cfConfiguration = new CfConfiguration("", "demo_url", true, 10);
+        CfConfiguration cfConfiguration = new CfConfiguration("", "demo_url", true, false, 10);
 
         cfClient.initialize(
 
@@ -124,7 +124,7 @@ public class CfClientTest {
         initTestSetup();
         CfClient cfClient = new CfClient(cloudFactory);
         CountDownLatch latch = new CountDownLatch(1);
-        CfConfiguration cfConfiguration = new CfConfiguration("", "", false, 10);
+        CfConfiguration cfConfiguration = new CfConfiguration("", "", false, false, 10);
 
         cfClient.initialize(
 
@@ -254,7 +254,7 @@ public class CfClientTest {
         registerOk = cfClient.registerEvaluationListener("demo_change", evaluationListener);
         Assert.assertFalse(registerOk);
 
-        CfConfiguration cfConfiguration = new CfConfiguration("", "", true, 10);
+        CfConfiguration cfConfiguration = new CfConfiguration("", "", true, false, 10);
 
         cfClient.initialize(context, "", cfConfiguration, new Target().identifier("target"));
 
@@ -303,7 +303,7 @@ public class CfClientTest {
         CountDownLatch latch = new CountDownLatch(1);
 
         CfClient cfClient = new CfClient(cloudFactory);
-        CfConfiguration cfConfiguration = new CfConfiguration("", "demo_url", false, 10);
+        CfConfiguration cfConfiguration = new CfConfiguration("", "demo_url", false, false, 10);
 
         cfClient.initialize(
 
