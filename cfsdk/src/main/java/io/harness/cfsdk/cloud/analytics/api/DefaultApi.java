@@ -42,13 +42,6 @@ public class DefaultApi {
      * @param _callback   Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
-     * @http.response.details <table summary="Response Details" border="1">
-     * <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     * <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     * <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
-     * <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
-     * <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
-     * </table>
      */
     public okhttp3.Call postMetricsCall(String environment, Metrics metrics, final ApiCallback _callback) throws ApiException {
 
@@ -99,13 +92,6 @@ public class DefaultApi {
      * @param environment environment parameter in query. (required)
      * @param metrics     (optional)
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
-     * @http.response.details <table summary="Response Details" border="1">
-     * <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     * <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     * <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
-     * <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
-     * <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
-     * </table>
      */
     public void postMetrics(String environment, Metrics metrics) throws ApiException {
 
@@ -120,13 +106,6 @@ public class DefaultApi {
      * @param metrics     (optional)
      * @return ApiResponse&lt;Void&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
-     * @http.response.details <table summary="Response Details" border="1">
-     * <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     * <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     * <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
-     * <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
-     * <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
-     * </table>
      */
     public ApiResponse<Void> postMetricsWithHttpInfo(String environment, Metrics metrics) throws ApiException {
 
@@ -143,13 +122,6 @@ public class DefaultApi {
      * @param _callback   The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
-     * @http.response.details <table summary="Response Details" border="1">
-     * <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     * <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     * <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
-     * <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
-     * <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
-     * </table>
      */
     public okhttp3.Call postMetricsAsync(String environment, Metrics metrics, final ApiCallback<Void> _callback) throws ApiException {
 
