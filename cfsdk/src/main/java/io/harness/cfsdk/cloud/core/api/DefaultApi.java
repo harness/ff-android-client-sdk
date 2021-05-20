@@ -32,21 +32,26 @@ import io.harness.cfsdk.cloud.core.model.AuthenticationResponse;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 
 public class DefaultApi {
+
     private ApiClient localVarApiClient;
 
     public DefaultApi() {
+
         this(Configuration.getDefaultApiClient());
     }
 
     public DefaultApi(ApiClient apiClient) {
+
         this.localVarApiClient = apiClient;
     }
 
     public ApiClient getApiClient() {
+
         return localVarApiClient;
     }
 
     public void setApiClient(ApiClient apiClient) {
+
         this.localVarApiClient = apiClient;
     }
 
@@ -65,7 +70,12 @@ public class DefaultApi {
         <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call authenticateCall(AuthenticationRequest authenticationRequest, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call authenticateCall(
+
+            final AuthenticationRequest authenticationRequest,
+            final ApiCallback _callback
+    ) throws ApiException {
+
         Object localVarPostBody = authenticationRequest;
 
         // create path and map variables
@@ -96,7 +106,6 @@ public class DefaultApi {
 
     @SuppressWarnings("rawtypes")
     private okhttp3.Call authenticateValidateBeforeCall(AuthenticationRequest authenticationRequest, final ApiCallback _callback) throws ApiException {
-        
 
         okhttp3.Call localVarCall = authenticateCall(authenticationRequest, _callback);
         return localVarCall;
@@ -120,6 +129,7 @@ public class DefaultApi {
      </table>
      */
     public AuthenticationResponse authenticate(AuthenticationRequest authenticationRequest) throws ApiException {
+
         ApiResponse<AuthenticationResponse> localVarResp = authenticateWithHttpInfo(authenticationRequest);
         return localVarResp.getData();
     }
@@ -141,6 +151,7 @@ public class DefaultApi {
      </table>
      */
     public ApiResponse<AuthenticationResponse> authenticateWithHttpInfo(AuthenticationRequest authenticationRequest) throws ApiException {
+
         okhttp3.Call localVarCall = authenticateValidateBeforeCall(authenticationRequest, null);
         Type localVarReturnType = new TypeToken<AuthenticationResponse>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -492,6 +503,7 @@ public class DefaultApi {
      </table>
      */
     public void stream(String environmentId) throws ApiException {
+
         streamWithHttpInfo(environmentId);
     }
 
@@ -509,6 +521,7 @@ public class DefaultApi {
      </table>
      */
     public ApiResponse<Void> streamWithHttpInfo(String environmentId) throws ApiException {
+
         okhttp3.Call localVarCall = streamValidateBeforeCall(environmentId, null);
         return localVarApiClient.execute(localVarCall);
     }

@@ -30,6 +30,7 @@ import io.swagger.annotations.ApiModelProperty;
  * FeatureConfig
  */
 public class FeatureConfig {
+
   public static final String SERIALIZED_NAME_PROJECT = "project";
   @SerializedName(SERIALIZED_NAME_PROJECT)
   private String project;
