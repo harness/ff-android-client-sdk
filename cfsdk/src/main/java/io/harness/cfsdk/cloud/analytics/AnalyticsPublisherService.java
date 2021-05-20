@@ -2,9 +2,23 @@ package io.harness.cfsdk.cloud.analytics;
 
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import io.harness.cfsdk.BuildConfig;
+import io.harness.cfsdk.CfConfiguration;
+import io.harness.cfsdk.cloud.analytics.api.DefaultApi;
+import io.harness.cfsdk.cloud.analytics.model.Analytics;
+import io.harness.cfsdk.cloud.analytics.model.KeyValue;
+import io.harness.cfsdk.cloud.analytics.model.Metrics;
+import io.harness.cfsdk.cloud.analytics.model.MetricsData;
+import io.harness.cfsdk.cloud.analytics.model.TargetData;
+import io.harness.cfsdk.cloud.core.client.ApiException;
+import io.harness.cfsdk.cloud.core.model.FeatureConfig;
+import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.Target;
+import io.harness.cfsdk.logging.CfLog;
 
 /**
  * This class prepares the message body for metrics and posts it to the server
@@ -42,5 +56,140 @@ public class AnalyticsPublisherService {
         VARIATION_IDENTIFIER_ATTRIBUTE = "variationIdentifier";
     }
 
-    private String jarVerion = "";
+    private String jarVerion;
+
+    private final String logTag;
+    private final DefaultApi metricsAPI;
+    private final Cache analyticsCache;
+    private final String environmentID;
+
+    {
+
+        jarVerion = "";
+        logTag = AnalyticsPublisherService.class.getSimpleName();
+    }
+
+    public AnalyticsPublisherService(
+
+            String apiKey, CfConfiguration config, String environmentID, Cache analyticsCache
+    ) {
+
+        metricsAPI = MetricsApiFactory.create(apiKey, config);
+        this.analyticsCache = analyticsCache;
+        this.environmentID = environmentID;
+    }
+
+    /**
+     * This method sends the metrics data to the analytics server and resets the cache
+     */
+    public void sendDataAndResetCache() {
+
+        CfLog.OUT.i(logTag, "Reading from queue and building cache");
+        jarVerion = getVersion();
+
+        final Map<Analytics, Integer> all = analyticsCache.getAll();
+        if (!all.isEmpty()) {
+            try {
+                Metrics metrics = prepareMessageBody(all);
+                CfLog.OUT.d(logTag, "metrics " + metrics);
+                final List<MetricsData> metricsData = metrics.getMetricsData();
+                final List<TargetData> targetData = metrics.getTargetData();
+                if ((metricsData != null && !metricsData.isEmpty())
+                        || (targetData != null && !targetData.isEmpty())) {
+                    metricsAPI.postMetrics(environmentID, metrics);
+                }
+                globalTargetSet.addAll(stagingTargetSet);
+                stagingTargetSet.clear();
+                CfLog.OUT.d(logTag, "Successfully sent analytics data to the server");
+                CfLog.OUT.i(logTag, "Invalidating the cache");
+                analyticsCache.resetCache();
+            } catch (ApiException e) {
+
+                // Clear the set because the cache is only invalidated when there is no
+                // exception, so the targets will reappear in the next iteration
+                final String msg = String.format(
+                        "Failed to send metricsData %s : %S", e.getMessage(), e.getCode()
+                );
+                CfLog.OUT.d(logTag, msg);
+            }
+        }
+    }
+
+    private Metrics prepareMessageBody(Map<Analytics, Integer> all) {
+        Metrics metrics = new Metrics();
+
+        // using for-each loop for iteration over Map.entrySet()
+        for (Map.Entry<Analytics, Integer> entry : all.entrySet()) {
+
+            // Set target data
+            TargetData targetData = new TargetData();
+            // Set Metrics data
+            MetricsData metricsData = new MetricsData();
+
+            Analytics analytics = entry.getKey();
+            final Set<String> privateAttributes = analytics.getTarget().getPrivateAttributes();
+            final Target target = analytics.getTarget();
+            final FeatureConfig featureConfig = analytics.getFeatureConfig();
+            final Variation variation = analytics.getVariation();
+
+            if (!globalTargetSet.contains(target) && !target.isPrivate()) {
+                stagingTargetSet.add(target);
+                final Map<String, Object> attributes = target.getAttributes();
+                for (final String k : attributes.keySet()) {
+
+                    final Object v = attributes.get(k);
+                    KeyValue keyValue = new KeyValue();
+                    if (privateAttributes != null && !privateAttributes.isEmpty()) {
+                        if (!privateAttributes.contains(k)) {
+                            keyValue.setKey(k);
+                            keyValue.setValue(v.toString());
+                        }
+                    } else {
+                        keyValue.setKey(k);
+                        keyValue.setValue(v.toString());
+                    }
+                    targetData.addAttributesItem(keyValue);
+                }
+
+                targetData.setIdentifier(target.getIdentifier());
+                targetData.setName(target.getName());
+                metrics.addTargetDataItem(targetData);
+            }
+
+            metricsData.setTimestamp(System.currentTimeMillis());
+            metricsData.count(entry.getValue());
+            metricsData.setMetricsType(MetricsData.MetricsTypeEnum.FFMETRICS);
+            setMetricsAttriutes(metricsData, FEATURE_NAME_ATTRIBUTE, featureConfig.getFeature());
+            // TODO : deprecate this field FEATURE_VALUE_ATTRIBUTE in the subsequent releases
+            setMetricsAttriutes(metricsData, FEATURE_VALUE_ATTRIBUTE, variation.getValue());
+            setMetricsAttriutes(metricsData, VARIATION_IDENTIFIER_ATTRIBUTE, variation.getIdentifier());
+            setMetricsAttriutes(metricsData, VARIATION_VALUE_ATTRIBUTE, variation.getValue());
+            if (target.isPrivate()) {
+                setMetricsAttriutes(metricsData, TARGET_ATTRIBUTE, ANONYMOUS_TARGET);
+            } else {
+                setMetricsAttriutes(metricsData, TARGET_ATTRIBUTE, target.getIdentifier());
+            }
+            setMetricsAttriutes(metricsData, JAR_VERSION, jarVerion);
+            setMetricsAttriutes(metricsData, SDK_TYPE, SERVER);
+
+            setMetricsAttriutes(metricsData, SDK_LANGUAGE, "android");
+            setMetricsAttriutes(metricsData, SDK_VERSION, jarVerion);
+            metrics.addMetricsDataItem(metricsData);
+        }
+
+        return metrics;
+    }
+
+    private void setMetricsAttriutes(MetricsData metricsData, String key, String value) {
+
+        KeyValue metricsAttributes = new KeyValue();
+        metricsAttributes.setKey(key);
+        metricsAttributes.setValue(value);
+        metricsData.addAttributesItem(metricsAttributes);
+    }
+
+    private String getVersion() {
+
+        return BuildConfig.APP_VERSION_NAME;
+    }
 }
