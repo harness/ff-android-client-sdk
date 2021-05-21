@@ -164,12 +164,8 @@ public class CfConfiguration {
      BufferSize must be a power of 2 for LMAX to work. This function vaidates
      that. Source: https://stackoverflow.com/a/600306/1493480
     */
-    public int getBufferSize() throws CfClientException {
+    public int getBufferSize() {
 
-        if (!(bufferSize != 0 && ((bufferSize & (bufferSize - 1)) == 0))) {
-
-            throw new CfClientException("BufferSize must be a power of 2");
-        }
         return bufferSize;
     }
 

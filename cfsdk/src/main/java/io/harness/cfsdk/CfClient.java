@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.harness.cfsdk.cloud.Cloud;
 import io.harness.cfsdk.cloud.NetworkInfoProvider;
+import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.events.AuthCallback;
@@ -57,6 +58,7 @@ public final class CfClient {
     private static CfClient instance;
     private SSEController sseController;
     private final CloudFactory cloudFactory;
+    private AnalyticsManager analyticsManager;
     private FeatureRepository featureRepository;
     private EvaluationPolling evaluationPolling;
     private final Executor listenerUpdateExecutor;
@@ -122,23 +124,24 @@ public final class CfClient {
     }
 
     private void sendEvent(StatusEvent statusEvent) {
-        listenerUpdateExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                Iterator<EventsListener> iterator = eventsListenerSet.iterator();
-                while (iterator.hasNext()) {
-                    EventsListener listener = iterator.next();
-                    listener.onEventReceived(statusEvent);
-                }
+        listenerUpdateExecutor.execute(() -> {
+            Iterator<EventsListener> iterator = eventsListenerSet.iterator();
+            while (iterator.hasNext()) {
+                EventsListener listener = iterator.next();
+                listener.onEventReceived(statusEvent);
             }
         });
     }
 
     private void notifyListeners(Evaluation evaluation) {
         if (evaluationListenerSet.containsKey(evaluation.getFlag())) {
-            Set<EvaluationListener> callbacks = evaluationListenerSet.get(evaluation.getFlag());
-            for (EvaluationListener listener : callbacks) {
-                listener.onEvaluation(evaluation);
+            final Set<EvaluationListener> callbacks = evaluationListenerSet.get(evaluation.getFlag());
+            if (callbacks != null) {
+
+                for (EvaluationListener listener : callbacks) {
+
+                    listener.onEvaluation(evaluation);
+                }
             }
         }
     }
@@ -162,8 +165,7 @@ public final class CfClient {
 
                 if (useStream) {
                     startSSE();
-                }
-                else evaluationPolling.start(this::reschedule);
+                } else evaluationPolling.start(this::reschedule);
             } catch (Exception e) {
 
                 CfLog.OUT.e(logTag, e.getMessage(), e);
@@ -258,18 +260,26 @@ public final class CfClient {
                     this.authInfo = cloud.getAuthInfo();
                     ready = true;
                     if (networkInfoProvider.isNetworkAvailable()) {
-                        List<Evaluation> evaluations = featureRepository.getAllEvaluations(this.authInfo.getEnvironmentIdentifier(), target.getIdentifier(), false);
+
+                        List<Evaluation> evaluations = featureRepository.getAllEvaluations(
+                                this.authInfo.getEnvironmentIdentifier(),
+                                target.getIdentifier(),
+                                false
+                        );
                         sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
                         if (useStream) {
+
                             startSSE();
                         } else {
+
                             evaluationPolling.start(this::reschedule);
                         }
                     }
 
                     if (analyticsEnabled) {
 
-                        // TODO: Instantiate analytics manager.
+                        final String environmentID = authInfo.getEnvironment();
+                        this.analyticsManager = new AnalyticsManager(environmentID, apiKey, configuration);
                     }
 
                     if (authCallback != null) {

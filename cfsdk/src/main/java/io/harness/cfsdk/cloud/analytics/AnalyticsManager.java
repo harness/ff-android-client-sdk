@@ -33,7 +33,7 @@ public class AnalyticsManager {
             String apiKey,
             CfConfiguration config
 
-    ) throws CfClientException {
+    ) {
 
         this.analyticsCache = AnalyticsCacheFactory.create(config.getAnalyticsCacheType());
         AnalyticsPublisherService analyticsPublisherService =

@@ -57,8 +57,6 @@ public class AnalyticsPublisherService {
         VARIATION_IDENTIFIER_ATTRIBUTE = "variationIdentifier";
     }
 
-    private String jarVerion;
-
     private final String logTag;
     private final DefaultApi metricsAPI;
     private final Cache analyticsCache;
@@ -66,7 +64,6 @@ public class AnalyticsPublisherService {
 
     {
 
-        jarVerion = "";
         logTag = AnalyticsPublisherService.class.getSimpleName();
     }
 
@@ -86,7 +83,6 @@ public class AnalyticsPublisherService {
     public void sendDataAndResetCache() {
 
         CfLog.OUT.i(logTag, "Reading from queue and building cache");
-        jarVerion = getVersion();
 
         final Map<Analytics, Integer> all = analyticsCache.getAll();
         if (!all.isEmpty()) {
@@ -171,11 +167,11 @@ public class AnalyticsPublisherService {
             } else {
                 setMetricsAttriutes(metricsData, TARGET_ATTRIBUTE, target.getIdentifier());
             }
-            setMetricsAttriutes(metricsData, JAR_VERSION, jarVerion);
+            setMetricsAttriutes(metricsData, JAR_VERSION, getVersion());
             setMetricsAttriutes(metricsData, SDK_TYPE, SERVER);
 
             setMetricsAttriutes(metricsData, SDK_LANGUAGE, "android");
-            setMetricsAttriutes(metricsData, SDK_VERSION, jarVerion);
+            setMetricsAttriutes(metricsData, SDK_VERSION, getVersion());
             metrics.addMetricsDataItem(metricsData);
         }
 
