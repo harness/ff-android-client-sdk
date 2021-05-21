@@ -9,6 +9,7 @@ import java.util.Set;
 import io.harness.cfsdk.BuildConfig;
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.api.DefaultApi;
+import io.harness.cfsdk.cloud.analytics.cache.Cache;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
 import io.harness.cfsdk.cloud.analytics.model.KeyValue;
 import io.harness.cfsdk.cloud.analytics.model.Metrics;
@@ -90,6 +91,7 @@ public class AnalyticsPublisherService {
         final Map<Analytics, Integer> all = analyticsCache.getAll();
         if (!all.isEmpty()) {
             try {
+
                 Metrics metrics = prepareMessageBody(all);
                 CfLog.OUT.d(logTag, "metrics " + metrics);
                 final List<MetricsData> metricsData = metrics.getMetricsData();

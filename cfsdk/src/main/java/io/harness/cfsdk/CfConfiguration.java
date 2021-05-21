@@ -1,24 +1,46 @@
 package io.harness.cfsdk;
 
+import io.harness.cfsdk.cloud.analytics.AnalyticsCacheFactory;
+
 /**
  * Main configuration class used to tune the behaviour of {@link CfClient}. It uses builder pattern.
  */
 public class CfConfiguration {
 
+    public static final int MIN_FREQUENCY;
+
     private static final String BASE_URL;
     private static final String STREAM_URL;
+
+    private final int frequency;
+    private final int bufferSize;
+    private final int pollingInterval;
+
+    private final String baseURL;
+    private final String streamURL;
+
+    private final boolean streamEnabled;
+    private final boolean analyticsEnabled;
+
+    private String analyticsCacheType;
+
+    static {
+
+        MIN_FREQUENCY = 60;
+    }
+
+    {
+
+        frequency = 60; // unit: second
+        bufferSize = 1024;
+        analyticsCacheType = AnalyticsCacheFactory.GUAVA_CACHE;
+    }
 
     static {
 
         BASE_URL = "https://config.feature-flags.uat.harness.io/api/1.0";
         STREAM_URL = BASE_URL + "/stream";
     }
-
-    private final String baseURL;
-    private final String streamURL;
-    private final int pollingInterval;
-    private final boolean streamEnabled;
-    private final boolean analyticsEnabled;
 
     CfConfiguration(
 
@@ -131,5 +153,33 @@ public class CfConfiguration {
                     baseURL, streamURL, streamEnabled, analyticsEnabled, pollingInterval
             );
         }
+    }
+
+    public int getFrequency() {
+
+        return Math.max(frequency, MIN_FREQUENCY);
+    }
+
+    /*
+     BufferSize must be a power of 2 for LMAX to work. This function vaidates
+     that. Source: https://stackoverflow.com/a/600306/1493480
+    */
+    public int getBufferSize() throws CfClientException {
+
+        if (!(bufferSize != 0 && ((bufferSize & (bufferSize - 1)) == 0))) {
+
+            throw new CfClientException("BufferSize must be a power of 2");
+        }
+        return bufferSize;
+    }
+
+    public String getAnalyticsCacheType() {
+
+        return analyticsCacheType;
+    }
+
+    public void setAnalyticsCacheType(String analyticsCacheType) {
+
+        this.analyticsCacheType = analyticsCacheType;
     }
 }

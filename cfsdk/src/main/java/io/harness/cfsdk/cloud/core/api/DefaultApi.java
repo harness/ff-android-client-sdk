@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.harness.cfsdk.cloud.analytics.model.Metrics;
 import io.harness.cfsdk.cloud.core.client.ApiCallback;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
 import io.harness.cfsdk.cloud.core.client.ApiException;

@@ -7,16 +7,31 @@ import io.harness.cfsdk.cloud.model.Target;
 
 public class Analytics {
 
-    private FeatureConfig featureConfig;
     private Target target;
     private Variation variation;
-    private EventType eventType = EventType.METRICS;
+    private EventType eventType;
+    private FeatureConfig featureConfig;
+
+    public Analytics(
+
+            Target target,
+            Variation variation,
+            EventType eventType,
+            FeatureConfig featureConfig
+    ) {
+
+        this.target = target;
+        this.variation = variation;
+        this.eventType = eventType;
+        this.featureConfig = featureConfig;
+    }
 
     public FeatureConfig getFeatureConfig() {
         return featureConfig;
     }
 
     public void setFeatureConfig(FeatureConfig featureConfig) {
+
         this.featureConfig = featureConfig;
     }
 

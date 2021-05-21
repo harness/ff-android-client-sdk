@@ -1,4 +1,4 @@
-package io.harness.cfsdk.cloud.analytics;
+package io.harness.cfsdk.cloud.analytics.cache;
 
 import androidx.annotation.Nullable;
 
