@@ -2,13 +2,11 @@ package io.harness.cfsdk.cloud.analytics;
 
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
-import com.lmax.disruptor.util.DaemonThreadFactory;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import io.harness.cfsdk.CfClientException;
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.cache.Cache;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
