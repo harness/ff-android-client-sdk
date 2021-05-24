@@ -28,9 +28,10 @@ public class TimerTask implements Runnable {
         try {
 
             CfLog.OUT.i(logTag, "Publishing timerInfo to ringBuffer");
-            Analytics event = ringBuffer.get(sequence); // Get the entry in the Disruptor for the sequence
+            Analytics event = ringBuffer.getPublished(sequence); // Get the entry in the Disruptor for the sequence
             event.setEventType(EventType.TIMER);
         } finally {
+
             ringBuffer.publish(sequence);
         }
     }

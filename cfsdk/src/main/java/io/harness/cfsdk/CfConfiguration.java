@@ -71,11 +71,12 @@ public class CfConfiguration {
     }
 
     /**
-     * Are anlytics enabled?
+     * Are analytics enabled?
      *
      * @return True == Using SDK metrics is enabled.
      */
-    public boolean getAnalyticsEnabled() {
+    public boolean isAnalyticsEnabled() {
+
         return analyticsEnabled;
     }
 

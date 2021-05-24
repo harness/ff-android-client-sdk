@@ -1,9 +1,13 @@
 package io.harness.cfsdk.cloud;
 
+import java.util.List;
+
 import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
 import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
+import io.harness.cfsdk.cloud.core.model.FeatureConfig;
+import io.harness.cfsdk.cloud.core.model.FeatureState;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
@@ -51,9 +55,14 @@ public class Cloud implements FeatureService {
     }
 
     public AuthInfo getAuthInfo() {
+
         return authInfo;
     }
 
+    public List<FeatureConfig> getFeatureConfig(final String environmentID) throws ApiException {
+
+        return defaultApi.getFeatureConfig(environmentID);
+    }
 
     private void authenticate() {
         defaultApi = cloudFactory.defaultApi(apiClient);

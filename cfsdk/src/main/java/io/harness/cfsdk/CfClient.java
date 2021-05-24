@@ -4,6 +4,10 @@ import android.content.Context;
 
 import androidx.annotation.Nullable;
 
+import com.google.common.base.Strings;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -20,12 +24,15 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import io.harness.cfsdk.cloud.Cloud;
 import io.harness.cfsdk.cloud.NetworkInfoProvider;
 import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
 import io.harness.cfsdk.cloud.cache.CloudCache;
+import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.events.AuthCallback;
 import io.harness.cfsdk.cloud.events.AuthResult;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
@@ -64,6 +71,7 @@ public final class CfClient {
     private final Executor listenerUpdateExecutor;
     private NetworkInfoProvider networkInfoProvider;
     private final Set<EventsListener> eventsListenerSet;
+    private final Cache<String, FeatureConfig> featureCache;
     private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet;
 
     {
@@ -72,6 +80,7 @@ public final class CfClient {
         executor = Executors.newSingleThreadExecutor();
         evaluationListenerSet = new ConcurrentHashMap<>();
         listenerUpdateExecutor = Executors.newSingleThreadExecutor();
+        featureCache = CacheBuilder.newBuilder().maximumSize(10000).build();
         eventsListenerSet = Collections.synchronizedSet(new LinkedHashSet<>());
     }
 
@@ -119,11 +128,20 @@ public final class CfClient {
      * @return single instance used as entry point of SDK
      */
     public static CfClient getInstance() {
-        if (instance == null) instance = new CfClient(new CloudFactory());
+
+        if (instance == null) {
+            synchronized (CfClient.class) {
+
+                if (instance == null) {
+                    instance = new CfClient(new CloudFactory());
+                }
+            }
+        }
         return instance;
     }
 
     private void sendEvent(StatusEvent statusEvent) {
+
         listenerUpdateExecutor.execute(() -> {
             Iterator<EventsListener> iterator = eventsListenerSet.iterator();
             while (iterator.hasNext()) {
@@ -253,11 +271,25 @@ public final class CfClient {
                 evaluationPolling = cloudFactory.evaluationPolling(configuration.getPollingInterval(), TimeUnit.SECONDS);
 
                 this.useStream = configuration.getStreamEnabled();
-                this.analyticsEnabled = configuration.getAnalyticsEnabled();
+                this.analyticsEnabled = configuration.isAnalyticsEnabled();
 
                 boolean success = cloud.initialize();
                 if (success) {
+
                     this.authInfo = cloud.getAuthInfo();
+                    final String environmentID = authInfo.getEnvironment();
+                    try {
+
+                        initFeatureCache(environmentID);
+                    } catch (ApiException e) {
+
+                        if (authCallback != null) {
+
+                            final AuthResult result = new AuthResult(false, e);
+                            authCallback.authorizationSuccess(authInfo, result);
+                        }
+                        return;
+                    }
                     ready = true;
                     if (networkInfoProvider.isNetworkAvailable()) {
 
@@ -278,7 +310,6 @@ public final class CfClient {
 
                     if (analyticsEnabled) {
 
-                        final String environmentID = authInfo.getEnvironment();
                         this.analyticsManager = new AnalyticsManager(environmentID, apiKey, configuration);
                     }
 
@@ -402,6 +433,19 @@ public final class CfClient {
                 target.getIdentifier(),
                 defaultValue
         );
+
+        final FeatureConfig featureConfig = featureCache.getIfPresent(evaluationId);
+        if (!target.isPrivate()
+                && target.isValid()
+                && analyticsEnabled
+                && analyticsManager != null
+                && featureConfig != null
+        ) {
+
+            // TODO:
+            // analyticsManager.pushToQueue(target, featureConfig, evaluation);
+        }
+
         final Object value = evaluation.getValue();
         if (value instanceof Boolean) {
 
@@ -498,10 +542,24 @@ public final class CfClient {
     }
 
     private void unregister() {
+
         ready = false;
         stopSSE();
         if (evaluationPolling != null) evaluationPolling.stop();
         if (featureRepository != null) featureRepository.clear();
+    }
 
+    private void initFeatureCache(String environmentID) throws ApiException {
+
+        if (!Strings.isNullOrEmpty(environmentID)) {
+
+            List<FeatureConfig> featureConfigs = cloud.getFeatureConfig(environmentID);
+            if (featureConfigs != null) {
+
+                for (final FeatureConfig config : featureConfigs) {
+                    featureCache.put(config.getFeature(), config);
+                }
+            }
+        }
     }
 }

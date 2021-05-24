@@ -1,6 +1,6 @@
 package io.harness.cfsdk.cloud.analytics;
 
-import android.text.TextUtils;
+
 
 import io.harness.cfsdk.CfClientException;
 import io.harness.cfsdk.CfConfiguration;
@@ -10,6 +10,7 @@ import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
 import io.harness.cfsdk.cloud.core.model.AuthenticationResponse;
 import io.harness.cfsdk.logging.CfLog;
+import io.harness.cfsdk.utils.CfUtils;
 
 /**
  * This is a factory class to provide the API for metrics related operations.
@@ -35,7 +36,7 @@ public class MetricsApiFactory {
         io.harness.cfsdk.cloud.core.api.DefaultApi clientAPI =
                 new io.harness.cfsdk.cloud.core.api.DefaultApi();
 
-        if (!TextUtils.isEmpty(config.getStreamURL())) {
+        if (!CfUtils.Text.isEmpty(config.getStreamURL())) {
 
             ApiClient apiClient = metricsAPI.getApiClient();
             apiClient.setBasePath(config.getStreamURL());

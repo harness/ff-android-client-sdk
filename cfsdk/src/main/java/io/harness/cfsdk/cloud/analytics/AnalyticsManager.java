@@ -61,7 +61,7 @@ public class AnalyticsManager {
 
         // Construct the Disruptor
         Disruptor<Analytics> disruptor =
-                new Disruptor<>(factory, bufferSize, DaemonThreadFactory.INSTANCE);
+                new Disruptor<>(factory, bufferSize, Executors.newSingleThreadExecutor());
 
         // Connect the handler
         disruptor.handleEventsWith(
@@ -87,7 +87,7 @@ public class AnalyticsManager {
         long sequence = ringBuffer.next(); // Grab the next sequence
         try {
 
-            Analytics event = ringBuffer.get(sequence); // Get the entry in the Disruptor for the sequence
+            Analytics event = ringBuffer.getPublished(sequence); // Get the entry in the Disruptor for the sequence
             event.setFeatureConfig(analytics.getFeatureConfig());
             event.setTarget(analytics.getTarget());
             event.setVariation(analytics.getVariation());

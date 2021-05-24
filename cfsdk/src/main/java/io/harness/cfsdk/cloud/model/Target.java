@@ -1,18 +1,19 @@
 package io.harness.cfsdk.cloud.model;
 
-import android.text.TextUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import io.harness.cfsdk.utils.CfUtils;
+
 public class Target {
 
     private String name;
     private String identifier;
-    private Map<String, Object> attributes;
     private boolean isPrivate; // If the target is private
     private Set<String> privateAttributes; // Custom set to set the attributes which are private
+    private final Map<String, Object> attributes;
 
     {
 
@@ -41,7 +42,7 @@ public class Target {
 
     public boolean isValid() {
 
-        return !TextUtils.isEmpty(name) && !TextUtils.isEmpty(identifier);
+        return !CfUtils.Text.isEmpty(name) && !CfUtils.Text.isEmpty(identifier);
     }
 
     public Map<String, Object> getAttributes() {

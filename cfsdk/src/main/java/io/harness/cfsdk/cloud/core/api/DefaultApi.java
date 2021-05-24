@@ -30,6 +30,7 @@ import io.harness.cfsdk.cloud.core.client.Pair;
 import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
 import io.harness.cfsdk.cloud.core.model.AuthenticationResponse;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 
 public class DefaultApi {
 
@@ -561,5 +562,107 @@ public class DefaultApi {
         okhttp3.Call localVarCall = streamValidateBeforeCall(environmentId, _callback);
         localVarApiClient.executeAsync(localVarCall, _callback);
         return localVarCall;
+    }
+
+    /**
+     * Get all feature flags activations
+     * All feature flags with activations in project environment
+     *
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @return List&lt;FeatureConfig&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public List<FeatureConfig> getFeatureConfig(String environmentUUID) throws ApiException {
+
+        ApiResponse<List<FeatureConfig>> localVarResp = getFeatureConfigWithHttpInfo(environmentUUID);
+        return localVarResp.getData();
+    }
+
+    /**
+     * Get all feature flags activations
+     * All feature flags with activations in project environment
+     *
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @return ApiResponse&lt;List&lt;FeatureConfig&gt;&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public ApiResponse<List<FeatureConfig>> getFeatureConfigWithHttpInfo(String environmentUUID)
+            throws ApiException {
+
+        okhttp3.Call localVarCall = getFeatureConfigValidateBeforeCall(environmentUUID, null);
+        Type localVarReturnType = new TypeToken<List<FeatureConfig>>() {
+        }.getType();
+        return localVarApiClient.execute(localVarCall, localVarReturnType);
+    }
+
+    private okhttp3.Call getFeatureConfigValidateBeforeCall(
+
+            String environmentUUID,
+            final ApiCallback _callback
+    ) throws ApiException {
+
+        // verify the required parameter 'environmentUUID' is set
+        if (environmentUUID == null) {
+
+            throw new ApiException("Missing the required parameter 'environmentUUID' when calling getFeatureConfig(Async)");
+        }
+
+        okhttp3.Call localVarCall = getFeatureConfigCall(environmentUUID, _callback);
+        return localVarCall;
+    }
+
+    /**
+     * Build call for getFeatureConfig
+     *
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param _callback       Callback for upload/download progress
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     */
+    public okhttp3.Call getFeatureConfigCall(
+
+            final String environmentUUID,
+            final ApiCallback _callback
+    ) throws ApiException {
+
+        Object localVarPostBody = null;
+
+        // create path and map variables
+        String localVarPath = "/client/env/{environmentUUID}/feature-configs"
+                .replaceAll("\\{" + "environmentUUID" + "\\}", localVarApiClient.escapeString(environmentUUID.toString()));
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        Map<String, String> localVarCookieParams = new HashMap<String, String>();
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+        final String[] localVarAccepts = {
+                "application/json"
+        };
+        final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) {
+            localVarHeaderParams.put("Accept", localVarAccept);
+        }
+
+        final String[] localVarContentTypes = {
+
+        };
+        final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
+        localVarHeaderParams.put("Content-Type", localVarContentType);
+
+        String[] localVarAuthNames = new String[]{"BearerAuth"};
+        return localVarApiClient.buildCall(
+
+                localVarPath,
+                "GET",
+                localVarQueryParams,
+                localVarCollectionQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarCookieParams,
+                localVarFormParams,
+                localVarAuthNames,
+                _callback
+        );
     }
 }
