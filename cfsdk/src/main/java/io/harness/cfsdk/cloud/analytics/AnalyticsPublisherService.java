@@ -37,13 +37,13 @@ public class AnalyticsPublisherService {
     private static final String JAR_VERSION;
     private static final String SDK_TYPE;
     private static final String ANONYMOUS_TARGET;
-    private static final String SERVER;
+    private static final String CLIENT;
     private static final String SDK_LANGUAGE;
     private static final String SDK_VERSION;
 
     static {
 
-        SERVER = "server";
+        CLIENT = "client";
         SDK_TYPE = "SDK_TYPE";
         JAR_VERSION = "JAR_VERSION";
         TARGET_ATTRIBUTE = "target";
@@ -173,7 +173,7 @@ public class AnalyticsPublisherService {
                 setMetricsAttriutes(metricsData, TARGET_ATTRIBUTE, target.getIdentifier());
             }
             setMetricsAttriutes(metricsData, JAR_VERSION, getVersion());
-            setMetricsAttriutes(metricsData, SDK_TYPE, SERVER);
+            setMetricsAttriutes(metricsData, SDK_TYPE, CLIENT);
 
             setMetricsAttriutes(metricsData, SDK_LANGUAGE, "android");
             setMetricsAttriutes(metricsData, SDK_VERSION, getVersion());
