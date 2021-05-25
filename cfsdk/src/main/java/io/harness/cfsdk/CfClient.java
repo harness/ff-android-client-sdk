@@ -32,6 +32,7 @@ import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.core.model.FeatureConfig;
+import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.events.AuthCallback;
 import io.harness.cfsdk.cloud.events.AuthResult;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
@@ -466,11 +467,11 @@ public final class CfClient {
                 && featureConfig != null
         ) {
 
-//            final Variation variation = new Variation();
-//            variation.setName(evaluationId);
-//            variation.setValue(String.valueOf(result));
-//            variation.setIdentifier(evaluation.getIdentifier());
-            // analyticsManager.pushToQueue(target, featureConfig, variation);
+            final Variation variation = new Variation();
+            variation.setName(evaluationId);
+            variation.setValue(String.valueOf(result));
+            variation.setIdentifier(evaluation.getIdentifier());
+            analyticsManager.pushToQueue(target, featureConfig, variation);
         }
 
         return result;
