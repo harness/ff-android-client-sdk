@@ -32,14 +32,15 @@ public class MetricsApiFactory {
 
     public static DefaultApi create(String apiKey, CfConfiguration config) {
 
-        DefaultApi metricsAPI = new DefaultApi();
+        final ApiClient apiClient = new ApiClient();
+        final DefaultApi metricsAPI = new DefaultApi(apiClient);
+
         io.harness.cfsdk.cloud.core.api.DefaultApi clientAPI =
                 new io.harness.cfsdk.cloud.core.api.DefaultApi();
 
-        if (!CfUtils.Text.isEmpty(config.getStreamURL())) {
+        if (!CfUtils.Text.isEmpty(config.getEventURL())) {
 
-            ApiClient apiClient = metricsAPI.getApiClient();
-            apiClient.setBasePath(config.getStreamURL());
+            apiClient.setBasePath(config.getEventURL());
             metricsAPI.setApiClient(apiClient);
         }
 

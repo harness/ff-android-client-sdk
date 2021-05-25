@@ -23,10 +23,12 @@ public class DefaultApi {
     }
 
     public DefaultApi(ApiClient apiClient) {
+
         this.localVarApiClient = apiClient;
     }
 
     public ApiClient getApiClient() {
+
         return localVarApiClient;
     }
 
@@ -71,7 +73,19 @@ public class DefaultApi {
         localVarHeaderParams.put("Content-Type", localVarContentType);
 
         String[] localVarAuthNames = new String[]{"BearerAuth"};
-        return localVarApiClient.buildCall(localVarPath, "POST", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
+        return localVarApiClient.buildCall(
+
+                localVarPath,
+                "POST",
+                localVarQueryParams,
+                localVarCollectionQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarCookieParams,
+                localVarFormParams,
+                localVarAuthNames,
+                _callback
+        );
     }
 
     @SuppressWarnings("rawtypes")

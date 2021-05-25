@@ -95,6 +95,7 @@ public class AnalyticsPublisherService {
                 final List<TargetData> targetData = metrics.getTargetData();
                 if ((metricsData != null && !metricsData.isEmpty())
                         || (targetData != null && !targetData.isEmpty())) {
+
                     metricsAPI.postMetrics(environmentID, metrics);
                 }
                 globalTargetSet.addAll(stagingTargetSet);

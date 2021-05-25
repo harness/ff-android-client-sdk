@@ -14,7 +14,13 @@
 package io.harness.cfsdk.cloud.core.client;
 
 public class Configuration {
-    private static ApiClient defaultApiClient = new ApiClient();
+
+    private static ApiClient defaultApiClient;
+
+    static {
+
+        defaultApiClient = new ApiClient();
+    }
 
     /**
      * Get the default API client, which would be used when creating API
@@ -23,6 +29,7 @@ public class Configuration {
      * @return Default API client
      */
     public static ApiClient getDefaultApiClient() {
+
         return defaultApiClient;
     }
 
@@ -33,6 +40,7 @@ public class Configuration {
      * @param apiClient API client
      */
     public static void setDefaultApiClient(ApiClient apiClient) {
+
         defaultApiClient = apiClient;
     }
 }

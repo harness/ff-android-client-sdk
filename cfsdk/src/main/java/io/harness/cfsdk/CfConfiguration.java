@@ -10,6 +10,7 @@ public class CfConfiguration {
     public static final int MIN_FREQUENCY;
 
     private static final String BASE_URL;
+    private static final String EVENT_URL;
     private static final String STREAM_URL;
 
     private final int frequency;
@@ -17,6 +18,7 @@ public class CfConfiguration {
     private final int pollingInterval;
 
     private final String baseURL;
+    private final String eventURL;
     private final String streamURL;
 
     private final boolean streamEnabled;
@@ -31,8 +33,8 @@ public class CfConfiguration {
 
     {
 
-        frequency = MIN_FREQUENCY; // unit: second
         bufferSize = 1024;
+        frequency = MIN_FREQUENCY; // unit: second
         analyticsCacheType = AnalyticsCacheFactory.GUAVA_CACHE;
     }
 
@@ -40,6 +42,7 @@ public class CfConfiguration {
 
         BASE_URL = "https://config.feature-flags.uat.harness.io/api/1.0";
         STREAM_URL = BASE_URL + "/stream";
+        EVENT_URL = "https://event.feature-flags.uat.harness.io/api/1.0";
     }
 
     CfConfiguration(
@@ -53,17 +56,42 @@ public class CfConfiguration {
 
         this.baseURL = baseURL;
         this.streamURL = streamURL;
+        this.eventURL = EVENT_URL;
+        this.streamEnabled = streamEnabled;
+        this.pollingInterval = pollingInterval;
+        this.analyticsEnabled = analyticsEnabled;
+    }
+
+    CfConfiguration(
+
+            String baseURL,
+            String streamURL,
+            String eventURL,
+            boolean streamEnabled,
+            boolean analyticsEnabled,
+            int pollingInterval
+    ) {
+
+        this.baseURL = baseURL;
+        this.streamURL = streamURL;
+        this.eventURL = eventURL;
         this.streamEnabled = streamEnabled;
         this.pollingInterval = pollingInterval;
         this.analyticsEnabled = analyticsEnabled;
     }
 
     public String getBaseURL() {
+
         return baseURL;
     }
 
     public String getStreamURL() {
+
         return streamURL;
+    }
+
+    public String getEventURL() {
+        return eventURL;
     }
 
     public boolean getStreamEnabled() {
@@ -91,6 +119,7 @@ public class CfConfiguration {
     public static class Builder {
 
         private String baseURL;
+        private String eventURL;
         private String streamURL;
         private int pollingInterval;
         private boolean streamEnabled;
@@ -102,6 +131,15 @@ public class CfConfiguration {
         public Builder baseUrl(String baseURL) {
 
             this.baseURL = baseURL;
+            return this;
+        }
+
+        /**
+         * Sets the metrics events API url
+         */
+        public Builder eventUrl(String eventURL) {
+
+            this.eventURL = eventURL;
             return this;
         }
 
@@ -144,9 +182,15 @@ public class CfConfiguration {
         public CfConfiguration build() {
 
             if (baseURL == null || baseURL.isEmpty()) {
+
                 baseURL = BASE_URL;
             }
+            if (eventURL == null || eventURL.isEmpty()) {
+
+                eventURL = EVENT_URL;
+            }
             if (streamEnabled && (streamURL == null || streamURL.isEmpty())) {
+
                 streamURL = STREAM_URL;
             }
             return new CfConfiguration(
