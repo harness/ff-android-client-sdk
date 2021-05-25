@@ -26,5 +26,16 @@ public class CfUtils {
 
             return text == null || text.isEmpty();
         }
+
+        /**
+         * Check if the text is not empty.
+         *
+         * @param text Text to check.
+         * @return True == Text is not empty.
+         */
+        public static boolean isNotEmpty(String text) {
+
+            return !isEmpty(text);
+        }
     }
 }

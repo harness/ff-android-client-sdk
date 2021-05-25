@@ -1,11 +1,11 @@
 package io.harness.cfsdk.cloud.analytics;
 
+import com.lmax.disruptor.InsufficientCapacityException;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 
+import java.util.Timer;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.cache.Cache;
@@ -14,6 +14,7 @@ import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.EventType;
 import io.harness.cfsdk.cloud.model.Target;
+import io.harness.cfsdk.logging.CfLog;
 
 /**
  * This class handles various analytics service related components and prepares them 1) It creates
@@ -22,30 +23,45 @@ import io.harness.cfsdk.cloud.model.Target;
  */
 public class AnalyticsManager {
 
+    private final Timer timer;
+    private final String logTag;
     private final Cache analyticsCache;
     private final RingBuffer<Analytics> ringBuffer;
+
+    {
+
+        timer = new Timer();
+        logTag = AnalyticsManager.class.getSimpleName();
+    }
 
     public AnalyticsManager(
 
             String environmentID,
             String apiKey,
             CfConfiguration config
-
     ) {
 
         this.analyticsCache = AnalyticsCacheFactory.create(config.getAnalyticsCacheType());
         AnalyticsPublisherService analyticsPublisherService =
                 new AnalyticsPublisherService(apiKey, config, environmentID, analyticsCache);
         ringBuffer = createRingBuffer(config.getBufferSize(), analyticsPublisherService);
-        ScheduledExecutorService timerExecutorService = Executors.newSingleThreadScheduledExecutor();
-        TimerTask timerTask = new TimerTask(ringBuffer);
-        timerExecutorService.scheduleAtFixedRate(
+
+        final int frequency = config.getFrequency();
+        final AnalyticsTimerTask timerTask = new AnalyticsTimerTask(ringBuffer);
+        timer.schedule(
 
                 timerTask,
-                0,
-                config.getFrequency(),
-                TimeUnit.SECONDS
+                0L,
+                frequency * 1000L
         );
+
+        final String msg = String.format(
+
+                "%s scheduled with frequency of: %s",
+                AnalyticsTimerTask.class.getSimpleName(),
+                frequency
+        );
+        CfLog.OUT.v(logTag, msg);
     }
 
     private RingBuffer<Analytics> createRingBuffer(
@@ -82,16 +98,22 @@ public class AnalyticsManager {
                 .eventType(EventType.METRICS)
                 .build();
 
-        long sequence = ringBuffer.next(); // Grab the next sequence
+        long sequence = -1;
         try {
 
-            Analytics event = ringBuffer.getPublished(sequence); // Get the entry in the Disruptor for the sequence
+            sequence = ringBuffer.tryNext(); // Grab the next sequence
+            Analytics event = ringBuffer.get(sequence); // Get the entry in the Disruptor for the sequence
             event.setFeatureConfig(analytics.getFeatureConfig());
             event.setTarget(analytics.getTarget());
             event.setVariation(analytics.getVariation());
-        } finally {
+        } catch (InsufficientCapacityException e) {
 
-            ringBuffer.publish(sequence);
+            CfLog.OUT.w(logTag, "Insufficient capacity in the analytics ringBuffer");
+        } finally {
+            if (sequence != -1) {
+
+                ringBuffer.publish(sequence);
+            }
         }
     }
 }

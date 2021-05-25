@@ -31,7 +31,7 @@ public class CfConfiguration {
 
     {
 
-        frequency = 60; // unit: second
+        frequency = MIN_FREQUENCY; // unit: second
         bufferSize = 1024;
         analyticsCacheType = AnalyticsCacheFactory.GUAVA_CACHE;
     }

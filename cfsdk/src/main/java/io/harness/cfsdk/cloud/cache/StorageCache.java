@@ -38,8 +38,10 @@ public class StorageCache implements CloudCache {
     @SuppressLint("ApplySharedPref")
     @Override
     public void saveEvaluation(String key, Evaluation evaluation) {
+
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(appContextWeakRef.get());
-        preferences.edit().putString(key, gson.toJson(evaluation)).commit();
+        final String json = gson.toJson(evaluation);
+        preferences.edit().putString(key, json).commit();
     }
 
     @Override

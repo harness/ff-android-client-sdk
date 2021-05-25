@@ -406,20 +406,31 @@ public final class CfClient {
      * @return Evaluation for a given id
      */
     private <T> Evaluation getEvaluationById(String evaluationId, String target, T defaultValue) {
-        Evaluation result = new Evaluation();
+
+        final Evaluation result = new Evaluation();
         if (ready) {
+
             final String identifier = authInfo.getEnvironmentIdentifier();
-            final Evaluation evaluation = featureRepository.getEvaluation(identifier, target, evaluationId, true);
+            final Evaluation evaluation = featureRepository.getEvaluation(
+
+                    identifier, target, evaluationId, true
+            );
+
             if (evaluation == null) {
-                result.value(defaultValue);
-                result.flag(evaluationId);
+
+                result.value(defaultValue)
+                        .flag(evaluationId);
             } else {
-                result.flag(evaluation.getFlag());
-                result.value(evaluation.getValue());
+
+                result.flag(evaluation.getFlag())
+                        .value(evaluation.getValue())
+                        .kind(evaluation.getKind())
+                        .identifier(evaluation.getIdentifier());
             }
         } else {
-            result.value(defaultValue);
-            result.flag(evaluationId);
+
+            result.value(defaultValue)
+                    .flag(evaluationId);
         }
         return result;
     }
@@ -433,6 +444,20 @@ public final class CfClient {
                 defaultValue
         );
 
+        final Object value = evaluation.getValue();
+
+        boolean result;
+        if (value instanceof Boolean) {
+
+            result = (Boolean) value;
+        } else if (value instanceof String) {
+
+            result = "true".equals(value);
+        } else {
+
+            result = defaultValue;
+        }
+
         final FeatureConfig featureConfig = featureCache.getIfPresent(evaluationId);
         if (!target.isPrivate()
                 && target.isValid()
@@ -441,20 +466,14 @@ public final class CfClient {
                 && featureConfig != null
         ) {
 
-            // TODO:
-            // analyticsManager.pushToQueue(target, featureConfig, evaluation);
+//            final Variation variation = new Variation();
+//            variation.setName(evaluationId);
+//            variation.setValue(String.valueOf(result));
+//            variation.setIdentifier(evaluation.getIdentifier());
+            // analyticsManager.pushToQueue(target, featureConfig, variation);
         }
 
-        final Object value = evaluation.getValue();
-        if (value instanceof Boolean) {
-
-            return (Boolean) value;
-        }
-        if (value instanceof String) {
-
-            return "true".equals(value);
-        }
-        return defaultValue;
+        return result;
     }
 
     public String stringVariation(String evaluationId, String defaultValue) {
@@ -489,13 +508,19 @@ public final class CfClient {
     }
 
     public JSONObject jsonVariation(String evaluationId, JSONObject defaultValue) {
+
         try {
+
             Evaluation e = getEvaluationById(evaluationId, target.getIdentifier(), defaultValue);
             if (e.getValue() == null) {
+
                 Map<String, Object> resultMap = new HashMap<>();
                 resultMap.put(evaluationId, null);
                 return new JSONObject(resultMap);
-            } else return new JSONObject((String) e.getValue());
+            } else {
+
+                return new JSONObject((String) e.getValue());
+            }
         } catch (JSONException e) {
 
             CfLog.OUT.e(logTag, e.getMessage(), e);
@@ -513,6 +538,7 @@ public final class CfClient {
     public boolean registerEventsListener(final EventsListener observer) {
 
         if (observer != null) {
+
             return eventsListenerSet.add(observer);
         }
         return false;

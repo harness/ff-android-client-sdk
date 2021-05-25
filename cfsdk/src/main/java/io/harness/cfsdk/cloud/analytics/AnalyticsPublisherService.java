@@ -20,6 +20,7 @@ import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.logging.CfLog;
+import io.harness.cfsdk.utils.CfUtils;
 
 /**
  * This class prepares the message body for metrics and posts it to the server
@@ -150,7 +151,13 @@ public class AnalyticsPublisherService {
                 }
 
                 targetData.setIdentifier(target.getIdentifier());
-                targetData.setName(target.getName());
+                if (CfUtils.Text.isEmpty(target.getName())) {
+
+                    targetData.setName(target.getIdentifier());
+                } else {
+
+                    targetData.setName(target.getName());
+                }
                 metrics.addTargetDataItem(targetData);
             }
 
@@ -158,8 +165,6 @@ public class AnalyticsPublisherService {
             metricsData.count(entry.getValue());
             metricsData.setMetricsType(MetricsData.MetricsTypeEnum.FFMETRICS);
             setMetricsAttriutes(metricsData, FEATURE_NAME_ATTRIBUTE, featureConfig.getFeature());
-            // TODO : deprecate this field FEATURE_VALUE_ATTRIBUTE in the subsequent releases
-            setMetricsAttriutes(metricsData, FEATURE_VALUE_ATTRIBUTE, variation.getValue());
             setMetricsAttriutes(metricsData, VARIATION_IDENTIFIER_ATTRIBUTE, variation.getIdentifier());
             setMetricsAttriutes(metricsData, VARIATION_VALUE_ATTRIBUTE, variation.getValue());
             if (target.isPrivate()) {

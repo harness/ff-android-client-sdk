@@ -21,6 +21,7 @@ public class Target {
     }
 
     public String getName() {
+
         return name;
     }
 
@@ -42,7 +43,7 @@ public class Target {
 
     public boolean isValid() {
 
-        return !CfUtils.Text.isEmpty(name) && !CfUtils.Text.isEmpty(identifier);
+        return CfUtils.Text.isNotEmpty(identifier);
     }
 
     public Map<String, Object> getAttributes() {

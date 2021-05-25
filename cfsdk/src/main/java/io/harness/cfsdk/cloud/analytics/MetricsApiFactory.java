@@ -52,7 +52,7 @@ public class MetricsApiFactory {
             } catch (Exception apiException) {
 
                 count++;
-                CfLog.OUT.e(logTag, "Failed to get auth token " + apiException.getMessage());
+                CfLog.OUT.e(logTag, "Failed to get auth token ", apiException);
                 try {
 
                     Thread.sleep(AUTH_RETRY_INTERNAL_MILLIS);
@@ -99,7 +99,7 @@ public class MetricsApiFactory {
 
                 throw new CfClientException(String.format("Invalid apiKey %s. Exiting. ", apiKey));
             }
-            CfLog.OUT.e(logTag, "Failed to get auth token" + apiException.getMessage());
+            CfLog.OUT.e(logTag, "Failed to get auth token", apiException);
         }
         return null;
     }

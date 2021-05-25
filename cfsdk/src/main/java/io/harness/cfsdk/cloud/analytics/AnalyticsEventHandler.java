@@ -4,6 +4,7 @@ import com.lmax.disruptor.EventHandler;
 
 import io.harness.cfsdk.cloud.analytics.cache.Cache;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
+import io.harness.cfsdk.cloud.model.EventType;
 import io.harness.cfsdk.logging.CfLog;
 
 public class AnalyticsEventHandler implements EventHandler<Analytics> {
@@ -30,7 +31,10 @@ public class AnalyticsEventHandler implements EventHandler<Analytics> {
     @Override
     public void onEvent(Analytics analytics, long l, boolean b) {
 
-        switch (analytics.getEventType()) {
+        final EventType type = analytics.getEventType();
+        CfLog.OUT.v(logTag, "onEvent: " + type.name());
+
+        switch (type) {
             case TIMER:
 
                 analyticsPublisherService.sendDataAndResetCache();
