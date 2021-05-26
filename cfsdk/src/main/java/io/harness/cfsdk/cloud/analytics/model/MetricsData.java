@@ -29,6 +29,7 @@ import io.swagger.annotations.ApiModelProperty;
  * MetricsData
  */
 public class MetricsData {
+
     public static final String SERIALIZED_NAME_TIMESTAMP = "timestamp";
     @SerializedName(SERIALIZED_NAME_TIMESTAMP)
     private Long timestamp;
@@ -42,6 +43,7 @@ public class MetricsData {
      */
     @JsonAdapter(MetricsTypeEnum.Adapter.class)
     public enum MetricsTypeEnum {
+
         FFMETRICS("FFMETRICS");
 
         private String value;

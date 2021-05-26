@@ -27,6 +27,11 @@ public class AnalyticsTimerTask extends TimerTask {
     @Override
     public void run() {
 
+        if (Thread.currentThread().isInterrupted()) {
+
+            CfLog.OUT.v(logTag, "run: INTERRUPTED");
+            return;
+        }
         CfLog.OUT.v(logTag, "run: START");
         long sequence = -1;
         try {

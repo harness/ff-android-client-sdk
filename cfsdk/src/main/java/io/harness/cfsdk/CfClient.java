@@ -45,6 +45,7 @@ import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
 import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.sse.SSEController;
+import io.harness.cfsdk.common.Destroyable;
 import io.harness.cfsdk.logging.CfLog;
 
 /**
@@ -52,7 +53,7 @@ import io.harness.cfsdk.logging.CfLog;
  * observing changes in state of SDK.
  * Before it can be used, one of the {@link CfClient#initialize} methods <strong>must be</strong>  called
  */
-public final class CfClient {
+public final class CfClient implements Destroyable {
 
     private Cloud cloud;
     private Target target;
@@ -194,7 +195,6 @@ public final class CfClient {
         });
     }
 
-
     private void setupNetworkInfo(Context context) {
         if (networkInfoProvider != null) {
             networkInfoProvider.unregisterAll();
@@ -208,7 +208,6 @@ public final class CfClient {
                 evaluationPolling.stop();
             }
         });
-
     }
 
     private synchronized void startSSE() {
@@ -433,6 +432,22 @@ public final class CfClient {
             result.value(defaultValue)
                     .flag(evaluationId);
         }
+
+        final FeatureConfig featureConfig = featureCache.getIfPresent(evaluationId);
+        if (!this.target.isPrivate()
+                && this.target.isValid()
+                && analyticsEnabled
+                && analyticsManager != null
+                && featureConfig != null
+        ) {
+
+            final Variation variation = new Variation();
+            variation.setName(evaluationId);
+            variation.setValue(String.valueOf(result));
+            variation.setIdentifier(result.getIdentifier());
+            analyticsManager.pushToQueue(this.target, featureConfig, variation);
+        }
+
         return result;
     }
 
@@ -446,38 +461,19 @@ public final class CfClient {
         );
 
         final Object value = evaluation.getValue();
-
-        boolean result;
         if (value instanceof Boolean) {
 
-            result = (Boolean) value;
-        } else if (value instanceof String) {
-
-            result = "true".equals(value);
-        } else {
-
-            result = defaultValue;
+            return (Boolean) value;
         }
+        if (value instanceof String) {
 
-        final FeatureConfig featureConfig = featureCache.getIfPresent(evaluationId);
-        if (!target.isPrivate()
-                && target.isValid()
-                && analyticsEnabled
-                && analyticsManager != null
-                && featureConfig != null
-        ) {
-
-            final Variation variation = new Variation();
-            variation.setName(evaluationId);
-            variation.setValue(String.valueOf(result));
-            variation.setIdentifier(evaluation.getIdentifier());
-            analyticsManager.pushToQueue(target, featureConfig, variation);
+            return "true".equals(value);
         }
-
-        return result;
+        return defaultValue;
     }
 
     public String stringVariation(String evaluationId, String defaultValue) {
+
         return getEvaluationById(evaluationId, target.getIdentifier(), defaultValue).getValue();
     }
 
@@ -489,6 +485,7 @@ public final class CfClient {
                 target.getIdentifier(),
                 defaultValue
         );
+
         final Object value = evaluation.getValue();
         if (value instanceof Number) {
 
@@ -561,8 +558,14 @@ public final class CfClient {
      * After calling this method, the {@link #initialize} must be called again. It will also
      * remove any registered event listeners.
      */
+    @Override
     public void destroy() {
+
         unregister();
+        if (analyticsManager != null) {
+
+            analyticsManager.destroy();
+        }
         this.evaluationListenerSet.clear();
         eventsListenerSet.clear();
     }

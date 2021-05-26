@@ -22,6 +22,7 @@ import io.swagger.annotations.ApiModelProperty;
  * KeyValue
  */
 public class KeyValue {
+
     public static final String SERIALIZED_NAME_KEY = "key";
     @SerializedName(SERIALIZED_NAME_KEY)
     private String key;
@@ -43,7 +44,6 @@ public class KeyValue {
      * @return key
      **/
     @ApiModelProperty(required = true, value = "")
-
     public String getKey() {
         return key;
     }
@@ -53,7 +53,6 @@ public class KeyValue {
         this.key = key;
     }
 
-
     public KeyValue value(String value) {
 
         this.value = value;
@@ -62,20 +61,19 @@ public class KeyValue {
 
     /**
      * Get value
-     *
      * @return value
      **/
     @ApiModelProperty(required = true, value = "")
-
     public String getValue() {
+
         return value;
     }
 
 
     public void setValue(String value) {
+
         this.value = value;
     }
-
 
     @Override
     public boolean equals(java.lang.Object o) {

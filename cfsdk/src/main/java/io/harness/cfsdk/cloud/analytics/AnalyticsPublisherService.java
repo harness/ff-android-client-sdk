@@ -92,9 +92,10 @@ public class AnalyticsPublisherService {
                 Metrics metrics = prepareMessageBody(all);
                 CfLog.OUT.d(logTag, "metrics " + metrics);
                 final List<MetricsData> metricsData = metrics.getMetricsData();
-                final List<TargetData> targetData = metrics.getTargetData();
+                // TODO:
+                // final List<TargetData> targetData = metrics.getTargetData();
                 if ((metricsData != null && !metricsData.isEmpty())
-                        || (targetData != null && !targetData.isEmpty())) {
+                        ) { // TODO: || (targetData != null && !targetData.isEmpty())
 
                     metricsAPI.postMetrics(environmentID, metrics);
                 }
@@ -159,7 +160,8 @@ public class AnalyticsPublisherService {
 
                     targetData.setName(target.getName());
                 }
-                metrics.addTargetDataItem(targetData);
+                // TODO:
+                // metrics.addTargetDataItem(targetData);
             }
 
             metricsData.setTimestamp(System.currentTimeMillis());

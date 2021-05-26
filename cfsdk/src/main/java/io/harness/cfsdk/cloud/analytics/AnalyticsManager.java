@@ -14,6 +14,7 @@ import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.EventType;
 import io.harness.cfsdk.cloud.model.Target;
+import io.harness.cfsdk.common.Destroyable;
 import io.harness.cfsdk.logging.CfLog;
 
 /**
@@ -21,7 +22,7 @@ import io.harness.cfsdk.logging.CfLog;
  * the LMAX ring buffer 2) It pushes data to the buffer and publishes it for consumption 3)
  * Initilazes the cache for analytics
  */
-public class AnalyticsManager {
+public class AnalyticsManager implements Destroyable {
 
     private final Timer timer;
     private final String logTag;
@@ -115,5 +116,12 @@ public class AnalyticsManager {
                 ringBuffer.publish(sequence);
             }
         }
+    }
+
+    @Override
+    public void destroy() {
+
+        timer.cancel();
+        timer.purge();
     }
 }
