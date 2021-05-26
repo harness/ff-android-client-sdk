@@ -1,20 +1,33 @@
 package io.harness.cfsdk.cloud.model;
 
 public class AuthInfo {
+
     private final String project;
     private final String environment;
     private final String projectIdentifier;
     private final String environmentIdentifier;
     private final String accountID;
     private final String organization;
+    private final String clusterIdentifier;
 
-    public AuthInfo(String project, String environment, String projectIdentifier, String environmentIdentifier, String accountID, String organization) {
+    public AuthInfo(
+
+            String project,
+            String environment,
+            String projectIdentifier,
+            String environmentIdentifier,
+            String accountID,
+            String organization,
+            String clusterIdentifier
+    ) {
+
         this.project = project;
         this.environment = environment;
         this.projectIdentifier = projectIdentifier;
         this.environmentIdentifier = environmentIdentifier;
         this.accountID = accountID;
         this.organization = organization;
+        this.clusterIdentifier = clusterIdentifier;
     }
 
     public String getProject() {
@@ -39,5 +52,9 @@ public class AuthInfo {
 
     public String getOrganization() {
         return organization;
+    }
+
+    public String getClusterIdentifier() {
+        return clusterIdentifier;
     }
 }

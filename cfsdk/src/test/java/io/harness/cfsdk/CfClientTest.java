@@ -68,7 +68,7 @@ public class CfClientTest {
     private void initTestSetup() {
         CfLog.testModeOn();
 
-        Mockito.when(cloud.getAuthInfo()).thenReturn(new AuthInfo("", "", "", "", "", ""));
+        Mockito.when(cloud.getAuthInfo()).thenReturn(new AuthInfo("", "", "", "", "", "", ""));
         Mockito.when(cloud.isInitialized()).thenReturn(true);
         Mockito.when(cloud.initialize()).thenReturn(true);
 

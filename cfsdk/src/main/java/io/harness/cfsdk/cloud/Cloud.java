@@ -58,9 +58,13 @@ public class Cloud implements FeatureService {
         return authInfo;
     }
 
-    public List<FeatureConfig> getFeatureConfig(final String environmentID) throws ApiException {
+    public List<FeatureConfig> getFeatureConfig(
 
-        return defaultApi.getFeatureConfig(environmentID);
+            final String environmentID,
+            final String clusterID
+    ) throws ApiException {
+
+        return defaultApi.getFeatureConfig(environmentID, clusterID);
     }
 
     private void authenticate() {

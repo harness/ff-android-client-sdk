@@ -39,7 +39,7 @@ public class CloudTest {
                 .thenThrow(new ApiException());
 
         AuthResponseDecoder responseDecoder = Mockito.mock(AuthResponseDecoder.class);
-        AuthInfo authInfo = new AuthInfo("", "env", "id", "env_id", "", "");
+        AuthInfo authInfo = new AuthInfo("", "env", "id", "env_id", "", "", "");
         Mockito.doReturn(authInfo).when(responseDecoder).extractInfo(any());
 
         TokenProvider tokenProvider = new TokenProvider();

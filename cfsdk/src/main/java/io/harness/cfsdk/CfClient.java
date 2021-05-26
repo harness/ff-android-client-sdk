@@ -214,6 +214,7 @@ public final class CfClient implements Destroyable {
 
         SSEConfig config = cloud.getConfig();
         if (config.isValid()) {
+
             sseController.start(config, eventsListener);
         }
     }
@@ -277,9 +278,10 @@ public final class CfClient implements Destroyable {
 
                     this.authInfo = cloud.getAuthInfo();
                     final String environmentID = authInfo.getEnvironment();
+                    final String clusterID = authInfo.getClusterIdentifier();
                     try {
 
-                        initFeatureCache(environmentID);
+                        initFeatureCache(environmentID, clusterID);
                     } catch (ApiException e) {
 
                         if (authCallback != null) {
@@ -578,11 +580,13 @@ public final class CfClient implements Destroyable {
         if (featureRepository != null) featureRepository.clear();
     }
 
-    private void initFeatureCache(String environmentID) throws ApiException {
+    private void initFeatureCache(String environmentID, String clusterID) throws ApiException {
 
         if (!Strings.isNullOrEmpty(environmentID)) {
 
-            List<FeatureConfig> featureConfigs = cloud.getFeatureConfig(environmentID);
+            final List<FeatureConfig> featureConfigs =
+                    cloud.getFeatureConfig(environmentID, clusterID);
+
             if (featureConfigs != null) {
 
                 for (final FeatureConfig config : featureConfigs) {
