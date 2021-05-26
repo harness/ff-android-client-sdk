@@ -35,6 +35,7 @@ public class SSEListener implements ServerSentEvent.Listener {
 
     @Override
     public void onMessage(ServerSentEvent serverSentEvent, String id, String event, String message) {
+
         JSONObject jsonObject;
         try {
 

@@ -169,8 +169,10 @@ public final class CfClient implements Destroyable {
         executor.execute(() -> {
             try {
                 if (!ready) {
+
                     boolean success = cloud.initialize();
                     if (success) {
+
                         ready = true;
                         this.authInfo = cloud.getAuthInfo();
                     }
@@ -179,12 +181,17 @@ public final class CfClient implements Destroyable {
 
                     return;
                 }
+
                 List<Evaluation> evaluations = this.featureRepository.getAllEvaluations(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), false);
                 sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
 
                 if (useStream) {
+
                     startSSE();
-                } else evaluationPolling.start(this::reschedule);
+                } else {
+
+                    evaluationPolling.start(this::reschedule);
+                }
             } catch (Exception e) {
 
                 CfLog.OUT.e(logTag, e.getMessage(), e);
@@ -291,6 +298,7 @@ public final class CfClient implements Destroyable {
                         }
                         return;
                     }
+
                     ready = true;
                     if (networkInfoProvider.isNetworkAvailable()) {
 

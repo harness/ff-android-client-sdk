@@ -12,18 +12,24 @@ public class SSEController {
 
     public synchronized void start(SSEConfig config, EventsListener eventsListener) {
         if (config != null && config.getAuthentication() != null) {
-            Request request =
-                    new Request.Builder()
+
+            Request request = new Request.Builder()
                             .url(config.getUrl())
                             .build();
+
             OkSse okSse = new OkSse();
-            serverSentEvent = okSse.newServerSentEvent(request, new SSEListener(eventsListener),
-                    config.getAuthentication());
+            serverSentEvent = okSse.newServerSentEvent(
+                    request, new SSEListener(eventsListener),
+                    config.getAuthentication()
+            );
         }
     }
 
     public synchronized void stop() {
-        if (serverSentEvent == null) return;
+        if (serverSentEvent == null) {
+
+            return;
+        }
         serverSentEvent.close();
 //        if (sseStatusListener != null) sseStatusListener.onClose(serverSentEvent);
 //        serverSentEvent = null;
