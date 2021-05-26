@@ -83,8 +83,7 @@ public class AnalyticsPublisherService {
      */
     public void sendDataAndResetCache() {
 
-        CfLog.OUT.i(logTag, "Reading from queue and building cache");
-
+        CfLog.OUT.d(logTag, "Reading from queue and building cache");
         final Map<Analytics, Integer> all = analyticsCache.getAll();
         if (!all.isEmpty()) {
             try {
@@ -111,7 +110,7 @@ public class AnalyticsPublisherService {
                 final String msg = String.format(
                         "Failed to send metricsData %s : %S", e.getMessage(), e.getCode()
                 );
-                CfLog.OUT.d(logTag, msg);
+                CfLog.OUT.e(logTag, msg);
             }
         }
     }

@@ -20,7 +20,7 @@ public class AnalyticsCacheFactory {
 
         if (cacheName.equals(GUAVA_CACHE)) {
 
-            CfLog.OUT.i(LOG_TAG, "Using Guava cache");
+            CfLog.OUT.d(LOG_TAG, "Using Guava cache");
             return new GuavaCache();
         }
         return null;
