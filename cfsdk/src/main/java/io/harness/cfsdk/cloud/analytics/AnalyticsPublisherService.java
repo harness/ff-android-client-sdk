@@ -14,13 +14,11 @@ import io.harness.cfsdk.cloud.analytics.model.Analytics;
 import io.harness.cfsdk.cloud.analytics.model.KeyValue;
 import io.harness.cfsdk.cloud.analytics.model.Metrics;
 import io.harness.cfsdk.cloud.analytics.model.MetricsData;
-import io.harness.cfsdk.cloud.analytics.model.TargetData;
 import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.logging.CfLog;
-import io.harness.cfsdk.utils.CfUtils;
 
 /**
  * This class prepares the message body for metrics and posts it to the server
@@ -28,7 +26,6 @@ import io.harness.cfsdk.utils.CfUtils;
 public class AnalyticsPublisherService {
 
     private static final String FEATURE_NAME_ATTRIBUTE;
-    private static final String FEATURE_VALUE_ATTRIBUTE;
     private static final String VARIATION_VALUE_ATTRIBUTE;
     private static final String VARIATION_IDENTIFIER_ATTRIBUTE;
     private static final String TARGET_ATTRIBUTE;
@@ -53,7 +50,6 @@ public class AnalyticsPublisherService {
         globalTargetSet = new HashSet<>();
         stagingTargetSet = new HashSet<>();
         FEATURE_NAME_ATTRIBUTE = "featureName";
-        FEATURE_VALUE_ATTRIBUTE = "featureValue";
         VARIATION_VALUE_ATTRIBUTE = "featureValue";
         VARIATION_IDENTIFIER_ATTRIBUTE = "variationIdentifier";
     }
@@ -91,11 +87,7 @@ public class AnalyticsPublisherService {
                 Metrics metrics = prepareMessageBody(all);
                 CfLog.OUT.d(logTag, "metrics " + metrics);
                 final List<MetricsData> metricsData = metrics.getMetricsData();
-                // TODO:
-                // final List<TargetData> targetData = metrics.getTargetData();
-                if ((metricsData != null && !metricsData.isEmpty())
-                        ) { // TODO: || (targetData != null && !targetData.isEmpty())
-
+                if ((metricsData != null && !metricsData.isEmpty())) {
                     metricsAPI.postMetrics(environmentID, metrics);
                 }
                 globalTargetSet.addAll(stagingTargetSet);
@@ -121,8 +113,6 @@ public class AnalyticsPublisherService {
         // using for-each loop for iteration over Map.entrySet()
         for (Map.Entry<Analytics, Integer> entry : all.entrySet()) {
 
-            // Set target data
-            TargetData targetData = new TargetData();
             // Set Metrics data
             MetricsData metricsData = new MetricsData();
 
@@ -148,19 +138,7 @@ public class AnalyticsPublisherService {
                         keyValue.setKey(k);
                         keyValue.setValue(v.toString());
                     }
-                    targetData.addAttributesItem(keyValue);
                 }
-
-                targetData.setIdentifier(target.getIdentifier());
-                if (CfUtils.Text.isEmpty(target.getName())) {
-
-                    targetData.setName(target.getIdentifier());
-                } else {
-
-                    targetData.setName(target.getName());
-                }
-                // TODO:
-                // metrics.addTargetDataItem(targetData);
             }
 
             metricsData.setTimestamp(System.currentTimeMillis());

@@ -27,45 +27,9 @@ import io.swagger.annotations.ApiModelProperty;
  */
 public class Metrics {
 
-    // TODO:
-//    public static final String SERIALIZED_NAME_TARGET_DATA = "targetData";
-//    @SerializedName(SERIALIZED_NAME_TARGET_DATA)
-//    private List<TargetData> targetData = null;
-
     public static final String SERIALIZED_NAME_METRICS_DATA = "metricsData";
     @SerializedName(SERIALIZED_NAME_METRICS_DATA)
     private List<MetricsData> metricsData = null;
-
-//
-//    public Metrics targetData(List<TargetData> targetData) {
-//
-//        this.targetData = targetData;
-//        return this;
-//    }
-//
-//    public Metrics addTargetDataItem(TargetData targetDataItem) {
-//        if (this.targetData == null) {
-//            this.targetData = new ArrayList<>();
-//        }
-//        this.targetData.add(targetDataItem);
-//        return this;
-//    }
-
-//    /**
-//     * Get targetData
-//     *
-//     * @return targetData
-//     **/
-//    @Nullable
-//    @ApiModelProperty(value = "")
-//    public List<TargetData> getTargetData() {
-//        return targetData;
-//    }
-//
-//    public void setTargetData(List<TargetData> targetData) {
-//        this.targetData = targetData;
-//    }
-
 
     public Metrics metricsData(List<MetricsData> metricsData) {
 
@@ -96,7 +60,6 @@ public class Metrics {
         this.metricsData = metricsData;
     }
 
-
     @Override
     public boolean equals(java.lang.Object o) {
         if (this == o) {
@@ -123,7 +86,6 @@ public class Metrics {
 
         StringBuilder sb = new StringBuilder();
         sb.append("class Metrics {\n");
-        // sb.append("    targetData: ").append(toIndentedString(targetData)).append("\n");
         sb.append("    metricsData: ").append(toIndentedString(metricsData)).append("\n");
         sb.append("}");
         return sb.toString();
