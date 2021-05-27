@@ -67,6 +67,21 @@ public class Cloud implements FeatureService {
         return defaultApi.getFeatureConfig(environmentID, clusterID);
     }
 
+    public FeatureConfig getFeatureConfigByIdentifier(
+
+            String identifier,
+            String environmentUUID,
+            String clusterIdentifier
+    ) throws ApiException {
+
+        return defaultApi.getFeatureConfigByIdentifier(
+
+                identifier,
+                environmentUUID,
+                clusterIdentifier
+        );
+    }
+
     private void authenticate() {
 
         defaultApi = cloudFactory.defaultApi(apiClient);
