@@ -609,7 +609,8 @@ public final class CfClient implements Destroyable {
                 CfLog.OUT.d(logTag, "Feature cache populated");
             } catch (ApiException e) {
 
-                CfLog.OUT.e(logTag, "Feature cache error: " + e.getMessage(), e);
+                final String error = e.getMessage();
+                CfLog.OUT.e(logTag, "Feature cache error: " + error, e);
             }
         } else {
 
