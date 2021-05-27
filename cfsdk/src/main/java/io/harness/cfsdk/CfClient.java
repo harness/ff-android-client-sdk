@@ -89,9 +89,11 @@ public final class CfClient implements Destroyable {
         if (!ready) return;
         switch (statusEvent.getEventType()) {
             case SSE_START:
+
                 evaluationPolling.stop();
                 break;
             case SSE_END:
+
                 if (networkInfoProvider.isNetworkAvailable()) {
 
                     final String environmentID = authInfo.getEnvironmentIdentifier();
@@ -107,13 +109,16 @@ public final class CfClient implements Destroyable {
                     evaluationPolling.start(this::reschedule);
                 }
                 break;
+
             case EVALUATION_CHANGE:
+
                 Evaluation evaluation = statusEvent.extractPayload();
                 Evaluation e = featureRepository.getEvaluation(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), evaluation.getFlag(), false);
                 statusEvent = new StatusEvent(statusEvent.getEventType(), e);
                 notifyListeners(e);
                 break;
             case EVALUATION_REMOVE:
+
                 Evaluation eval = statusEvent.extractPayload();
                 featureRepository.remove(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), eval.getFlag());
                 break;
@@ -288,7 +293,6 @@ public final class CfClient implements Destroyable {
                 this.cloud = cloudFactory.cloud(configuration.getStreamURL(), configuration.getBaseURL(), apiKey, target);
                 setupNetworkInfo(context);
                 featureRepository = cloudFactory.getFeatureRepository(cloud, cloudCache);
-                sseController = cloudFactory.sseController();
                 evaluationPolling = cloudFactory.evaluationPolling(configuration.getPollingInterval(), TimeUnit.SECONDS);
 
                 this.useStream = configuration.getStreamEnabled();
@@ -298,6 +302,8 @@ public final class CfClient implements Destroyable {
                 if (success) {
 
                     this.authInfo = cloud.getAuthInfo();
+                    this.sseController = cloudFactory.sseController(cloud, this.authInfo, featureCache);
+
                     final String environmentID = authInfo.getEnvironment();
                     final String clusterID = authInfo.getClusterIdentifier();
 
