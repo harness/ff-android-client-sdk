@@ -4,7 +4,6 @@ import android.content.Context;
 
 import androidx.annotation.Nullable;
 
-import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
@@ -47,6 +46,7 @@ import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.sse.SSEController;
 import io.harness.cfsdk.common.Destroyable;
 import io.harness.cfsdk.logging.CfLog;
+import io.harness.cfsdk.utils.CfUtils;
 
 /**
  * Main class used for any operation on SDK. Operations include, but not limited to, reading evaluations and
@@ -93,9 +93,14 @@ public final class CfClient implements Destroyable {
                 break;
             case SSE_END:
                 if (networkInfoProvider.isNetworkAvailable()) {
+
+                    final String environmentID = authInfo.getEnvironmentIdentifier();
+                    final String clusterID = authInfo.getClusterIdentifier();
+
+                    initFeatureCache(environmentID, clusterID);
                     this.featureRepository.getAllEvaluations(
 
-                            authInfo.getEnvironmentIdentifier(),
+                            environmentID,
                             target.getIdentifier(),
                             false
                     );
@@ -182,7 +187,16 @@ public final class CfClient implements Destroyable {
                     return;
                 }
 
-                List<Evaluation> evaluations = this.featureRepository.getAllEvaluations(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), false);
+                final String environmentID = authInfo.getEnvironmentIdentifier();
+                final String clusterID = authInfo.getClusterIdentifier();
+
+                initFeatureCache(environmentID, clusterID);
+                List<Evaluation> evaluations = this.featureRepository.getAllEvaluations(
+
+                        environmentID,
+                        target.getIdentifier(),
+                        false
+                );
                 sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
 
                 if (useStream) {
@@ -286,20 +300,10 @@ public final class CfClient implements Destroyable {
                     this.authInfo = cloud.getAuthInfo();
                     final String environmentID = authInfo.getEnvironment();
                     final String clusterID = authInfo.getClusterIdentifier();
-                    try {
 
-                        initFeatureCache(environmentID, clusterID);
-                    } catch (ApiException e) {
-
-                        if (authCallback != null) {
-
-                            final AuthResult result = new AuthResult(false, e);
-                            authCallback.authorizationSuccess(authInfo, result);
-                        }
-                        return;
-                    }
-
+                    initFeatureCache(environmentID, clusterID);
                     ready = true;
+
                     if (networkInfoProvider.isNetworkAvailable()) {
 
                         List<Evaluation> evaluations = featureRepository.getAllEvaluations(
@@ -588,19 +592,28 @@ public final class CfClient implements Destroyable {
         if (featureRepository != null) featureRepository.clear();
     }
 
-    private void initFeatureCache(String environmentID, String clusterID) throws ApiException {
+    private void initFeatureCache(String environmentID, String clusterID) {
 
-        if (!Strings.isNullOrEmpty(environmentID)) {
+        if (CfUtils.Text.isNotEmpty(environmentID)) {
 
-            final List<FeatureConfig> featureConfigs =
-                    cloud.getFeatureConfig(environmentID, clusterID);
+            try {
+                final List<FeatureConfig> featureConfigs =
+                        cloud.getFeatureConfig(environmentID, clusterID);
 
-            if (featureConfigs != null) {
+                if (featureConfigs != null) {
 
-                for (final FeatureConfig config : featureConfigs) {
-                    featureCache.put(config.getFeature(), config);
+                    for (final FeatureConfig config : featureConfigs) {
+                        featureCache.put(config.getFeature(), config);
+                    }
                 }
+                CfLog.OUT.d(logTag, "Feature cache populated");
+            } catch (ApiException e) {
+
+                CfLog.OUT.e(logTag, "Feature cache error: " + e.getMessage(), e);
             }
+        } else {
+
+            CfLog.OUT.e(logTag, "Environment ID is null or empty");
         }
     }
 }

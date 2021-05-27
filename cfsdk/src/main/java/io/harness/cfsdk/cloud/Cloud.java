@@ -68,6 +68,7 @@ public class Cloud implements FeatureService {
     }
 
     private void authenticate() {
+
         defaultApi = cloudFactory.defaultApi(apiClient);
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.apiKey(this.key);
@@ -94,11 +95,13 @@ public class Cloud implements FeatureService {
     }
 
     public boolean isInitialized() {
+
         return this.authToken != null && this.authInfo != null &&
                 this.authInfo.getEnvironmentIdentifier() != null;
     }
 
     public boolean initialize() {
+
         this.authenticate();
         return this.isInitialized();
     }
@@ -106,7 +109,12 @@ public class Cloud implements FeatureService {
     public ApiResponse getEvaluations(String target) {
         try {
 
-            return new ApiResponse(200, "", defaultApi.getEvaluations(this.authInfo.getEnvironment(), target));
+            return new ApiResponse(
+
+                    200,
+                    "",
+                    defaultApi.getEvaluations(this.authInfo.getEnvironment(), target)
+            );
         } catch (ApiException e) {
 
             CfLog.OUT.e(logTag, e.getMessage(), e);

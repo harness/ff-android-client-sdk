@@ -47,6 +47,7 @@ public class FeatureRepositoryImpl implements FeatureRepository {
     public List<Evaluation> getAllEvaluations(String environment, String target, boolean fromCache) {
 
         if (fromCache) {
+
             return this.cloudCache.getAllEvaluations(environment + "_" + target);
         }
         ApiResponse apiResponse = this.featureService.getEvaluations(target);
