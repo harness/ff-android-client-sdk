@@ -20,6 +20,7 @@ import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
 import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.sse.SSEController;
+import io.harness.cfsdk.cloud.sse.SSEControlling;
 
 public interface ICloudFactory {
 
@@ -29,7 +30,7 @@ public interface ICloudFactory {
 
     FeatureRepository getFeatureRepository(FeatureService featureService, CloudCache cloudCache);
 
-    SSEController sseController(
+    SSEControlling sseController(
 
             ICloud cloud,
             AuthInfo authInfo,

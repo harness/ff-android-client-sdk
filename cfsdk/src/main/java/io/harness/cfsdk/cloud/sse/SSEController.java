@@ -12,7 +12,7 @@ import io.harness.cfsdk.cloud.oksse.ServerSentEvent;
 import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 import okhttp3.Request;
 
-public class SSEController {
+public class SSEController implements SSEControlling {
 
     private final ICloud cloud;
     private final AuthInfo authInfo;
@@ -31,13 +31,14 @@ public class SSEController {
         this.featureCache = featureCache;
     }
 
+    @Override
     public synchronized void start(SSEConfig config, EventsListener eventsListener) {
 
         if (config != null && config.getAuthentication() != null) {
 
             Request request = new Request.Builder()
-                            .url(config.getUrl())
-                            .build();
+                    .url(config.getUrl())
+                    .build();
 
             OkSse okSse = new OkSse();
             serverSentEvent = okSse.newServerSentEvent(
@@ -49,6 +50,7 @@ public class SSEController {
         }
     }
 
+    @Override
     public synchronized void stop() {
         if (serverSentEvent == null) {
 

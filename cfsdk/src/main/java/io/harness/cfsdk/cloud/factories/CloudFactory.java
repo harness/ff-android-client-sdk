@@ -26,6 +26,7 @@ import io.harness.cfsdk.cloud.polling.ShortTermPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.repository.FeatureRepositoryImpl;
 import io.harness.cfsdk.cloud.sse.SSEController;
+import io.harness.cfsdk.cloud.sse.SSEControlling;
 
 public class CloudFactory implements ICloudFactory {
 
@@ -50,7 +51,7 @@ public class CloudFactory implements ICloudFactory {
     }
 
     @Override
-    public SSEController sseController(
+    public SSEControlling sseController(
 
             ICloud cloud,
             AuthInfo authInfo,

@@ -44,7 +44,7 @@ import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
 import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
-import io.harness.cfsdk.cloud.sse.SSEController;
+import io.harness.cfsdk.cloud.sse.SSEControlling;
 import io.harness.cfsdk.common.Destroyable;
 import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.utils.CfUtils;
@@ -65,7 +65,7 @@ public final class CfClient implements Destroyable {
     private final Executor executor;
     private boolean analyticsEnabled;
     private static CfClient instance;
-    private SSEController sseController;
+    private SSEControlling sseController;
     private CfConfiguration configuration;
     private final CloudFactory cloudFactory;
     private AnalyticsManager analyticsManager;
