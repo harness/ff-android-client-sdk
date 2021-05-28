@@ -177,6 +177,8 @@ public final class CfClient implements Destroyable {
     }
 
     private void reschedule() {
+
+        CfLog.OUT.v(logTag, "Reschedule");
         executor.execute(() -> {
             try {
                 if (!ready) {
@@ -190,7 +192,7 @@ public final class CfClient implements Destroyable {
                         if (analyticsEnabled) {
 
                             final String environmentID = authInfo.getEnvironment();
-
+                            this.analyticsManager.destroy();
                             this.analyticsManager = new AnalyticsManager(
 
                                     environmentID,
