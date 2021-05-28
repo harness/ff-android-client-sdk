@@ -9,7 +9,8 @@ import java.util.concurrent.TimeUnit;
 import io.harness.cfsdk.cloud.AuthResponseDecoder;
 import io.harness.cfsdk.cloud.Cloud;
 import io.harness.cfsdk.cloud.FeatureService;
-import io.harness.cfsdk.cloud.NetworkInfoProvider;
+import io.harness.cfsdk.cloud.ICloud;
+import io.harness.cfsdk.cloud.network.NetworkInfoProvider;
 import io.harness.cfsdk.cloud.TokenProvider;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.cache.InMemoryCacheImpl;
@@ -19,32 +20,39 @@ import io.harness.cfsdk.cloud.core.client.ApiClient;
 import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
+import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
 import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.polling.ShortTermPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.repository.FeatureRepositoryImpl;
 import io.harness.cfsdk.cloud.sse.SSEController;
 
-public class CloudFactory {
+public class CloudFactory implements ICloudFactory {
 
     private TokenProvider tokenProvider;
 
+    @Override
     public AuthResponseDecoder getAuthResponseDecoder() {
+
         return new AuthResponseDecoder();
     }
 
-    public Cloud cloud(String sseUrl, String baseUrl, String key, Target target) {
+    @Override
+    public ICloud cloud(String sseUrl, String baseUrl, String key, Target target) {
 
         return new Cloud(this, sseUrl, baseUrl, key, target);
     }
 
+    @Override
     public FeatureRepository getFeatureRepository(FeatureService featureService, CloudCache cloudCache) {
+
         return new FeatureRepositoryImpl(featureService, cloudCache);
     }
 
+    @Override
     public SSEController sseController(
 
-            Cloud cloud,
+            ICloud cloud,
             AuthInfo authInfo,
             Cache<String, FeatureConfig> featureCache
     ) {
@@ -52,26 +60,35 @@ public class CloudFactory {
         return new SSEController(cloud, authInfo, featureCache);
     }
 
+    @Override
     public EvaluationPolling evaluationPolling(int pollingInterval, TimeUnit timeUnit) {
+
         return new ShortTermPolling(pollingInterval, timeUnit);
     }
 
+    @Override
     public CloudCache defaultCache(Context context) {
+
         return new InMemoryCacheImpl(new StorageCache(context));
     }
 
-    public NetworkInfoProvider networkInfoProvider(Context context) {
+    @Override
+    public NetworkInfoProviding networkInfoProvider(Context context) {
+
         return new NetworkInfoProvider(context);
     }
 
+    @Override
     public ApiClient apiClient(){
         return new ApiClient();
     }
 
+    @Override
     public DefaultApi defaultApi(ApiClient apiClient){
         return new DefaultApi(apiClient);
     }
 
+    @Override
     public synchronized TokenProvider tokenProvider() {
 
         if (tokenProvider == null) {

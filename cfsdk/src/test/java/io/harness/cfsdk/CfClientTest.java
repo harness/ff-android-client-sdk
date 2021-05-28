@@ -3,7 +3,6 @@ package io.harness.cfsdk;
 import android.content.Context;
 
 import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -16,7 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.harness.cfsdk.cloud.Cloud;
-import io.harness.cfsdk.cloud.NetworkInfoProvider;
+import io.harness.cfsdk.cloud.network.NetworkInfoProvider;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
@@ -57,15 +56,14 @@ public class CfClientTest {
     EvaluationPolling polling;
     @Mock
     NetworkInfoProvider networkInfoProvider;
+    @Mock
+    Cache<String, FeatureConfig> featureCache;
 
     @Before
     public void setup() {
 
         MockitoAnnotations.initMocks(this);
         Mockito.when(cloudFactory.cloud(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any())).thenReturn(cloud);
-
-        final Cache<String, FeatureConfig> featureCache =
-                CacheBuilder.newBuilder().maximumSize(10000).build();
 
         Mockito.when(cloudFactory.sseController(cloud, cloud.getAuthInfo(), featureCache)).thenReturn(sseController);
         Mockito.when(cloudFactory.getFeatureRepository(any(), any())).thenReturn(featureRepository);
@@ -74,6 +72,7 @@ public class CfClientTest {
     }
 
     private void initTestSetup() {
+
         CfLog.testModeOn();
 
         Mockito.when(cloud.getAuthInfo()).thenReturn(new AuthInfo("", "", "", "", "", "", ""));
@@ -86,50 +85,10 @@ public class CfClientTest {
     }
 
     @Test
-    public void initTestWithStream() {
-        initTestSetup();
-
-        CfClient cfClient = new CfClient(cloudFactory);
-        CountDownLatch latch = new CountDownLatch(1);
-        CfConfiguration cfConfiguration = new CfConfiguration("", "demo_url", true, false, 10);
-
-        cfClient.initialize(
-
-                context,
-                "",
-                cfConfiguration,
-                new Target().identifier("target"),
-                (info, result) -> {
-
-                    Assert.assertNotNull(info);
-                    Assert.assertNotNull(result);
-                    Assert.assertTrue(result.isSuccess());
-                    latch.countDown();
-                }
-        );
-
-        try {
-
-            latch.await(3, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-
-            CfLog.OUT.e(logTag, e.getMessage(), e);
-        }
-
-
-        Mockito.verify(cloud, Mockito.times(1)).initialize();
-        Mockito.verify(featureRepository, Mockito.times(1)).getAllEvaluations("", "target", false);
-        Mockito.verify(sseController, Mockito.times(1)).start(any(), any());
-
-        cfClient.destroy();
-        Mockito.verify(polling, Mockito.times(1)).stop();
-        Mockito.verify(featureRepository, Mockito.times(1)).clear();
-
-    }
-
-    @Test
     public void initTestNoStream() {
+
         initTestSetup();
+
         CfClient cfClient = new CfClient(cloudFactory);
         CountDownLatch latch = new CountDownLatch(1);
         CfConfiguration cfConfiguration = new CfConfiguration("", "", false, false, 10);
@@ -162,12 +121,13 @@ public class CfClientTest {
         Mockito.verify(cloud, Mockito.times(1)).initialize();
         Mockito.verify(sseController, Mockito.times(0)).start(any(), any());
         Mockito.verify(featureRepository, Mockito.times(1)).getAllEvaluations("", "target", false);
-
     }
 
     @Test
     public void listenerTest() {
+
         initTestSetup();
+
         CountDownLatch latch = new CountDownLatch(2);
         CountDownLatch unregisterLatch = new CountDownLatch(1);
         CountDownLatch finalLatch = new CountDownLatch(1);
@@ -306,6 +266,7 @@ public class CfClientTest {
 
     @Test
     public void initVariations() {
+
         initTestSetup();
 
         CountDownLatch latch = new CountDownLatch(1);

@@ -14,7 +14,7 @@ import io.harness.cfsdk.cloud.oksse.SSEAuthentication;
 import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 import io.harness.cfsdk.logging.CfLog;
 
-public class Cloud implements FeatureService {
+public class Cloud implements ICloud {
 
     private final String key;
     private String authToken;
@@ -53,11 +53,7 @@ public class Cloud implements FeatureService {
         apiClient.setBasePath(baseUrl);
     }
 
-    public AuthInfo getAuthInfo() {
-
-        return authInfo;
-    }
-
+    @Override
     public List<FeatureConfig> getFeatureConfig(
 
             final String environmentID,
@@ -67,6 +63,7 @@ public class Cloud implements FeatureService {
         return defaultApi.getFeatureConfig(environmentID, clusterID);
     }
 
+    @Override
     public FeatureConfig getFeatureConfigByIdentifier(
 
             String identifier,
@@ -80,6 +77,76 @@ public class Cloud implements FeatureService {
                 environmentUUID,
                 clusterIdentifier
         );
+    }
+
+    @Override
+    public ApiResponse getEvaluations(String target) {
+        try {
+
+            return new ApiResponse(
+
+                    200,
+                    "",
+                    defaultApi.getEvaluations(this.authInfo.getEnvironment(), target)
+            );
+        } catch (ApiException e) {
+
+            CfLog.OUT.e(logTag, e.getMessage(), e);
+        }
+        return null;
+    }
+
+    @Override
+    public ApiResponse getEvaluationForId(String identifier, String target) {
+
+        try {
+            return new ApiResponse(
+
+                    200,
+                    "",
+                    defaultApi.getEvaluationByIdentifier(
+                            this.authInfo.getEnvironment(),
+                            identifier,
+                            target
+                    )
+            );
+        } catch (ApiException e) {
+
+            CfLog.OUT.e(logTag, e.getMessage(), e);
+        }
+        return null;
+    }
+
+    @Override
+    public boolean initialize() {
+
+        this.authenticate();
+        return this.isInitialized();
+    }
+
+    @Override
+    public boolean isInitialized() {
+
+        return this.authToken != null && this.authInfo != null &&
+                this.authInfo.getEnvironmentIdentifier() != null;
+    }
+
+    @Override
+    public AuthInfo getAuthInfo() {
+
+        return authInfo;
+    }
+
+    @Override
+    public String getAuthToken() {
+
+        return tokenProvider.getToken(key);
+    }
+
+    @Override
+    public SSEConfig getConfig() {
+
+        return new SSEConfig(buildSSEUrl(), new SSEAuthentication(this.authToken, this.key));
     }
 
     private void authenticate() {
@@ -102,62 +169,5 @@ public class Cloud implements FeatureService {
 
     private String buildSSEUrl() {
         return this.streamUrl;
-    }
-
-    public SSEConfig getConfig() {
-        return new SSEConfig(buildSSEUrl(), new SSEAuthentication(this.authToken, this.key));
-    }
-
-    public boolean isInitialized() {
-
-        return this.authToken != null && this.authInfo != null &&
-                this.authInfo.getEnvironmentIdentifier() != null;
-    }
-
-    public boolean initialize() {
-
-        this.authenticate();
-        return this.isInitialized();
-    }
-
-    public ApiResponse getEvaluations(String target) {
-        try {
-
-            return new ApiResponse(
-
-                    200,
-                    "",
-                    defaultApi.getEvaluations(this.authInfo.getEnvironment(), target)
-            );
-        } catch (ApiException e) {
-
-            CfLog.OUT.e(logTag, e.getMessage(), e);
-        }
-        return null;
-    }
-
-    public ApiResponse getEvaluationForId(String identifier, String target) {
-
-        try {
-            return new ApiResponse(
-
-                    200,
-                    "",
-                    defaultApi.getEvaluationByIdentifier(
-                            this.authInfo.getEnvironment(),
-                            identifier,
-                            target
-                    )
-            );
-        } catch (ApiException e) {
-
-            CfLog.OUT.e(logTag, e.getMessage(), e);
-        }
-        return null;
-    }
-
-    public String getAuthToken() {
-
-        return tokenProvider.getToken(key);
     }
 }

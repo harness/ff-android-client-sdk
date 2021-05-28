@@ -1,4 +1,4 @@
-package io.harness.cfsdk.cloud;
+package io.harness.cfsdk.cloud.network;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -14,21 +14,12 @@ import androidx.annotation.NonNull;
 
 import java.util.HashSet;
 
-public class NetworkInfoProvider {
+public class NetworkInfoProvider extends NetworkInfoProviding {
 
-    public enum NetworkStatus {
-        CONNECTED, DISCONNECTED
-    }
-
-    public interface NetworkListener {
-        void onChange(NetworkStatus status);
-    }
-
-    private final HashSet<NetworkListener> evaluationsObserver = new HashSet<>();
     private final ConnectivityManager connectivityManager;
 
-    private volatile boolean lastState;
     public NetworkInfoProvider(Context context) {
+
         connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         lastState = isNetworkAvailable();
@@ -77,6 +68,7 @@ public class NetworkInfoProvider {
         }
     }
 
+    @Override
     public boolean isNetworkAvailable() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             if (connectivityManager != null) {
@@ -92,13 +84,5 @@ public class NetworkInfoProvider {
             }
         }
         return false;
-    }
-
-    public void register(NetworkListener networkListener) {
-        this.evaluationsObserver.add(networkListener);
-    }
-
-    public void unregisterAll() {
-        this.evaluationsObserver.clear();
     }
 }

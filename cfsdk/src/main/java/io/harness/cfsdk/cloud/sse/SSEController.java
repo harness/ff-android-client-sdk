@@ -2,7 +2,7 @@ package io.harness.cfsdk.cloud.sse;
 
 import com.google.common.cache.Cache;
 
-import io.harness.cfsdk.cloud.Cloud;
+import io.harness.cfsdk.cloud.ICloud;
 import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.oksse.EventsListener;
@@ -14,14 +14,14 @@ import okhttp3.Request;
 
 public class SSEController {
 
-    private final Cloud cloud;
+    private final ICloud cloud;
     private final AuthInfo authInfo;
     private ServerSentEvent serverSentEvent;
     private final Cache<String, FeatureConfig> featureCache;
 
     public SSEController(
 
-            Cloud cloud,
+            ICloud cloud,
             AuthInfo authInfo,
             Cache<String, FeatureConfig> featureCache
     ) {

@@ -24,8 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import io.harness.cfsdk.cloud.Cloud;
-import io.harness.cfsdk.cloud.NetworkInfoProvider;
+import io.harness.cfsdk.cloud.ICloud;
 import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.core.client.ApiException;
@@ -38,6 +37,8 @@ import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
+import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
+import io.harness.cfsdk.cloud.network.NetworkStatus;
 import io.harness.cfsdk.cloud.oksse.EventsListener;
 import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
@@ -55,7 +56,7 @@ import io.harness.cfsdk.utils.CfUtils;
  */
 public final class CfClient implements Destroyable {
 
-    private Cloud cloud;
+    private ICloud cloud;
     private Target target;
     private AuthInfo authInfo;
     private boolean useStream;
@@ -71,7 +72,7 @@ public final class CfClient implements Destroyable {
     private FeatureRepository featureRepository;
     private EvaluationPolling evaluationPolling;
     private final Executor listenerUpdateExecutor;
-    private NetworkInfoProvider networkInfoProvider;
+    private NetworkInfoProviding networkInfoProvider;
     private final Set<EventsListener> eventsListenerSet;
     private final Cache<String, FeatureConfig> featureCache;
     private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet;
@@ -131,6 +132,7 @@ public final class CfClient implements Destroyable {
      * Base constructor, used internally. Use {@link CfClient#getInstance()} to get instance of this class.
      */
     CfClient(CloudFactory cloudFactory) {
+
         this.cloudFactory = cloudFactory;
     }
 
@@ -237,13 +239,18 @@ public final class CfClient implements Destroyable {
     }
 
     private void setupNetworkInfo(Context context) {
+
         if (networkInfoProvider != null) {
+
             networkInfoProvider.unregisterAll();
-        } else networkInfoProvider = cloudFactory.networkInfoProvider(context);
+        } else {
+
+            networkInfoProvider = cloudFactory.networkInfoProvider(context);
+        }
 
         networkInfoProvider.register(status -> {
 
-            if (status == NetworkInfoProvider.NetworkStatus.CONNECTED) {
+            if (status == NetworkStatus.CONNECTED) {
                 reschedule();
             } else {
                 evaluationPolling.stop();

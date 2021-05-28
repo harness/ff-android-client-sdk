@@ -6,7 +6,7 @@ import com.google.common.cache.Cache;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import io.harness.cfsdk.cloud.Cloud;
+import io.harness.cfsdk.cloud.ICloud;
 import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.core.model.FeatureConfig;
@@ -18,7 +18,7 @@ import okhttp3.Response;
 
 public class SSEListener implements ServerSentEvent.Listener {
 
-    private final Cloud cloud;
+    private final ICloud cloud;
     private final String logTag;
     private final AuthInfo authInfo;
     private final EventsListener eventsListener;
@@ -31,7 +31,7 @@ public class SSEListener implements ServerSentEvent.Listener {
 
     public SSEListener(
 
-            Cloud cloud,
+            ICloud cloud,
             AuthInfo authInfo,
             EventsListener eventsListener,
             Cache<String, FeatureConfig> featureCache
