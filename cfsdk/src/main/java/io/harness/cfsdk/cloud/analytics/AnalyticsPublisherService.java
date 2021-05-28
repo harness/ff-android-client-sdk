@@ -66,10 +66,13 @@ public class AnalyticsPublisherService {
 
     public AnalyticsPublisherService(
 
-            String apiKey, CfConfiguration config, String environmentID, Cache analyticsCache
+            final String authToken,
+            final CfConfiguration config,
+            final String environmentID,
+            final Cache analyticsCache
     ) {
 
-        metricsAPI = MetricsApiFactory.create(apiKey, config);
+        metricsAPI = MetricsApiFactory.create(authToken, config);
         this.analyticsCache = analyticsCache;
         this.environmentID = environmentID;
     }

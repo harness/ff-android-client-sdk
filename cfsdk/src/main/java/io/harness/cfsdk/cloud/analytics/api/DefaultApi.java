@@ -1,7 +1,5 @@
 package io.harness.cfsdk.cloud.analytics.api;
 
-import com.google.gson.Gson;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +12,6 @@ import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.client.ApiResponse;
 import io.harness.cfsdk.cloud.core.client.Configuration;
 import io.harness.cfsdk.cloud.core.client.Pair;
-import io.harness.cfsdk.logging.CfLog;
 
 public class DefaultApi {
 
@@ -48,7 +45,13 @@ public class DefaultApi {
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
-    public okhttp3.Call postMetricsCall(String environment, Metrics metrics, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call postMetricsCall(
+
+            String environment,
+            Metrics metrics,
+            final ApiCallback _callback
+
+    ) throws ApiException {
 
         Object localVarPostBody = metrics;
 
@@ -76,11 +79,6 @@ public class DefaultApi {
         localVarHeaderParams.put("Content-Type", localVarContentType);
 
         String[] localVarAuthNames = new String[]{"BearerAuth"};
-
-        // TODO: Remove
-        final String logTag = DefaultApi.class.getSimpleName();
-        final String json = new Gson().toJson(localVarPostBody);
-        CfLog.OUT.e(logTag, ">>> " + json);
 
         return localVarApiClient.buildCall(
 

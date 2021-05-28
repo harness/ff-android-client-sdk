@@ -2,6 +2,9 @@ package io.harness.cfsdk;
 
 import android.content.Context;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import io.harness.cfsdk.cloud.Cloud;
 import io.harness.cfsdk.cloud.NetworkInfoProvider;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
@@ -59,7 +63,11 @@ public class CfClientTest {
 
         MockitoAnnotations.initMocks(this);
         Mockito.when(cloudFactory.cloud(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any())).thenReturn(cloud);
-        Mockito.when(cloudFactory.sseController()).thenReturn(sseController);
+
+        final Cache<String, FeatureConfig> featureCache =
+                CacheBuilder.newBuilder().maximumSize(10000).build();
+
+        Mockito.when(cloudFactory.sseController(cloud, cloud.getAuthInfo(), featureCache)).thenReturn(sseController);
         Mockito.when(cloudFactory.getFeatureRepository(any(), any())).thenReturn(featureRepository);
         Mockito.when(cloudFactory.evaluationPolling(10, TimeUnit.SECONDS)).thenReturn(polling);
         Mockito.when(cloudFactory.networkInfoProvider(any())).thenReturn(networkInfoProvider);

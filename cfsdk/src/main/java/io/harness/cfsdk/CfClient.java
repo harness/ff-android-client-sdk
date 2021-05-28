@@ -65,6 +65,7 @@ public final class CfClient implements Destroyable {
     private boolean analyticsEnabled;
     private static CfClient instance;
     private SSEController sseController;
+    private CfConfiguration configuration;
     private final CloudFactory cloudFactory;
     private AnalyticsManager analyticsManager;
     private FeatureRepository featureRepository;
@@ -185,6 +186,18 @@ public final class CfClient implements Destroyable {
 
                         ready = true;
                         this.authInfo = cloud.getAuthInfo();
+
+                        if (analyticsEnabled) {
+
+                            final String environmentID = authInfo.getEnvironment();
+
+                            this.analyticsManager = new AnalyticsManager(
+
+                                    environmentID,
+                                    cloud.getAuthToken(),
+                                    configuration
+                            );
+                        }
                     }
                 }
                 if (!ready) {
@@ -274,6 +287,7 @@ public final class CfClient implements Destroyable {
             final CloudCache cloudCache,
             @Nullable final AuthCallback authCallback
     ) {
+        this.configuration = configuration;
         try {
             executor.execute(() -> {
 
@@ -290,7 +304,14 @@ public final class CfClient implements Destroyable {
 
                 unregister();
                 this.target = target;
-                this.cloud = cloudFactory.cloud(configuration.getStreamURL(), configuration.getBaseURL(), apiKey, target);
+                this.cloud = cloudFactory.cloud(
+
+                        configuration.getStreamURL(),
+                        configuration.getBaseURL(),
+                        apiKey,
+                        target
+                );
+
                 setupNetworkInfo(context);
                 featureRepository = cloudFactory.getFeatureRepository(cloud, cloudCache);
                 evaluationPolling = cloudFactory.evaluationPolling(configuration.getPollingInterval(), TimeUnit.SECONDS);
@@ -329,7 +350,12 @@ public final class CfClient implements Destroyable {
 
                     if (analyticsEnabled) {
 
-                        this.analyticsManager = new AnalyticsManager(environmentID, apiKey, configuration);
+                        this.analyticsManager = new AnalyticsManager(
+
+                                environmentID,
+                                cloud.getAuthToken(),
+                                configuration
+                        );
                     }
 
                     if (authCallback != null) {

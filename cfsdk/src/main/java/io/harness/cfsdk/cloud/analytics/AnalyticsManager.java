@@ -37,14 +37,16 @@ public class AnalyticsManager implements Destroyable {
 
     public AnalyticsManager(
 
-            String environmentID,
-            String apiKey,
-            CfConfiguration config
+            final String environmentID,
+            final String authToken,
+            final CfConfiguration config
     ) {
 
         this.analyticsCache = AnalyticsCacheFactory.create(config.getAnalyticsCacheType());
+
         AnalyticsPublisherService analyticsPublisherService =
-                new AnalyticsPublisherService(apiKey, config, environmentID, analyticsCache);
+                new AnalyticsPublisherService(authToken, config, environmentID, analyticsCache);
+
         ringBuffer = createRingBuffer(config.getBufferSize(), analyticsPublisherService);
 
         final int frequency = config.getFrequency();

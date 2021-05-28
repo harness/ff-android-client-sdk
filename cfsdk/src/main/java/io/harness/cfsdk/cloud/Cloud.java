@@ -98,7 +98,6 @@ public class Cloud implements FeatureService {
             apiClient.addDefaultHeader("Authorization", "Bearer " + authToken);
             this.authInfo = authResponseDecoder.extractInfo(authToken);
         }
-
     }
 
     private String buildSSEUrl() {
@@ -155,5 +154,10 @@ public class Cloud implements FeatureService {
             CfLog.OUT.e(logTag, e.getMessage(), e);
         }
         return null;
+    }
+
+    public String getAuthToken() {
+
+        return tokenProvider.getToken(key);
     }
 }
