@@ -11,8 +11,12 @@ import org.mockito.MockitoAnnotations;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.Target;
+import io.harness.cfsdk.cloud.oksse.EventsListener;
+import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
 import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.mock.MockedCloudFactory;
 import io.harness.cfsdk.mock.MockedFeatureRepository;
@@ -82,6 +86,42 @@ public class CfClientTest {
         }
 
         Assert.assertTrue(initOk.get());
+
+        final EventsListener eventsListener = new EventsListener() {
+
+            @Override
+            public void onEventReceived(StatusEvent statusEvent) {
+
+            }
+        };
+
+        final EvaluationListener evaluationListener = new EvaluationListener() {
+
+            @Override
+            public void onEvaluation(Evaluation evaluation) {
+
+            }
+        };
+
+        boolean resgisterOk = cfClient.registerEventsListener(eventsListener);
+        Assert.assertTrue(resgisterOk);
+
+        resgisterOk = cfClient.registerEvaluationListener(
+
+                MockedFeatureRepository.MOCK_STRING,
+                evaluationListener
+        );
+        Assert.assertTrue(resgisterOk);
+
+        boolean unRegisterOk = cfClient.unregisterEvaluationListener(
+
+                MockedFeatureRepository.MOCK_STRING,
+                evaluationListener
+        );
+        Assert.assertTrue(unRegisterOk);
+
+        unRegisterOk = cfClient.unregisterEventsListener(eventsListener);
+        Assert.assertTrue(unRegisterOk);
 
         cfClient.destroy();
     }
