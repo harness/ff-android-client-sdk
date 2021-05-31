@@ -38,12 +38,6 @@ public class CfClientTest {
     @Mock
     Context context;
 
-    @Before
-    public void setup() {
-
-        MockitoAnnotations.initMocks(this);
-    }
-
     @Test
     public void listenerTest() {
 
