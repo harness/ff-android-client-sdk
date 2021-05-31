@@ -4,12 +4,15 @@ import android.content.Context;
 
 import com.google.common.cache.Cache;
 
+import io.harness.cfsdk.cloud.FeatureService;
 import io.harness.cfsdk.cloud.ICloud;
+import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
+import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.sse.SSEControlling;
 
 public class MockedCloudFactory extends CloudFactory {
@@ -35,5 +38,11 @@ public class MockedCloudFactory extends CloudFactory {
     ) {
 
         return new MockedSSEController();
+    }
+
+    @Override
+    public FeatureRepository getFeatureRepository(FeatureService featureService, CloudCache cloudCache) {
+
+        return new MockedFeatureRepository();
     }
 }
