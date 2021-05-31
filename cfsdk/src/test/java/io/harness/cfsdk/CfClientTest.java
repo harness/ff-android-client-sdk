@@ -85,45 +85,6 @@ public class CfClientTest {
     }
 
     @Test
-    public void initTestNoStream() {
-
-        initTestSetup();
-
-        CfClient cfClient = new CfClient(cloudFactory);
-        CountDownLatch latch = new CountDownLatch(1);
-        CfConfiguration cfConfiguration = new CfConfiguration("", "", false, false, 10);
-
-        cfClient.initialize(
-
-                context,
-                "",
-                cfConfiguration,
-                new Target().identifier("target"),
-                (info, result) -> {
-
-                    Assert.assertNotNull(info);
-                    Assert.assertNotNull(result);
-                    Assert.assertTrue(result.isSuccess());
-                    latch.countDown();
-                }
-        );
-
-
-        try {
-            latch.await(3, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-
-            CfLog.OUT.e(logTag, e.getMessage(), e);
-        }
-
-        cfClient.boolVariation("", false);
-
-        Mockito.verify(cloud, Mockito.times(1)).initialize();
-        Mockito.verify(sseController, Mockito.times(0)).start(any(), any());
-        Mockito.verify(featureRepository, Mockito.times(1)).getAllEvaluations("", "target", false);
-    }
-
-    @Test
     public void listenerTest() {
 
         initTestSetup();

@@ -30,6 +30,17 @@ public class CfClientInitTest {
     @Test
     public void initTestWithStream() {
 
+        initTest(true);
+    }
+
+    @Test
+    public void initTestNoStream() {
+
+        initTest(false);
+    }
+
+    private void initTest(final boolean stream) {
+
         CfLog.testModeOn();
 
         final CloudFactory cloudFactory = new MockedCloudFactory();
@@ -41,7 +52,7 @@ public class CfClientInitTest {
         final CountDownLatch latch = new CountDownLatch(1);
 
         final CfConfiguration cfConfiguration = new CfConfiguration(
-                mock, mock, true, false, 10
+                mock, mock, stream, false, 10
         );
 
         final AtomicBoolean success = new AtomicBoolean();
@@ -71,6 +82,7 @@ public class CfClientInitTest {
             CfLog.OUT.e(logTag, e.getMessage(), e);
         }
 
+        cfClient.destroy();
         Assert.assertTrue(success.get());
     }
 }
