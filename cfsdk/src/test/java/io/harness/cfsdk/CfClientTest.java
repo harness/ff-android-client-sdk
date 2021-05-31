@@ -71,19 +71,6 @@ public class CfClientTest {
         Mockito.when(cloudFactory.networkInfoProvider(any())).thenReturn(networkInfoProvider);
     }
 
-    private void initTestSetup() {
-
-        CfLog.testModeOn();
-
-        Mockito.when(cloud.getAuthInfo()).thenReturn(new AuthInfo("", "", "", "", "", "", ""));
-        Mockito.when(cloud.isInitialized()).thenReturn(true);
-        Mockito.when(cloud.initialize()).thenReturn(true);
-
-        SSEConfig sseConfig = new SSEConfig("demo_url", new SSEAuthentication("demo_token", "demo_api_token"));
-        Mockito.when(cloud.getConfig()).thenReturn(sseConfig);
-        Mockito.when(networkInfoProvider.isNetworkAvailable()).thenReturn(true);
-    }
-
     @Test
     public void listenerTest() {
 
@@ -224,7 +211,6 @@ public class CfClientTest {
         Assert.assertTrue(unregisterOk);
     }
 
-
     @Test
     public void initVariations() {
 
@@ -287,5 +273,18 @@ public class CfClientTest {
         Assert.assertTrue(boolEvalValue);
         Assert.assertEquals((int) intEvalValue, 5);
         Assert.assertEquals((int) emptyEvalValue, 1);
+    }
+
+    private void initTestSetup() {
+
+        CfLog.testModeOn();
+
+        Mockito.when(cloud.getAuthInfo()).thenReturn(new AuthInfo("", "", "", "", "", "", ""));
+        Mockito.when(cloud.isInitialized()).thenReturn(true);
+        Mockito.when(cloud.initialize()).thenReturn(true);
+
+        SSEConfig sseConfig = new SSEConfig("demo_url", new SSEAuthentication("demo_token", "demo_api_token"));
+        Mockito.when(cloud.getConfig()).thenReturn(sseConfig);
+        Mockito.when(networkInfoProvider.isNetworkAvailable()).thenReturn(true);
     }
 }
