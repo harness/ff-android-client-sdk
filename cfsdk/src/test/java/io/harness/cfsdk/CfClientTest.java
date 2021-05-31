@@ -10,6 +10,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
@@ -91,12 +92,12 @@ public class CfClientTest {
 
         Assert.assertTrue(initOk.get());
 
-        final EventsListener eventsListener = new EventsListener() {
+        final AtomicInteger eventsCount = new AtomicInteger();
 
-            @Override
-            public void onEventReceived(StatusEvent statusEvent) {
+        final EventsListener eventsListener = statusEvent -> {
 
-            }
+            final int count = eventsCount.incrementAndGet();
+            CfLog.OUT.v(logTag, "Events received: " + count);
         };
 
         final AtomicBoolean evaluationChanged = new AtomicBoolean();
