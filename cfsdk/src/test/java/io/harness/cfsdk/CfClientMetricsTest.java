@@ -14,6 +14,7 @@ import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.mock.MockedCloudFactory;
+import io.harness.cfsdk.mock.MockedFeatureRepository;
 
 public class CfClientMetricsTest {
 
@@ -77,7 +78,12 @@ public class CfClientMetricsTest {
 
         Assert.assertTrue(initOk.get());
 
-        // TODO: Test metrics
+        final int evaluationsCount = 10;
+
+        for (int x = 0; x < evaluationsCount; x++) {
+
+            cfClient.boolVariation(MockedFeatureRepository.MOCK_BOOL, false);
+        }
 
         cfClient.destroy();
     }
