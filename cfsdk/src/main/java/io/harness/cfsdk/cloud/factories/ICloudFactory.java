@@ -19,7 +19,6 @@ import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
 import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
-import io.harness.cfsdk.cloud.sse.SSEController;
 import io.harness.cfsdk.cloud.sse.SSEControlling;
 
 public interface ICloudFactory {

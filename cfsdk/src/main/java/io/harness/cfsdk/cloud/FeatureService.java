@@ -4,8 +4,6 @@ import java.util.List;
 
 import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.model.FeatureConfig;
-import io.harness.cfsdk.cloud.model.AuthInfo;
-import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 
 public interface FeatureService {
 

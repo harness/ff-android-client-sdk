@@ -12,8 +12,6 @@ import android.os.Build;
 
 import androidx.annotation.NonNull;
 
-import java.util.HashSet;
-
 public class NetworkInfoProvider extends NetworkInfoProviding {
 
     private final ConnectivityManager connectivityManager;

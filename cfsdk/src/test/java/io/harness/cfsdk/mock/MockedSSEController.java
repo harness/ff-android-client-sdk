@@ -2,9 +2,7 @@ package io.harness.cfsdk.mock;
 
 import com.google.common.cache.Cache;
 
-import io.harness.cfsdk.cloud.ICloud;
 import io.harness.cfsdk.cloud.core.model.FeatureConfig;
-import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.oksse.EventsListener;
 import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 import io.harness.cfsdk.cloud.oksse.model.StatusEvent;

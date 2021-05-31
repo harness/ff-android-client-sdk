@@ -3,10 +3,8 @@ package io.harness.cfsdk;
 import android.content.Context;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
