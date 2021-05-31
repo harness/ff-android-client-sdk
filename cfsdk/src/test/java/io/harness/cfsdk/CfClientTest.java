@@ -8,9 +8,9 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
@@ -64,7 +64,39 @@ public class CfClientTest {
                 10
         );
 
-        CountDownLatch latch = new CountDownLatch(1);
+        final CountDownLatch latch = new CountDownLatch(1);
+        final LinkedList<StatusEvent.EVENT_TYPE> events = new LinkedList<>();
+
+        final EventsListener eventsListener = statusEvent -> {
+
+
+            final StatusEvent.EVENT_TYPE type = statusEvent.getEventType();
+            events.add(type);
+            CfLog.OUT.v(logTag, "Event received: " + type);
+            CfLog.OUT.v(logTag, "Events received: " + events.size());
+        };
+
+        final AtomicBoolean evaluationChanged = new AtomicBoolean();
+
+        final EvaluationListener evaluationListener = evaluation -> {
+
+            CfLog.OUT.v(logTag, "On evaluation");
+
+            if (MockedFeatureRepository.MOCK_STRING.equals(evaluation.getIdentifier())) {
+
+                evaluationChanged.set(true);
+            }
+        };
+
+        boolean resgisterOk = cfClient.registerEventsListener(eventsListener);
+        Assert.assertTrue(resgisterOk);
+
+        resgisterOk = cfClient.registerEvaluationListener(
+
+                MockedFeatureRepository.MOCK_STRING,
+                evaluationListener
+        );
+        Assert.assertTrue(resgisterOk);
 
         cfClient.initialize(
 
@@ -92,37 +124,6 @@ public class CfClientTest {
 
         Assert.assertTrue(initOk.get());
 
-        final AtomicInteger eventsCount = new AtomicInteger();
-
-        final EventsListener eventsListener = statusEvent -> {
-
-            final int count = eventsCount.incrementAndGet();
-            CfLog.OUT.v(logTag, "Events received: " + count);
-        };
-
-        final AtomicBoolean evaluationChanged = new AtomicBoolean();
-
-        final EvaluationListener evaluationListener = evaluation -> {
-
-            CfLog.OUT.v(logTag, "On evaluation");
-
-            if (MockedFeatureRepository.MOCK_STRING.equals(evaluation.getIdentifier())) {
-
-                evaluationChanged.set(true);
-            }
-        };
-
-        boolean resgisterOk = cfClient.registerEventsListener(eventsListener);
-        Assert.assertTrue(resgisterOk);
-
-        resgisterOk = cfClient.registerEvaluationListener(
-
-                MockedFeatureRepository.MOCK_STRING,
-                evaluationListener
-        );
-        Assert.assertTrue(resgisterOk);
-
-
         final SSEControlling controlling = cloudFactory.sseController(null, null, null);
         Assert.assertTrue(controlling instanceof MockedSSEController);
         final MockedSSEController controller = (MockedSSEController) controlling;
@@ -149,6 +150,7 @@ public class CfClientTest {
         unRegisterOk = cfClient.unregisterEventsListener(eventsListener);
         Assert.assertTrue(unRegisterOk);
 
+        Assert.assertFalse(events.isEmpty());
         cfClient.destroy();
     }
 
