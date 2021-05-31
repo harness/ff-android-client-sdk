@@ -26,14 +26,17 @@ public class MockedFeatureRepository implements FeatureRepository {
 
         final Evaluation boolEval = new Evaluation();
         boolEval.setIdentifier(MOCK_BOOL);
+        boolEval.setFlag(MOCK_BOOL);
         boolEval.setValue(true);
 
         final Evaluation stringEval = new Evaluation();
         stringEval.setIdentifier(MOCK_STRING);
+        stringEval.setFlag(MOCK_STRING);
         stringEval.setValue(MOCK_STRING);
 
         final Evaluation numberEval = new Evaluation();
         numberEval.setIdentifier(MOCK_NUMBER);
+        numberEval.setFlag(MOCK_NUMBER);
         numberEval.setValue(MOCK_NUMBER.length());
 
         mocks = new HashMap<>();

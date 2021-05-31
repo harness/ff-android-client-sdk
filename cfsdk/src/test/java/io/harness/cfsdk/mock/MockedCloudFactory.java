@@ -17,6 +17,13 @@ import io.harness.cfsdk.cloud.sse.SSEControlling;
 
 public class MockedCloudFactory extends CloudFactory {
 
+    private final SSEControlling controlling;
+
+    {
+
+        controlling = new MockedSSEController();
+    }
+
     @Override
     public ICloud cloud(String sseUrl, String baseUrl, String key, Target target) {
 
@@ -37,7 +44,7 @@ public class MockedCloudFactory extends CloudFactory {
             Cache<String, FeatureConfig> featureCache
     ) {
 
-        return new MockedSSEController();
+        return controlling;
     }
 
     @Override

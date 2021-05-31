@@ -7,6 +7,8 @@ import io.harness.cfsdk.logging.CfLog;
 
 public class MockedSSEController implements SSEControlling {
 
+    private EventsListener listener;
+
     private final String logTag;
 
     {
@@ -18,11 +20,18 @@ public class MockedSSEController implements SSEControlling {
     public void start(SSEConfig config, EventsListener eventsListener) {
 
         CfLog.OUT.v(logTag, "Start");
+        listener = eventsListener;
     }
 
     @Override
     public void stop() {
 
         CfLog.OUT.v(logTag, "Stop");
+        listener = null;
+    }
+
+    public EventsListener getListener() {
+
+        return listener;
     }
 }

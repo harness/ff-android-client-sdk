@@ -88,7 +88,11 @@ public final class CfClient implements Destroyable {
     }
 
     private final EventsListener eventsListener = statusEvent -> {
-        if (!ready) return;
+
+        if (!ready) {
+
+            return;
+        }
         switch (statusEvent.getEventType()) {
             case SSE_START:
 

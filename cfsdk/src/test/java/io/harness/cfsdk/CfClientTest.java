@@ -17,16 +17,20 @@ import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.oksse.EventsListener;
 import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
+import io.harness.cfsdk.cloud.sse.SSEControlling;
 import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.mock.MockedCloudFactory;
 import io.harness.cfsdk.mock.MockedFeatureRepository;
+import io.harness.cfsdk.mock.MockedSSEController;
 
 public class CfClientTest {
 
+    private final String logTag;
     private final CloudFactory cloudFactory;
 
     {
 
+        logTag = CfClientTest.class.getSimpleName();
         cloudFactory = new MockedCloudFactory();
     }
 
@@ -54,7 +58,7 @@ public class CfClientTest {
 
                 mock,
                 mock,
-                false,
+                true,
                 false,
                 10
         );
@@ -95,11 +99,15 @@ public class CfClientTest {
             }
         };
 
-        final EvaluationListener evaluationListener = new EvaluationListener() {
+        final AtomicBoolean evaluationChanged = new AtomicBoolean();
 
-            @Override
-            public void onEvaluation(Evaluation evaluation) {
+        final EvaluationListener evaluationListener = evaluation -> {
 
+            CfLog.OUT.v(logTag, "On evaluation");
+
+            if (MockedFeatureRepository.MOCK_STRING.equals(evaluation.getIdentifier())) {
+
+                evaluationChanged.set(true);
             }
         };
 
@@ -112,6 +120,23 @@ public class CfClientTest {
                 evaluationListener
         );
         Assert.assertTrue(resgisterOk);
+
+
+        final SSEControlling controlling = cloudFactory.sseController(null, null, null);
+        Assert.assertTrue(controlling instanceof MockedSSEController);
+        final MockedSSEController controller = (MockedSSEController) controlling;
+        final EventsListener controllersListener = controller.getListener();
+        Assert.assertNotNull(controllersListener);
+
+        final Evaluation newEval = new Evaluation();
+        newEval.setIdentifier(MockedFeatureRepository.MOCK_STRING);
+        newEval.setFlag(MockedFeatureRepository.MOCK_STRING);
+        newEval.setValue("");
+
+        final StatusEvent event = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, newEval);
+        controllersListener.onEventReceived(event);
+
+        Assert.assertTrue(evaluationChanged.get());
 
         boolean unRegisterOk = cfClient.unregisterEvaluationListener(
 
