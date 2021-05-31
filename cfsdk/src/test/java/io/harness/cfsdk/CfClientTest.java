@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.Target;
@@ -39,13 +40,7 @@ public class CfClientTest {
 
         initTestSetup();
 
-
-    }
-
-    @Test
-    public void initVariations() {
-
-        initTestSetup();
+        final AtomicBoolean initOk = new AtomicBoolean();
 
         final String mock = "mock";
         final CfClient cfClient = new CfClient(cloudFactory);
@@ -73,6 +68,7 @@ public class CfClientTest {
                     Assert.assertNotNull(info);
                     Assert.assertNotNull(result);
                     Assert.assertTrue(result.isSuccess());
+                    initOk.set(result.isSuccess());
                     latch.countDown();
                 }
         );
@@ -84,6 +80,59 @@ public class CfClientTest {
 
             Assert.fail(e.getMessage());
         }
+
+        Assert.assertTrue(initOk.get());
+
+        cfClient.destroy();
+    }
+
+    @Test
+    public void initVariations() {
+
+        initTestSetup();
+
+        final AtomicBoolean initOk = new AtomicBoolean();
+
+        final String mock = "mock";
+        final CfClient cfClient = new CfClient(cloudFactory);
+        final String apiKey = String.valueOf(System.currentTimeMillis());
+
+        final CfConfiguration cfConfiguration = new CfConfiguration(
+
+                mock,
+                mock,
+                false,
+                false,
+                10
+        );
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        cfClient.initialize(
+
+                context,
+                apiKey,
+                cfConfiguration,
+                new Target().identifier("target"),
+                (info, result) -> {
+
+                    Assert.assertNotNull(info);
+                    Assert.assertNotNull(result);
+                    Assert.assertTrue(result.isSuccess());
+                    initOk.set(result.isSuccess());
+                    latch.countDown();
+                }
+        );
+
+        try {
+
+            latch.await();
+        } catch (InterruptedException e) {
+
+            Assert.fail(e.getMessage());
+        }
+
+        Assert.assertTrue(initOk.get());
 
         final String stringEval = cfClient.stringVariation(
 
