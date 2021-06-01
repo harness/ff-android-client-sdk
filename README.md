@@ -129,6 +129,29 @@ Following table provides summary on possible event types and corresponding respo
 To avoid unexpected behaviour, when listener is not needed anymore, a caller should call 
 `CfClient.getInstance().unregisterEventsListener(eventsListener)`. This way the sdk will remove desired listener from internal list.
 
+## _Using feature flags metrics_
+
+In order to turn on metrics for feature flags evaluations it is required to define your configuration like in the following example:
+```kotlin
+val remoteConfiguration = CfConfiguration.builder()
+            .enableStream(true)
+            .pollingInterval(10)
+            .enableAnalytics(true)
+            .build()
+```
+
+Metrics API endpoint used for metrics sending can be defined like this:
+```kotlin
+val remoteConfiguration = CfConfiguration.builder()
+            .enableStream(true)
+            .pollingInterval(10)
+            .enableAnalytics(true)
+            .eventUrl(METRICS_API_EVENTS_URL)
+            .build()
+```
+
+Otherwise, the default metrics endpoint URl will be used. 
+
 ## _Shutting down the SDK_
 To avoid potential memory leak, when SDK is no longer needed (when the app is closed, for example), a caller should call this method
 ```Kotlin
