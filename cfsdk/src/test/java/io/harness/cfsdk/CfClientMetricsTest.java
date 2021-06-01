@@ -126,13 +126,13 @@ public class CfClientMetricsTest {
 
         try {
 
-            Thread.sleep((MockedCfConfiguration.MOCKED_MIN_FREQUENCY * 1000) + 500);
+            Thread.sleep((MockedCfConfiguration.MOCKED_MIN_FREQUENCY + 1) * 1000);
         } catch (InterruptedException e) {
 
             Assert.fail(e.getMessage());
         }
 
-        Assert.assertEquals(1, timerEventsCount.get());
+        Assert.assertTrue(timerEventsCount.get() > 0);
 
         try {
 
