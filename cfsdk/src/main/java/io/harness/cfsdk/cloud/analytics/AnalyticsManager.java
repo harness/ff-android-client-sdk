@@ -4,6 +4,8 @@ import com.lmax.disruptor.InsufficientCapacityException;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Timer;
 import java.util.concurrent.Executors;
 
@@ -24,9 +26,10 @@ import io.harness.cfsdk.logging.CfLog;
  */
 public class AnalyticsManager implements Destroyable {
 
+    protected final Cache analyticsCache;
+
     private final Timer timer;
     private final String logTag;
-    private final Cache analyticsCache;
     private final RingBuffer<Analytics> ringBuffer;
 
     {
@@ -81,8 +84,7 @@ public class AnalyticsManager implements Destroyable {
                 new Disruptor<>(factory, bufferSize, Executors.newSingleThreadExecutor());
 
         // Connect the handler
-        disruptor.handleEventsWith(
-                new AnalyticsEventHandler(analyticsCache, analyticsPublisherService));
+        disruptor.handleEventsWith(getAnalyticsEventHandler(analyticsPublisherService));
 
         // Start the Disruptor, starts all threads running
         disruptor.start();
@@ -125,5 +127,14 @@ public class AnalyticsManager implements Destroyable {
 
         timer.cancel();
         timer.purge();
+    }
+
+    @NotNull
+    protected AnalyticsEventHandler getAnalyticsEventHandler(
+
+            AnalyticsPublisherService analyticsPublisherService
+    ) {
+
+        return new AnalyticsEventHandler(analyticsCache, analyticsPublisherService);
     }
 }

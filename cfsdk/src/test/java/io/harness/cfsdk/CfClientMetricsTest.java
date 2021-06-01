@@ -9,10 +9,13 @@ import org.mockito.Mock;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.logging.CfLog;
+import io.harness.cfsdk.mock.MockedAnalyticsHandlerCallback;
+import io.harness.cfsdk.mock.MockedCfClient;
 import io.harness.cfsdk.mock.MockedCloudFactory;
 import io.harness.cfsdk.mock.MockedFeatureRepository;
 
@@ -31,12 +34,12 @@ public class CfClientMetricsTest {
     }
 
     @Test
-    public void testMetrics(){
+    public void testMetrics() {
 
         CfLog.testModeOn();
 
         final String mock = "mock";
-        final CfClient cfClient = new CfClient(cloudFactory);
+        final MockedCfClient cfClient = new MockedCfClient(cloudFactory);
         final String apiKey = String.valueOf(System.currentTimeMillis());
 
         final CfConfiguration cfConfiguration = new CfConfiguration(
@@ -78,11 +81,54 @@ public class CfClientMetricsTest {
 
         Assert.assertTrue(initOk.get());
 
+        final AtomicInteger timerEventsCount = new AtomicInteger();
+        final AtomicInteger metricsEventsCount = new AtomicInteger();
+
+        final MockedAnalyticsHandlerCallback metricsCallback = new MockedAnalyticsHandlerCallback() {
+
+            @Override
+            public void onTimer() {
+
+                int count = timerEventsCount.incrementAndGet();
+                CfLog.OUT.v(logTag, "Timer events count: " + count);
+            }
+
+            @Override
+            public void onMetrics() {
+
+                int count = metricsEventsCount.incrementAndGet();
+                CfLog.OUT.v(logTag, "Metric events count: " + count);
+            }
+        };
+
+        try {
+
+            cfClient.addCallback(metricsCallback);
+        } catch (IllegalStateException e) {
+
+            Assert.fail(e.getMessage());
+        }
+
         final int evaluationsCount = 10;
 
         for (int x = 0; x < evaluationsCount; x++) {
 
             cfClient.boolVariation(MockedFeatureRepository.MOCK_BOOL, false);
+        }
+
+        while (metricsEventsCount.get() < evaluationsCount) {
+
+            Thread.yield();
+        }
+
+        Assert.assertEquals(evaluationsCount, metricsEventsCount.get());
+
+        try {
+
+            cfClient.removeCallback(metricsCallback);
+        } catch (IllegalStateException e) {
+
+            Assert.fail(e.getMessage());
         }
 
         cfClient.destroy();

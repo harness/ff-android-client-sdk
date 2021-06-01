@@ -80,15 +80,15 @@ public class CfClientTest {
             }
         };
 
-        boolean resgisterOk = cfClient.registerEventsListener(eventsListener);
-        Assert.assertTrue(resgisterOk);
+        boolean registerOk = cfClient.registerEventsListener(eventsListener);
+        Assert.assertTrue(registerOk);
 
-        resgisterOk = cfClient.registerEvaluationListener(
+        registerOk = cfClient.registerEvaluationListener(
 
                 MockedFeatureRepository.MOCK_STRING,
                 evaluationListener
         );
-        Assert.assertTrue(resgisterOk);
+        Assert.assertTrue(registerOk);
 
         cfClient.initialize(
 

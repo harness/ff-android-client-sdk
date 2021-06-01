@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -54,9 +55,10 @@ import io.harness.cfsdk.utils.CfUtils;
  * observing changes in state of SDK.
  * Before it can be used, one of the {@link CfClient#initialize} methods <strong>must be</strong>  called
  */
-public final class CfClient implements Destroyable {
+public class CfClient implements Destroyable {
 
-    private ICloud cloud;
+    protected ICloud cloud;
+
     private Target target;
     private AuthInfo authInfo;
     private boolean useStream;
@@ -135,7 +137,7 @@ public final class CfClient implements Destroyable {
     /**
      * Base constructor, used internally. Use {@link CfClient#getInstance()} to get instance of this class.
      */
-    CfClient(CloudFactory cloudFactory) {
+    protected CfClient(CloudFactory cloudFactory) {
 
         this.cloudFactory = cloudFactory;
     }
@@ -199,12 +201,7 @@ public final class CfClient implements Destroyable {
 
                             final String environmentID = authInfo.getEnvironment();
                             this.analyticsManager.destroy();
-                            this.analyticsManager = new AnalyticsManager(
-
-                                    environmentID,
-                                    cloud.getAuthToken(),
-                                    configuration
-                            );
+                            this.analyticsManager = getAnalyticsManager(configuration, environmentID);
                         }
                     }
                 }
@@ -363,12 +360,7 @@ public final class CfClient implements Destroyable {
 
                     if (analyticsEnabled) {
 
-                        this.analyticsManager = new AnalyticsManager(
-
-                                environmentID,
-                                cloud.getAuthToken(),
-                                configuration
-                        );
+                        this.analyticsManager = getAnalyticsManager(configuration, environmentID);
                     }
 
                     if (authCallback != null) {
@@ -627,6 +619,17 @@ public final class CfClient implements Destroyable {
         }
         this.evaluationListenerSet.clear();
         eventsListenerSet.clear();
+    }
+
+    @NotNull
+    protected AnalyticsManager getAnalyticsManager(CfConfiguration configuration, String environmentID) {
+
+        return new AnalyticsManager(
+
+                environmentID,
+                cloud.getAuthToken(),
+                configuration
+        );
     }
 
     private void unregister() {

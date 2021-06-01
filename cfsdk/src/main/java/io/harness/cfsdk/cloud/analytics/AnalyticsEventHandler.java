@@ -37,29 +37,39 @@ public class AnalyticsEventHandler implements EventHandler<Analytics> {
         switch (type) {
             case TIMER:
 
-                analyticsPublisherService.sendDataAndResetCache();
+                onTimerEvent();
                 break;
             case METRICS:
 
-                CfLog.OUT.d(
-
-                        logTag,
-                        String.format(
-
-                                "Analytics object received in queue: Target: %s, FeatureFlag: %s",
-                                analytics.getTarget().getIdentifier(),
-                                analytics.getFeatureConfig().getFeature()
-                        )
-                );
-                Integer count = analyticsCache.get(analytics);
-                if (count == null) {
-
-                    analyticsCache.put(analytics, 1);
-                } else {
-
-                    analyticsCache.put(analytics, count + 1);
-                }
+                onMetricsEvent(analytics);
                 break;
+        }
+    }
+
+    protected void onTimerEvent() {
+
+        analyticsPublisherService.sendDataAndResetCache();
+    }
+
+    protected void onMetricsEvent(Analytics analytics) {
+
+        CfLog.OUT.d(
+
+                logTag,
+                String.format(
+
+                        "Analytics object received in queue: Target: %s, FeatureFlag: %s",
+                        analytics.getTarget().getIdentifier(),
+                        analytics.getFeatureConfig().getFeature()
+                )
+        );
+        Integer count = analyticsCache.get(analytics);
+        if (count == null) {
+
+            analyticsCache.put(analytics, 1);
+        } else {
+
+            analyticsCache.put(analytics, count + 1);
         }
     }
 
