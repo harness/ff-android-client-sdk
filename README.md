@@ -150,7 +150,7 @@ val remoteConfiguration = CfConfiguration.builder()
             .build()
 ```
 
-Otherwise, the default metrics endpoint URl will be used. 
+Otherwise, the default metrics endpoint URL will be used. 
 
 ## _Shutting down the SDK_
 To avoid potential memory leak, when SDK is no longer needed (when the app is closed, for example), a caller should call this method
