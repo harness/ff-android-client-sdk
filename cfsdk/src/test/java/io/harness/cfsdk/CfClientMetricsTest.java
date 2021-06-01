@@ -16,6 +16,7 @@ import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.mock.MockedAnalyticsHandlerCallback;
 import io.harness.cfsdk.mock.MockedCfClient;
+import io.harness.cfsdk.mock.MockedCfConfiguration;
 import io.harness.cfsdk.mock.MockedCloudFactory;
 import io.harness.cfsdk.mock.MockedFeatureRepository;
 
@@ -42,7 +43,7 @@ public class CfClientMetricsTest {
         final MockedCfClient cfClient = new MockedCfClient(cloudFactory);
         final String apiKey = String.valueOf(System.currentTimeMillis());
 
-        final CfConfiguration cfConfiguration = new CfConfiguration(
+        final MockedCfConfiguration cfConfiguration = new MockedCfConfiguration(
 
                 mock,
                 mock,
@@ -122,6 +123,16 @@ public class CfClientMetricsTest {
         }
 
         Assert.assertEquals(evaluationsCount, metricsEventsCount.get());
+
+        try {
+
+            Thread.sleep((MockedCfConfiguration.MOCKED_MIN_FREQUENCY * 1000) + 500);
+        } catch (InterruptedException e) {
+
+            Assert.fail(e.getMessage());
+        }
+
+        Assert.assertEquals(1, timerEventsCount.get());
 
         try {
 

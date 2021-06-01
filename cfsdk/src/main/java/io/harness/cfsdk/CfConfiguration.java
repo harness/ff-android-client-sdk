@@ -45,7 +45,7 @@ public class CfConfiguration {
         EVENT_URL = "https://event.feature-flags.uat.harness.io/api/1.0";
     }
 
-    CfConfiguration(
+    protected CfConfiguration(
 
             String baseURL,
             String streamURL,
