@@ -485,11 +485,11 @@ public class CfClient implements Destroyable {
         }
 
         final FeatureConfig featureConfig = featureCache.getIfPresent(evaluationId);
-        if (!this.target.isPrivate()
-                && this.target.isValid()
-                && analyticsEnabled
-                && analyticsManager != null
-                && featureConfig != null
+        if (
+                this.target.isValid()
+                        && analyticsEnabled
+                        && analyticsManager != null
+                        && featureConfig != null
         ) {
 
             final Variation variation = new Variation();

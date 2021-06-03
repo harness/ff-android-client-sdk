@@ -28,7 +28,7 @@ After this step, the SDK elements, primarily `CfClient` should be accessible in 
 ```Kotlin
 val sdkConfiguration = CfConfiguration.builder()
     .baseUrl("BASE_API_URL")
-    .pollingInterval(30) //time in seconds
+    .pollingInterval(60) // Time in seconds
     .enableStream(true)
     .streamUrl("STREAM_URL")
     .build()
@@ -131,26 +131,17 @@ To avoid unexpected behaviour, when listener is not needed anymore, a caller sho
 
 ## _Using feature flags metrics_
 
-In order to turn on metrics for feature flags evaluations it is required to define your configuration like in the following example:
+Metrics API endpoint can be changed like this:
 ```kotlin
 val remoteConfiguration = CfConfiguration.builder()
             .enableStream(true)
-            .pollingInterval(10)
-            .enableAnalytics(true)
-            .build()
-```
-
-Metrics API endpoint used for metrics sending can be defined like this:
-```kotlin
-val remoteConfiguration = CfConfiguration.builder()
-            .enableStream(true)
-            .pollingInterval(10)
+            .pollingInterval(60)
             .enableAnalytics(true)
             .eventUrl(METRICS_API_EVENTS_URL)
             .build()
 ```
 
-Otherwise, the default metrics endpoint URL will be used. 
+Otherwise, the default metrics endpoint URL will be used.
 
 ## _Shutting down the SDK_
 To avoid potential memory leak, when SDK is no longer needed (when the app is closed, for example), a caller should call this method

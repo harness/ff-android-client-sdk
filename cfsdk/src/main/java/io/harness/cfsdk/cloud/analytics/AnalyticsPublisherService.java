@@ -33,7 +33,6 @@ public class AnalyticsPublisherService {
     private static final Set<Target> stagingTargetSet;
     private static final String JAR_VERSION;
     private static final String SDK_TYPE;
-    private static final String ANONYMOUS_TARGET;
     private static final String CLIENT;
     private static final String SDK_LANGUAGE;
     private static final String SDK_VERSION;
@@ -46,7 +45,6 @@ public class AnalyticsPublisherService {
         TARGET_ATTRIBUTE = "target";
         SDK_VERSION = "SDK_VERSION";
         SDK_LANGUAGE = "SDK_LANGUAGE";
-        ANONYMOUS_TARGET = "anonymous";
         globalTargetSet = new HashSet<>();
         stagingTargetSet = new HashSet<>();
         FEATURE_NAME_ATTRIBUTE = "featureName";
@@ -120,27 +118,20 @@ public class AnalyticsPublisherService {
             MetricsData metricsData = new MetricsData();
 
             Analytics analytics = entry.getKey();
-            final Set<String> privateAttributes = analytics.getTarget().getPrivateAttributes();
+
             final Target target = analytics.getTarget();
             final FeatureConfig featureConfig = analytics.getFeatureConfig();
             final Variation variation = analytics.getVariation();
 
-            if (!globalTargetSet.contains(target) && !target.isPrivate()) {
+            if (!globalTargetSet.contains(target)) {
                 stagingTargetSet.add(target);
                 final Map<String, Object> attributes = target.getAttributes();
                 for (final String k : attributes.keySet()) {
 
                     final Object v = attributes.get(k);
                     KeyValue keyValue = new KeyValue();
-                    if (privateAttributes != null && !privateAttributes.isEmpty()) {
-                        if (!privateAttributes.contains(k)) {
-                            keyValue.setKey(k);
-                            keyValue.setValue(v.toString());
-                        }
-                    } else {
-                        keyValue.setKey(k);
-                        keyValue.setValue(v.toString());
-                    }
+                    keyValue.setKey(k);
+                    keyValue.setValue(v.toString());
                 }
             }
 
@@ -150,11 +141,7 @@ public class AnalyticsPublisherService {
             setMetricsAttriutes(metricsData, FEATURE_NAME_ATTRIBUTE, featureConfig.getFeature());
             setMetricsAttriutes(metricsData, VARIATION_IDENTIFIER_ATTRIBUTE, variation.getIdentifier());
             setMetricsAttriutes(metricsData, VARIATION_VALUE_ATTRIBUTE, variation.getValue());
-            if (target.isPrivate()) {
-                setMetricsAttriutes(metricsData, TARGET_ATTRIBUTE, ANONYMOUS_TARGET);
-            } else {
-                setMetricsAttriutes(metricsData, TARGET_ATTRIBUTE, target.getIdentifier());
-            }
+            setMetricsAttriutes(metricsData, TARGET_ATTRIBUTE, target.getIdentifier());
             setMetricsAttriutes(metricsData, JAR_VERSION, getVersion());
             setMetricsAttriutes(metricsData, SDK_TYPE, CLIENT);
 

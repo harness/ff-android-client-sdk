@@ -21,8 +21,8 @@ public class CfConfiguration {
     private final String eventURL;
     private final String streamURL;
 
+    private boolean analyticsEnabled;
     private final boolean streamEnabled;
-    private final boolean analyticsEnabled;
 
     private String analyticsCacheType;
 
@@ -34,6 +34,7 @@ public class CfConfiguration {
     {
 
         bufferSize = 1024;
+        analyticsEnabled = true;
         frequency = MIN_FREQUENCY; // unit: second
         analyticsCacheType = AnalyticsCacheFactory.GUAVA_CACHE;
     }
@@ -62,6 +63,21 @@ public class CfConfiguration {
         this.analyticsEnabled = analyticsEnabled;
     }
 
+    protected CfConfiguration(
+
+            String baseURL,
+            String streamURL,
+            boolean streamEnabled,
+            int pollingInterval
+    ) {
+
+        this.baseURL = baseURL;
+        this.streamURL = streamURL;
+        this.eventURL = EVENT_URL;
+        this.streamEnabled = streamEnabled;
+        this.pollingInterval = pollingInterval;
+    }
+
     CfConfiguration(
 
             String baseURL,
@@ -78,6 +94,22 @@ public class CfConfiguration {
         this.streamEnabled = streamEnabled;
         this.pollingInterval = pollingInterval;
         this.analyticsEnabled = analyticsEnabled;
+    }
+
+    CfConfiguration(
+
+            String baseURL,
+            String streamURL,
+            String eventURL,
+            boolean streamEnabled,
+            int pollingInterval
+    ) {
+
+        this.baseURL = baseURL;
+        this.streamURL = streamURL;
+        this.eventURL = eventURL;
+        this.streamEnabled = streamEnabled;
+        this.pollingInterval = pollingInterval;
     }
 
     public String getBaseURL() {
@@ -109,6 +141,7 @@ public class CfConfiguration {
     }
 
     public static Builder builder() {
+
         return new Builder();
     }
 
@@ -124,6 +157,11 @@ public class CfConfiguration {
         private int pollingInterval;
         private boolean streamEnabled;
         private boolean analyticsEnabled;
+
+        {
+
+            analyticsEnabled = true;
+        }
 
         /**
          * Sets the base API url
