@@ -47,13 +47,19 @@ public class FeatureRepositoryImpl implements FeatureRepository {
     public List<Evaluation> getAllEvaluations(String environment, String target, boolean fromCache) {
 
         if (fromCache) {
+
             return this.cloudCache.getAllEvaluations(environment + "_" + target);
         }
         ApiResponse apiResponse = this.featureService.getEvaluations(target);
         if (apiResponse != null && apiResponse.isSuccess()) {
             List<Evaluation> evaluationList = apiResponse.body();
-            for (Evaluation evaluation : evaluationList)
-                cloudCache.saveEvaluation(buildKey(environment, target, evaluation.getFlag()), evaluation);
+            for (Evaluation evaluation : evaluationList) {
+
+                cloudCache.saveEvaluation(
+
+                        buildKey(environment, target, evaluation.getFlag()), evaluation
+                );
+            }
             return evaluationList;
         }
         return Collections.emptyList();

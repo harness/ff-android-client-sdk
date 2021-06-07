@@ -30,42 +30,54 @@ import io.harness.cfsdk.cloud.core.client.Pair;
 import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
 import io.harness.cfsdk.cloud.core.model.AuthenticationResponse;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 
 public class DefaultApi {
+
     private ApiClient localVarApiClient;
 
     public DefaultApi() {
+
         this(Configuration.getDefaultApiClient());
     }
 
     public DefaultApi(ApiClient apiClient) {
+
         this.localVarApiClient = apiClient;
     }
 
     public ApiClient getApiClient() {
+
         return localVarApiClient;
     }
 
     public void setApiClient(ApiClient apiClient) {
+
         this.localVarApiClient = apiClient;
     }
 
     /**
      * Build call for authenticate
-     * @param authenticationRequest  (optional)
-     * @param _callback Callback for upload/download progress
+     *
+     * @param authenticationRequest (optional)
+     * @param _callback             Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-        <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
-        <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
-        <tr><td> 404 </td><td> The specified resource was not found </td><td>  -  </td></tr>
-        <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+     *                      <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
+     *                      <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
+     *                      <tr><td> 404 </td><td> The specified resource was not found </td><td>  -  </td></tr>
+     *                      <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
+     *                      </table>
      */
-    public okhttp3.Call authenticateCall(AuthenticationRequest authenticationRequest, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call authenticateCall(
+
+            final AuthenticationRequest authenticationRequest,
+            final ApiCallback _callback
+    ) throws ApiException {
+
         Object localVarPostBody = authenticationRequest;
 
         // create path and map variables
@@ -77,7 +89,7 @@ public class DefaultApi {
         Map<String, String> localVarCookieParams = new HashMap<String, String>();
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
         final String[] localVarAccepts = {
-            "application/json"
+                "application/json"
         };
         final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
         if (localVarAccept != null) {
@@ -85,18 +97,17 @@ public class DefaultApi {
         }
 
         final String[] localVarContentTypes = {
-            "application/json"
+                "application/json"
         };
         final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
         localVarHeaderParams.put("Content-Type", localVarContentType);
 
-        String[] localVarAuthNames = new String[] {  };
+        String[] localVarAuthNames = new String[]{};
         return localVarApiClient.buildCall(localVarPath, "POST", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
     }
 
     @SuppressWarnings("rawtypes")
     private okhttp3.Call authenticateValidateBeforeCall(AuthenticationRequest authenticationRequest, final ApiCallback _callback) throws ApiException {
-        
 
         okhttp3.Call localVarCall = authenticateCall(authenticationRequest, _callback);
         return localVarCall;
@@ -106,20 +117,22 @@ public class DefaultApi {
     /**
      * Authenticate with the admin server.
      * Used to retrieve all target segments for certain account id.
-     * @param authenticationRequest  (optional)
+     *
+     * @param authenticationRequest (optional)
      * @return AuthenticationResponse
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-        <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
-        <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
-        <tr><td> 404 </td><td> The specified resource was not found </td><td>  -  </td></tr>
-        <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+     *                      <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
+     *                      <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
+     *                      <tr><td> 404 </td><td> The specified resource was not found </td><td>  -  </td></tr>
+     *                      <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
+     *                      </table>
      */
     public AuthenticationResponse authenticate(AuthenticationRequest authenticationRequest) throws ApiException {
+
         ApiResponse<AuthenticationResponse> localVarResp = authenticateWithHttpInfo(authenticationRequest);
         return localVarResp.getData();
     }
@@ -127,71 +140,78 @@ public class DefaultApi {
     /**
      * Authenticate with the admin server.
      * Used to retrieve all target segments for certain account id.
-     * @param authenticationRequest  (optional)
+     *
+     * @param authenticationRequest (optional)
      * @return ApiResponse&lt;AuthenticationResponse&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-        <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
-        <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
-        <tr><td> 404 </td><td> The specified resource was not found </td><td>  -  </td></tr>
-        <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+     *                      <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
+     *                      <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
+     *                      <tr><td> 404 </td><td> The specified resource was not found </td><td>  -  </td></tr>
+     *                      <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
+     *                      </table>
      */
     public ApiResponse<AuthenticationResponse> authenticateWithHttpInfo(AuthenticationRequest authenticationRequest) throws ApiException {
+
         okhttp3.Call localVarCall = authenticateValidateBeforeCall(authenticationRequest, null);
-        Type localVarReturnType = new TypeToken<AuthenticationResponse>(){}.getType();
+        Type localVarReturnType = new TypeToken<AuthenticationResponse>() {
+        }.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
     }
 
     /**
      * Authenticate with the admin server. (asynchronously)
      * Used to retrieve all target segments for certain account id.
-     * @param authenticationRequest  (optional)
-     * @param _callback The callback to be executed when the API call finishes
+     *
+     * @param authenticationRequest (optional)
+     * @param _callback             The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      *
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-        <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
-        <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
-        <tr><td> 404 </td><td> The specified resource was not found </td><td>  -  </td></tr>
-        <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+     *                      <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
+     *                      <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
+     *                      <tr><td> 404 </td><td> The specified resource was not found </td><td>  -  </td></tr>
+     *                      <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
+     *                      </table>
      */
     public okhttp3.Call authenticateAsync(AuthenticationRequest authenticationRequest, final ApiCallback<AuthenticationResponse> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = authenticateValidateBeforeCall(authenticationRequest, _callback);
-        Type localVarReturnType = new TypeToken<AuthenticationResponse>(){}.getType();
+        Type localVarReturnType = new TypeToken<AuthenticationResponse>() {
+        }.getType();
         localVarApiClient.executeAsync(localVarCall, localVarReturnType, _callback);
         return localVarCall;
     }
+
     /**
      * Build call for getEvaluationByIdentifier
+     *
      * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param feature Unique identifier for the flag object in the API. (required)
-     * @param target Unique identifier for the target object in the API. (required)
-     * @param _callback Callback for upload/download progress
+     * @param feature         Unique identifier for the flag object in the API. (required)
+     * @param target          Unique identifier for the target object in the API. (required)
+     * @param _callback       Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      *
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+     *                      </table>
      */
     public okhttp3.Call getEvaluationByIdentifierCall(String environmentUUID, String feature, String target, final ApiCallback _callback) throws ApiException {
         Object localVarPostBody = null;
 
         // create path and map variables
         String localVarPath = "/client/env/{environmentUUID}/target/{target}/evaluations/{feature}"
-            .replaceAll("\\{" + "environmentUUID" + "\\}", localVarApiClient.escapeString(environmentUUID.toString()))
-            .replaceAll("\\{" + "feature" + "\\}", localVarApiClient.escapeString(feature.toString()))
-            .replaceAll("\\{" + "target" + "\\}", localVarApiClient.escapeString(target.toString()));
+                .replaceAll("\\{" + "environmentUUID" + "\\}", localVarApiClient.escapeString(environmentUUID.toString()))
+                .replaceAll("\\{" + "feature" + "\\}", localVarApiClient.escapeString(feature.toString()))
+                .replaceAll("\\{" + "target" + "\\}", localVarApiClient.escapeString(target.toString()));
 
         List<Pair> localVarQueryParams = new ArrayList<Pair>();
         List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
@@ -199,7 +219,7 @@ public class DefaultApi {
         Map<String, String> localVarCookieParams = new HashMap<String, String>();
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
         final String[] localVarAccepts = {
-            "application/json"
+                "application/json"
         };
         final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
         if (localVarAccept != null) {
@@ -207,33 +227,33 @@ public class DefaultApi {
         }
 
         final String[] localVarContentTypes = {
-            
+
         };
         final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
         localVarHeaderParams.put("Content-Type", localVarContentType);
 
-        String[] localVarAuthNames = new String[] {  };
+        String[] localVarAuthNames = new String[]{};
         return localVarApiClient.buildCall(localVarPath, "GET", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
     }
 
     @SuppressWarnings("rawtypes")
     private okhttp3.Call getEvaluationByIdentifierValidateBeforeCall(String environmentUUID, String feature, String target, final ApiCallback _callback) throws ApiException {
-        
+
         // verify the required parameter 'environmentUUID' is set
         if (environmentUUID == null) {
             throw new ApiException("Missing the required parameter 'environmentUUID' when calling getEvaluationByIdentifier(Async)");
         }
-        
+
         // verify the required parameter 'feature' is set
         if (feature == null) {
             throw new ApiException("Missing the required parameter 'feature' when calling getEvaluationByIdentifier(Async)");
         }
-        
+
         // verify the required parameter 'target' is set
         if (target == null) {
             throw new ApiException("Missing the required parameter 'target' when calling getEvaluationByIdentifier(Async)");
         }
-        
+
 
         okhttp3.Call localVarCall = getEvaluationByIdentifierCall(environmentUUID, feature, target, _callback);
         return localVarCall;
@@ -242,17 +262,17 @@ public class DefaultApi {
 
     /**
      * Get feature evaluations for target
-     * 
+     *
      * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param feature Unique identifier for the flag object in the API. (required)
-     * @param target Unique identifier for the target object in the API. (required)
+     * @param feature         Unique identifier for the flag object in the API. (required)
+     * @param target          Unique identifier for the target object in the API. (required)
      * @return Evaluation
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+     *                      </table>
      */
     public Evaluation getEvaluationByIdentifier(String environmentUUID, String feature, String target) throws ApiException {
         ApiResponse<Evaluation> localVarResp = getEvaluationByIdentifierWithHttpInfo(environmentUUID, feature, target);
@@ -261,66 +281,70 @@ public class DefaultApi {
 
     /**
      * Get feature evaluations for target
-     * 
+     *
      * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param feature Unique identifier for the flag object in the API. (required)
-     * @param target Unique identifier for the target object in the API. (required)
+     * @param feature         Unique identifier for the flag object in the API. (required)
+     * @param target          Unique identifier for the target object in the API. (required)
      * @return ApiResponse&lt;Evaluation&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+     *                      </table>
      */
     public ApiResponse<Evaluation> getEvaluationByIdentifierWithHttpInfo(String environmentUUID, String feature, String target) throws ApiException {
         okhttp3.Call localVarCall = getEvaluationByIdentifierValidateBeforeCall(environmentUUID, feature, target, null);
-        Type localVarReturnType = new TypeToken<Evaluation>(){}.getType();
+        Type localVarReturnType = new TypeToken<Evaluation>() {
+        }.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
     }
 
     /**
      * Get feature evaluations for target (asynchronously)
-     * 
+     *
      * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param feature Unique identifier for the flag object in the API. (required)
-     * @param target Unique identifier for the target object in the API. (required)
-     * @param _callback The callback to be executed when the API call finishes
+     * @param feature         Unique identifier for the flag object in the API. (required)
+     * @param target          Unique identifier for the target object in the API. (required)
+     * @param _callback       The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      *
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+     *                      </table>
      */
     public okhttp3.Call getEvaluationByIdentifierAsync(String environmentUUID, String feature, String target, final ApiCallback<Evaluation> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = getEvaluationByIdentifierValidateBeforeCall(environmentUUID, feature, target, _callback);
-        Type localVarReturnType = new TypeToken<Evaluation>(){}.getType();
+        Type localVarReturnType = new TypeToken<Evaluation>() {
+        }.getType();
         localVarApiClient.executeAsync(localVarCall, localVarReturnType, _callback);
         return localVarCall;
     }
+
     /**
      * Build call for getEvaluations
+     *
      * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param target Unique identifier for the target object in the API. (required)
-     * @param _callback Callback for upload/download progress
+     * @param target          Unique identifier for the target object in the API. (required)
+     * @param _callback       Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      *
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+     *                      </table>
      */
     public okhttp3.Call getEvaluationsCall(String environmentUUID, String target, final ApiCallback _callback) throws ApiException {
         Object localVarPostBody = null;
 
         // create path and map variables
         String localVarPath = "/client/env/{environmentUUID}/target/{target}/evaluations"
-            .replaceAll("\\{" + "environmentUUID" + "\\}", localVarApiClient.escapeString(environmentUUID.toString()))
-            .replaceAll("\\{" + "target" + "\\}", localVarApiClient.escapeString(target.toString()));
+                .replaceAll("\\{" + "environmentUUID" + "\\}", localVarApiClient.escapeString(environmentUUID.toString()))
+                .replaceAll("\\{" + "target" + "\\}", localVarApiClient.escapeString(target.toString()));
 
         List<Pair> localVarQueryParams = new ArrayList<Pair>();
         List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
@@ -328,7 +352,7 @@ public class DefaultApi {
         Map<String, String> localVarCookieParams = new HashMap<String, String>();
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
         final String[] localVarAccepts = {
-            "application/json"
+                "application/json"
         };
         final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
         if (localVarAccept != null) {
@@ -336,28 +360,28 @@ public class DefaultApi {
         }
 
         final String[] localVarContentTypes = {
-            
+
         };
         final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
         localVarHeaderParams.put("Content-Type", localVarContentType);
 
-        String[] localVarAuthNames = new String[] {  };
+        String[] localVarAuthNames = new String[]{};
         return localVarApiClient.buildCall(localVarPath, "GET", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
     }
 
     @SuppressWarnings("rawtypes")
     private okhttp3.Call getEvaluationsValidateBeforeCall(String environmentUUID, String target, final ApiCallback _callback) throws ApiException {
-        
+
         // verify the required parameter 'environmentUUID' is set
         if (environmentUUID == null) {
             throw new ApiException("Missing the required parameter 'environmentUUID' when calling getEvaluations(Async)");
         }
-        
+
         // verify the required parameter 'target' is set
         if (target == null) {
             throw new ApiException("Missing the required parameter 'target' when calling getEvaluations(Async)");
         }
-        
+
 
         okhttp3.Call localVarCall = getEvaluationsCall(environmentUUID, target, _callback);
         return localVarCall;
@@ -366,16 +390,16 @@ public class DefaultApi {
 
     /**
      * Get feature evaluations for target
-     * 
+     *
      * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param target Unique identifier for the target object in the API. (required)
+     * @param target          Unique identifier for the target object in the API. (required)
      * @return List&lt;Evaluation&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+     *                      </table>
      */
     public List<Evaluation> getEvaluations(String environmentUUID, String target) throws ApiException {
         ApiResponse<List<Evaluation>> localVarResp = getEvaluationsWithHttpInfo(environmentUUID, target);
@@ -384,63 +408,67 @@ public class DefaultApi {
 
     /**
      * Get feature evaluations for target
-     * 
+     *
      * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param target Unique identifier for the target object in the API. (required)
+     * @param target          Unique identifier for the target object in the API. (required)
      * @return ApiResponse&lt;List&lt;Evaluation&gt;&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+     *                      </table>
      */
     public ApiResponse<List<Evaluation>> getEvaluationsWithHttpInfo(String environmentUUID, String target) throws ApiException {
         okhttp3.Call localVarCall = getEvaluationsValidateBeforeCall(environmentUUID, target, null);
-        Type localVarReturnType = new TypeToken<List<Evaluation>>(){}.getType();
+        Type localVarReturnType = new TypeToken<List<Evaluation>>() {
+        }.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
     }
 
     /**
      * Get feature evaluations for target (asynchronously)
-     * 
+     *
      * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param target Unique identifier for the target object in the API. (required)
-     * @param _callback The callback to be executed when the API call finishes
+     * @param target          Unique identifier for the target object in the API. (required)
+     * @param _callback       The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      *
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+     *                      </table>
      */
     public okhttp3.Call getEvaluationsAsync(String environmentUUID, String target, final ApiCallback<List<Evaluation>> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = getEvaluationsValidateBeforeCall(environmentUUID, target, _callback);
-        Type localVarReturnType = new TypeToken<List<Evaluation>>(){}.getType();
+        Type localVarReturnType = new TypeToken<List<Evaluation>>() {
+        }.getType();
         localVarApiClient.executeAsync(localVarCall, localVarReturnType, _callback);
         return localVarCall;
     }
+
     /**
      * Build call for stream
+     *
      * @param environmentId Unique UUID for the environemnt object in the API. (required)
-     * @param _callback Callback for upload/download progress
+     * @param _callback     Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      *
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  * Content-Type -  <br>  * Cache-Control -  <br>  * Connection -  <br>  * Access-Control-Allow-Origin -  <br>  </td></tr>
-        <tr><td> 503 </td><td> Service Unavailable </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  * Content-Type -  <br>  * Cache-Control -  <br>  * Connection -  <br>  * Access-Control-Allow-Origin -  <br>  </td></tr>
+     *                      <tr><td> 503 </td><td> Service Unavailable </td><td>  -  </td></tr>
+     *                      </table>
      */
     public okhttp3.Call streamCall(String environmentId, final ApiCallback _callback) throws ApiException {
         Object localVarPostBody = null;
 
         // create path and map variables
         String localVarPath = "/stream/environments/{environmentId}"
-            .replaceAll("\\{" + "environmentId" + "\\}", localVarApiClient.escapeString(environmentId.toString()));
+                .replaceAll("\\{" + "environmentId" + "\\}", localVarApiClient.escapeString(environmentId.toString()));
 
         List<Pair> localVarQueryParams = new ArrayList<Pair>();
         List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
@@ -448,7 +476,7 @@ public class DefaultApi {
         Map<String, String> localVarCookieParams = new HashMap<String, String>();
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
         final String[] localVarAccepts = {
-            
+
         };
         final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
         if (localVarAccept != null) {
@@ -456,23 +484,23 @@ public class DefaultApi {
         }
 
         final String[] localVarContentTypes = {
-            
+
         };
         final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
         localVarHeaderParams.put("Content-Type", localVarContentType);
 
-        String[] localVarAuthNames = new String[] { "BearerAuth" };
+        String[] localVarAuthNames = new String[]{"BearerAuth"};
         return localVarApiClient.buildCall(localVarPath, "GET", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
     }
 
     @SuppressWarnings("rawtypes")
     private okhttp3.Call streamValidateBeforeCall(String environmentId, final ApiCallback _callback) throws ApiException {
-        
+
         // verify the required parameter 'environmentId' is set
         if (environmentId == null) {
             throw new ApiException("Missing the required parameter 'environmentId' when calling stream(Async)");
         }
-        
+
 
         okhttp3.Call localVarCall = streamCall(environmentId, _callback);
         return localVarCall;
@@ -481,56 +509,325 @@ public class DefaultApi {
 
     /**
      * Stream endpoint.
-     * 
+     *
      * @param environmentId Unique UUID for the environemnt object in the API. (required)
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  * Content-Type -  <br>  * Cache-Control -  <br>  * Connection -  <br>  * Access-Control-Allow-Origin -  <br>  </td></tr>
-        <tr><td> 503 </td><td> Service Unavailable </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  * Content-Type -  <br>  * Cache-Control -  <br>  * Connection -  <br>  * Access-Control-Allow-Origin -  <br>  </td></tr>
+     *                      <tr><td> 503 </td><td> Service Unavailable </td><td>  -  </td></tr>
+     *                      </table>
      */
     public void stream(String environmentId) throws ApiException {
+
         streamWithHttpInfo(environmentId);
     }
 
     /**
      * Stream endpoint.
-     * 
+     *
      * @param environmentId Unique UUID for the environemnt object in the API. (required)
      * @return ApiResponse&lt;Void&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  * Content-Type -  <br>  * Cache-Control -  <br>  * Connection -  <br>  * Access-Control-Allow-Origin -  <br>  </td></tr>
-        <tr><td> 503 </td><td> Service Unavailable </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  * Content-Type -  <br>  * Cache-Control -  <br>  * Connection -  <br>  * Access-Control-Allow-Origin -  <br>  </td></tr>
+     *                      <tr><td> 503 </td><td> Service Unavailable </td><td>  -  </td></tr>
+     *                      </table>
      */
     public ApiResponse<Void> streamWithHttpInfo(String environmentId) throws ApiException {
+
         okhttp3.Call localVarCall = streamValidateBeforeCall(environmentId, null);
         return localVarApiClient.execute(localVarCall);
     }
 
     /**
      * Stream endpoint. (asynchronously)
-     * 
+     *
      * @param environmentId Unique UUID for the environemnt object in the API. (required)
-     * @param _callback The callback to be executed when the API call finishes
+     * @param _callback     The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      *
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  * Content-Type -  <br>  * Cache-Control -  <br>  * Connection -  <br>  * Access-Control-Allow-Origin -  <br>  </td></tr>
-        <tr><td> 503 </td><td> Service Unavailable </td><td>  -  </td></tr>
-     </table>
+     *                      <table summary="Response Details" border="1">
+     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+     *                      <tr><td> 200 </td><td> OK </td><td>  * Content-Type -  <br>  * Cache-Control -  <br>  * Connection -  <br>  * Access-Control-Allow-Origin -  <br>  </td></tr>
+     *                      <tr><td> 503 </td><td> Service Unavailable </td><td>  -  </td></tr>
+     *                      </table>
      */
     public okhttp3.Call streamAsync(String environmentId, final ApiCallback<Void> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = streamValidateBeforeCall(environmentId, _callback);
         localVarApiClient.executeAsync(localVarCall, _callback);
         return localVarCall;
+    }
+
+    /**
+     * Get all feature flags activations
+     * All feature flags with activations in project environment
+     *
+     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
+     * @param clusterIdentifier Unique identifier for the cluster for the account (optional)
+     * @return List&lt;FeatureConfig&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public List<FeatureConfig> getFeatureConfig(
+
+            String environmentUUID,
+            String clusterIdentifier
+    ) throws ApiException {
+
+        ApiResponse<List<FeatureConfig>> localVarResp = getFeatureConfigWithHttpInfo(
+
+                environmentUUID, clusterIdentifier
+        );
+        return localVarResp.getData();
+    }
+
+    /**
+     * Get feature config
+     *
+     * @param identifier        Unique identifier for the flag object in the API. (required)
+     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
+     * @param clusterIdentifier Unique identifier for the cluster for the account (optional)
+     * @return FeatureConfig
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public FeatureConfig getFeatureConfigByIdentifier(
+
+            String identifier,
+            String environmentUUID,
+            String clusterIdentifier
+    ) throws ApiException {
+
+        ApiResponse<FeatureConfig> localVarResp = getFeatureConfigByIdentifierWithHttpInfo(
+
+                identifier,
+                environmentUUID,
+                clusterIdentifier
+        );
+        return localVarResp.getData();
+    }
+
+    /**
+     * Get feature config
+     *
+     * @param identifier        Unique identifier for the flag object in the API. (required)
+     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
+     * @param clusterIdentifier Unique identifier for the cluster for the account (optional)
+     * @return ApiResponse&lt;FeatureConfig&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public ApiResponse<FeatureConfig> getFeatureConfigByIdentifierWithHttpInfo(
+
+            String identifier,
+            String environmentUUID,
+            String clusterIdentifier
+    ) throws ApiException {
+
+        okhttp3.Call localVarCall = getFeatureConfigByIdentifierValidateBeforeCall(
+
+                identifier,
+                environmentUUID,
+                clusterIdentifier,
+                null
+        );
+        Type localVarReturnType = new TypeToken<FeatureConfig>() {
+        }.getType();
+        return localVarApiClient.execute(localVarCall, localVarReturnType);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private okhttp3.Call getFeatureConfigByIdentifierValidateBeforeCall(
+
+            String identifier,
+            String environmentUUID,
+            String clusterIdentifier,
+            final ApiCallback _callback
+
+    ) throws ApiException {
+
+        // verify the required parameter 'identifier' is set
+        if (identifier == null) {
+
+            throw new ApiException(
+                    "Missing the required parameter 'identifier' when calling " +
+                            "getFeatureConfigByIdentifier(Async)"
+            );
+        }
+
+        // verify the required parameter 'environmentUUID' is set
+        if (environmentUUID == null) {
+
+            throw new ApiException(
+                    "Missing the required parameter 'environmentUUID' when calling " +
+                            "getFeatureConfigByIdentifier(Async)"
+            );
+        }
+
+
+        return getFeatureConfigByIdentifierCall(
+
+                identifier,
+                environmentUUID,
+                clusterIdentifier,
+                _callback
+        );
+    }
+
+    /**
+     * Build call for getFeatureConfigByIdentifier
+     *
+     * @param identifier        Unique identifier for the flag object in the API. (required)
+     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
+     * @param clusterIdentifier Unique identifier for the cluster for the account (optional)
+     * @param _callback         Callback for upload/download progress
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     */
+    public okhttp3.Call getFeatureConfigByIdentifierCall(String identifier, String environmentUUID, String clusterIdentifier, final ApiCallback _callback) throws ApiException {
+        Object localVarPostBody = null;
+
+        // create path and map variables
+        String localVarPath = "/client/env/{environmentUUID}/feature-configs/{identifier}"
+                .replaceAll("\\{" + "identifier" + "\\}", localVarApiClient.escapeString(identifier.toString()))
+                .replaceAll("\\{" + "environmentUUID" + "\\}", localVarApiClient.escapeString(environmentUUID.toString()));
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+        if (clusterIdentifier != null) {
+            localVarQueryParams.addAll(localVarApiClient.parameterToPair("clusterIdentifier", clusterIdentifier));
+        }
+
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        Map<String, String> localVarCookieParams = new HashMap<String, String>();
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+        final String[] localVarAccepts = {
+                "application/json"
+        };
+        final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) {
+            localVarHeaderParams.put("Accept", localVarAccept);
+        }
+
+        final String[] localVarContentTypes = {
+
+        };
+        final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
+        localVarHeaderParams.put("Content-Type", localVarContentType);
+
+        String[] localVarAuthNames = new String[]{"BearerAuth"};
+        return localVarApiClient.buildCall(localVarPath, "GET", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
+    }
+
+    /**
+     * Get all feature flags activations
+     * All feature flags with activations in project environment
+     *
+     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
+     * @param clusterIdentifier Unique identifier for the cluster for the account (optional)
+     * @return ApiResponse&lt;List&lt;FeatureConfig&gt;&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public ApiResponse<List<FeatureConfig>> getFeatureConfigWithHttpInfo(
+
+            String environmentUUID, String clusterIdentifier
+    ) throws ApiException {
+
+        okhttp3.Call localVarCall = getFeatureConfigValidateBeforeCall(
+
+                environmentUUID, clusterIdentifier, null
+        );
+        Type localVarReturnType = new TypeToken<List<FeatureConfig>>() {
+        }.getType();
+        return localVarApiClient.execute(localVarCall, localVarReturnType);
+    }
+
+    private okhttp3.Call getFeatureConfigValidateBeforeCall(
+
+            String environmentUUID,
+            String clusterIdentifier,
+            final ApiCallback _callback
+    ) throws ApiException {
+
+        // verify the required parameter 'environmentUUID' is set
+        if (environmentUUID == null) {
+
+            throw new ApiException("Missing the required parameter 'environmentUUID' when calling getFeatureConfig(Async)");
+        }
+
+        okhttp3.Call localVarCall = getFeatureConfigCall(environmentUUID, clusterIdentifier, _callback);
+        return localVarCall;
+    }
+
+    /**
+     * Build call for getFeatureConfig
+     *
+     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
+     * @param clusterIdentifier Unique identifier for the cluster for the account (optional)
+     * @param _callback         Callback for upload/download progress
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     */
+    public okhttp3.Call getFeatureConfigCall(
+
+            final String environmentUUID,
+            String clusterIdentifier,
+            final ApiCallback _callback
+    ) throws ApiException {
+
+        Object localVarPostBody = null;
+
+        // create path and map variables
+        String localVarPath = "/client/env/{environmentUUID}/feature-configs"
+                .replaceAll(
+                        "\\{" + "environmentUUID" + "\\}",
+                        localVarApiClient.escapeString(environmentUUID)
+                );
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+        if (clusterIdentifier != null) {
+
+            localVarQueryParams.addAll(
+                    localVarApiClient.parameterToPair("clusterIdentifier", clusterIdentifier)
+            );
+        }
+
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        Map<String, String> localVarCookieParams = new HashMap<String, String>();
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+                "application/json"
+        };
+
+        final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) {
+            localVarHeaderParams.put("Accept", localVarAccept);
+        }
+
+        final String[] localVarContentTypes = {
+
+        };
+        final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
+        localVarHeaderParams.put("Content-Type", localVarContentType);
+
+        String[] localVarAuthNames = new String[]{"BearerAuth"};
+        return localVarApiClient.buildCall(
+
+                localVarPath,
+                "GET",
+                localVarQueryParams,
+                localVarCollectionQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarCookieParams,
+                localVarFormParams,
+                localVarAuthNames,
+                _callback
+        );
     }
 }

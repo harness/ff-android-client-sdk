@@ -23,6 +23,7 @@ import io.swagger.annotations.ApiModelProperty;
  * Variation
  */
 public class Variation {
+
   public static final String SERIALIZED_NAME_IDENTIFIER = "identifier";
   @SerializedName(SERIALIZED_NAME_IDENTIFIER)
   private String identifier;

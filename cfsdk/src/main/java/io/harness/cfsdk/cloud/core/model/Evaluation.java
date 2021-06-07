@@ -23,98 +23,143 @@ import io.swagger.annotations.ApiModelProperty;
  * Evaluation
  */
 public class Evaluation {
-  public static final String SERIALIZED_NAME_FLAG = "flag";
-  @SerializedName(SERIALIZED_NAME_FLAG)
-  private String flag;
 
-  public static final String SERIALIZED_NAME_VALUE = "value";
-  @SerializedName(SERIALIZED_NAME_VALUE)
-  public Object value;
+    public static final String SERIALIZED_NAME_FLAG = "flag";
+    @SerializedName(SERIALIZED_NAME_FLAG)
+    private String flag;
 
+    public static final String SERIALIZED_NAME_VALUE = "value";
+    @SerializedName(SERIALIZED_NAME_VALUE)
+    public Object value;
 
-  public Evaluation flag(String flag) {
-    
-    this.flag = flag;
-    return this;
-  }
+    public static final String SERIALIZED_NAME_KIND = "kind";
+    @SerializedName(SERIALIZED_NAME_KIND)
+    private String kind;
 
-   /**
-   * Get flag
-   * @return flag
-  **/
-  @ApiModelProperty(required = true, value = "")
+    public static final String SERIALIZED_NAME_IDENTIFIER = "identifier";
+    @SerializedName(SERIALIZED_NAME_IDENTIFIER)
+    private String identifier;
 
-  public String getFlag() {
-    return flag;
-  }
+    public Evaluation flag(String flag) {
 
-
-  public void setFlag(String flag) {
-    this.flag = flag;
-  }
-
-
-  public Evaluation value(Object value) {
-    
-    this.value = value;
-    return this;
-  }
-
-   /**
-   * Get value
-   * @return value
-  **/
-  @ApiModelProperty(required = true, value = "")
-
-  public <T> T getValue() {
-    return (T) value;
-  }
-
-
-  public void setValue(Object value) {
-    this.value = value;
-  }
-
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
+        this.flag = flag;
+        return this;
     }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
+
+    public Evaluation kind(String kind) {
+
+        this.kind = kind;
+        return this;
     }
-    Evaluation evaluation = (Evaluation) o;
-    return Objects.equals(this.flag, evaluation.flag) &&
-        Objects.equals(this.value, evaluation.value);
-  }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(flag, value);
-  }
+    public Evaluation value(Object value) {
 
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class Evaluation {\n");
-    sb.append("    flag: ").append(toIndentedString(flag)).append("\n");
-    sb.append("    value: ").append(toIndentedString(value)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
-
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
+        this.value = value;
+        return this;
     }
-    return o.toString().replace("\n", "\n    ");
-  }
+
+    public Evaluation identifier(String identifier) {
+
+        this.identifier = identifier;
+        return this;
+    }
+
+    /**
+     * Get flag
+     *
+     * @return flag
+     **/
+    @ApiModelProperty(required = true, value = "")
+    public String getFlag() {
+
+        return flag;
+    }
+
+
+    public void setFlag(String flag) {
+        this.flag = flag;
+    }
+
+    @ApiModelProperty(required = true, value = "")
+    public String getKind() {
+
+        return kind;
+    }
+
+    public void setKind(String kind) {
+
+        this.kind = kind;
+    }
+
+    /**
+     * Get value
+     *
+     * @return value
+     **/
+    @ApiModelProperty(required = true, value = "")
+    public <T> T getValue() {
+        return (T) value;
+    }
+
+
+    public void setValue(Object value) {
+        this.value = value;
+    }
+
+    public String getIdentifier() {
+
+        return identifier;
+    }
+
+    public void setIdentifier(String identifier) {
+
+        this.identifier = identifier;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Evaluation evaluation = (Evaluation) o;
+        return Objects.equals(this.flag, evaluation.flag) &&
+                Objects.equals(this.value, evaluation.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(flag, value);
+    }
+
+
+    @Override
+    public String toString() {
+
+        return new StringBuilder()
+                .append("class Evaluation {\n")
+                .append("    flag: ").append(toIndentedString(flag)).append("\n")
+                .append("    value: ").append(toIndentedString(value)).append("\n")
+                .append("    kind: ").append(toIndentedString(kind)).append("\n")
+                .append("    identifier: ").append(toIndentedString(identifier)).append("\n")
+                .append("}")
+                .toString();
+    }
+
+    /**
+     * Convert the given object to string with each line indented by 4 spaces
+     * (except the first line).
+     */
+    private String toIndentedString(Object o) {
+
+        if (o == null) {
+            return "null";
+        }
+        return o.toString().replace("\n", "\n    ");
+    }
 
 }
 

@@ -18,7 +18,7 @@ buildscript {
 ```
 
 In app module's `build.gradle` file add dependency for Harness's SDK
-`implementation 'io.harness:ff-android-client-sdk:0.0.5'`
+`implementation 'io.harness:ff-android-client-sdk:0.0.6'`
 
 After this step, the SDK elements, primarily `CfClient` should be accessible in main application.
 
@@ -28,7 +28,7 @@ After this step, the SDK elements, primarily `CfClient` should be accessible in 
 ```Kotlin
 val sdkConfiguration = CfConfiguration.builder()
     .baseUrl("BASE_API_URL")
-    .pollingInterval(30) //time in seconds
+    .pollingInterval(60) // Time in seconds
     .enableStream(true)
     .streamUrl("STREAM_URL")
     .build()
@@ -128,6 +128,20 @@ Following table provides summary on possible event types and corresponding respo
 
 To avoid unexpected behaviour, when listener is not needed anymore, a caller should call 
 `CfClient.getInstance().unregisterEventsListener(eventsListener)`. This way the sdk will remove desired listener from internal list.
+
+## _Using feature flags metrics_
+
+Metrics API endpoint can be changed like this:
+```kotlin
+val remoteConfiguration = CfConfiguration.builder()
+            .enableStream(true)
+            .pollingInterval(60)
+            .enableAnalytics(true)
+            .eventUrl(METRICS_API_EVENTS_URL)
+            .build()
+```
+
+Otherwise, the default metrics endpoint URL will be used.
 
 ## _Shutting down the SDK_
 To avoid potential memory leak, when SDK is no longer needed (when the app is closed, for example), a caller should call this method

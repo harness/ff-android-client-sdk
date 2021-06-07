@@ -18,7 +18,8 @@ public class AuthResponseDecoder {
         logTag = AuthResponseDecoder.class.getSimpleName();
     }
 
-    public @Nullable AuthInfo extractInfo(String token) {
+    public @Nullable
+    AuthInfo extractInfo(String token) {
         if (token == null) return null;
         try {
             String[] body = token.split("[.]");

@@ -1,17 +1,20 @@
 package io.harness.cfsdk.cloud;
 
-import io.harness.cfsdk.logging.CfLog;
+import java.util.List;
+
 import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
 import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
+import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.oksse.SSEAuthentication;
 import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
+import io.harness.cfsdk.logging.CfLog;
 
-public class Cloud implements FeatureService {
+public class Cloud implements ICloud {
 
     private final String key;
     private String authToken;
@@ -50,51 +53,42 @@ public class Cloud implements FeatureService {
         apiClient.setBasePath(baseUrl);
     }
 
-    public AuthInfo getAuthInfo() {
-        return authInfo;
+    @Override
+    public List<FeatureConfig> getFeatureConfig(
+
+            final String environmentID,
+            final String clusterID
+    ) throws ApiException {
+
+        return defaultApi.getFeatureConfig(environmentID, clusterID);
     }
 
+    @Override
+    public FeatureConfig getFeatureConfigByIdentifier(
 
-    private void authenticate() {
-        defaultApi = cloudFactory.defaultApi(apiClient);
-        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-        authenticationRequest.apiKey(this.key);
-        authenticationRequest.setTarget(this.target);
-        try {
-            authToken = defaultApi.authenticate(authenticationRequest).getAuthToken();
-            this.tokenProvider.addToken(this.key, authToken);
-        } catch (ApiException e) {
-            this.authToken = this.tokenProvider.getToken(this.key);
+            String identifier,
+            String environmentUUID,
+            String clusterIdentifier
+    ) throws ApiException {
 
-        } finally {
-            apiClient.addDefaultHeader("Authorization", "Bearer " + authToken);
-            this.authInfo = authResponseDecoder.extractInfo(authToken);
-        }
+        return defaultApi.getFeatureConfigByIdentifier(
 
+                identifier,
+                environmentUUID,
+                clusterIdentifier
+        );
     }
 
-    private String buildSSEUrl() {
-        return this.streamUrl;
-    }
-
-    public SSEConfig getConfig() {
-        return new SSEConfig(buildSSEUrl(), new SSEAuthentication(this.authToken, this.key));
-    }
-
-    public boolean isInitialized() {
-        return this.authToken != null && this.authInfo != null &&
-                this.authInfo.getEnvironmentIdentifier() != null;
-    }
-
-    public boolean initialize() {
-        this.authenticate();
-        return this.isInitialized();
-    }
-
+    @Override
     public ApiResponse getEvaluations(String target) {
         try {
 
-            return new ApiResponse(200, "", defaultApi.getEvaluations(this.authInfo.getEnvironment(), target));
+            return new ApiResponse(
+
+                    200,
+                    "",
+                    defaultApi.getEvaluations(this.authInfo.getEnvironment(), target)
+            );
         } catch (ApiException e) {
 
             CfLog.OUT.e(logTag, e.getMessage(), e);
@@ -102,6 +96,7 @@ public class Cloud implements FeatureService {
         return null;
     }
 
+    @Override
     public ApiResponse getEvaluationForId(String identifier, String target) {
 
         try {
@@ -120,5 +115,59 @@ public class Cloud implements FeatureService {
             CfLog.OUT.e(logTag, e.getMessage(), e);
         }
         return null;
+    }
+
+    @Override
+    public boolean initialize() {
+
+        this.authenticate();
+        return this.isInitialized();
+    }
+
+    @Override
+    public boolean isInitialized() {
+
+        return this.authToken != null && this.authInfo != null &&
+                this.authInfo.getEnvironmentIdentifier() != null;
+    }
+
+    @Override
+    public AuthInfo getAuthInfo() {
+
+        return authInfo;
+    }
+
+    @Override
+    public String getAuthToken() {
+
+        return tokenProvider.getToken(key);
+    }
+
+    @Override
+    public SSEConfig getConfig() {
+
+        return new SSEConfig(buildSSEUrl(), new SSEAuthentication(this.authToken, this.key));
+    }
+
+    private void authenticate() {
+
+        defaultApi = cloudFactory.defaultApi(apiClient);
+        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
+        authenticationRequest.apiKey(this.key);
+        authenticationRequest.setTarget(this.target);
+        try {
+            authToken = defaultApi.authenticate(authenticationRequest).getAuthToken();
+            this.tokenProvider.addToken(this.key, authToken);
+        } catch (ApiException e) {
+            this.authToken = this.tokenProvider.getToken(this.key);
+
+        } finally {
+            apiClient.addDefaultHeader("Authorization", "Bearer " + authToken);
+            this.authInfo = authResponseDecoder.extractInfo(authToken);
+        }
+    }
+
+    private String buildSSEUrl() {
+        return this.streamUrl;
     }
 }

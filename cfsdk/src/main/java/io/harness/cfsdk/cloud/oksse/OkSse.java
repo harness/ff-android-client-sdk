@@ -83,7 +83,13 @@ public class OkSse {
      * @param listener the {@link io.harness.cfsdk.cloud.oksse.ServerSentEvent.Listener} to attach to this SSE.
      * @return a new instance of {@link ServerSentEvent} that will automatically start the connection.
      */
-    public ServerSentEvent newServerSentEvent(Request request, ServerSentEvent.Listener listener, SSEAuthentication authentication) {
+    public ServerSentEvent newServerSentEvent(
+
+            Request request,
+            ServerSentEvent.Listener listener,
+            SSEAuthentication authentication
+    ) {
+
         RealServerSentEvent sse = new RealServerSentEvent(request, listener, authentication);
         sse.connect(client);
         return sse;
