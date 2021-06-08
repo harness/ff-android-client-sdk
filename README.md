@@ -40,7 +40,8 @@ CfClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration, tar
 
     if (result.isSuccess) {
         
-        // Congratulations your SDK has been initialized with success!                        
+        // Congratulations your SDK has been initialized with success!
+        // After this callback is executed, You are ready to use the SDK!                        
     }
 }
 ```
