@@ -45,6 +45,7 @@ CfClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration, tar
     }
 }
 ```
+
 `target` represents a desired target for which we want features to be evaluated.
 
 `"YOUR_API_KEY"` is a authentication key, needed for access to Harness services.
