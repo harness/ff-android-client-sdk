@@ -35,7 +35,14 @@ val sdkConfiguration = CfConfiguration.builder()
 
 val target = Target().identifier("target")
 
-CfClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration, target)
+CfClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration, target) 
+{ info, result ->
+
+    if (result.isSuccess) {
+        
+        // Congratulations your SDK has been initialized with success!                        
+    }
+}
 ```
 `target` represents a desired target for which we want features to be evaluated.
 
