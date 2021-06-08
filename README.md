@@ -18,7 +18,7 @@ buildscript {
 ```
 
 In app module's `build.gradle` file add dependency for Harness's SDK
-`implementation 'io.harness:ff-android-client-sdk:0.0.6'`
+`implementation 'io.harness:ff-android-client-sdk:0.0.7'`
 
 After this step, the SDK elements, primarily `CfClient` should be accessible in main application.
 
@@ -35,8 +35,17 @@ val sdkConfiguration = CfConfiguration.builder()
 
 val target = Target().identifier("target")
 
-CfClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration, target)
+CfClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration, target) 
+{ info, result ->
+
+    if (result.isSuccess) {
+        
+        // Congratulations your SDK has been initialized with success!
+        // After this callback is executed, You are ready to use the SDK!                        
+    }
+}
 ```
+
 `target` represents a desired target for which we want features to be evaluated.
 
 `"YOUR_API_KEY"` is a authentication key, needed for access to Harness services.
