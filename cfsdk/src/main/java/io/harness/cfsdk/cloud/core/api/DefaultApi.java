@@ -217,10 +217,12 @@ public class DefaultApi {
         Object localVarPostBody = null;
 
         // create path and map variables
-        String localVarPath = "/client/env/{environmentUUID}/target/{target}/evaluations/{feature}?cluster=" + clusterIdentifier
+        String localVarPath = "/client/env/{environmentUUID}/target/{target}/evaluations/{feature}"
                 .replaceAll("\\{" + "environmentUUID" + "\\}", localVarApiClient.escapeString(environmentUUID.toString()))
-                .replaceAll("\\{" + "feature" + "\\}", localVarApiClient.escapeString(feature.toString()))
-                .replaceAll("\\{" + "target" + "\\}", localVarApiClient.escapeString(target.toString()));
+                .replaceAll("\\{" + "feature" + "\\}", localVarApiClient.escapeString(feature))
+                .replaceAll("\\{" + "target" + "\\}", localVarApiClient.escapeString(target));
+
+        localVarPath += "?cluster=" + clusterIdentifier;
 
         List<Pair> localVarQueryParams = new ArrayList<>(localVarApiClient.parameterToPair("clusterIdentifier", clusterIdentifier));
         List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
@@ -404,9 +406,11 @@ public class DefaultApi {
         Object localVarPostBody = null;
 
         // create path and map variables
-        String localVarPath = "/client/env/{environmentUUID}/target/{target}/evaluations?cluster=" + clusterIdentifier
+        String localVarPath = "/client/env/{environmentUUID}/target/{target}/evaluations"
                 .replaceAll("\\{" + "environmentUUID" + "\\}", localVarApiClient.escapeString(environmentUUID.toString()))
-                .replaceAll("\\{" + "target" + "\\}", localVarApiClient.escapeString(target.toString()));
+                .replaceAll("\\{" + "target" + "\\}", localVarApiClient.escapeString(target));
+
+        localVarPath += "?cluster=" + clusterIdentifier;
 
         List<Pair> localVarQueryParams = new ArrayList<>(localVarApiClient.parameterToPair("clusterIdentifier", clusterIdentifier));
         List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
@@ -803,9 +807,11 @@ public class DefaultApi {
         Object localVarPostBody = null;
 
         // create path and map variables
-        String localVarPath = "/client/env/{environmentUUID}/feature-configs/{identifier}?cluster=" + clusterIdentifier
+        String localVarPath = "/client/env/{environmentUUID}/feature-configs/{identifier}"
                 .replaceAll("\\{" + "identifier" + "\\}", localVarApiClient.escapeString(identifier.toString()))
                 .replaceAll("\\{" + "environmentUUID" + "\\}", localVarApiClient.escapeString(environmentUUID.toString()));
+
+        localVarPath += "?cluster=" + clusterIdentifier;
 
         List<Pair> localVarCollectionQueryParams = new ArrayList<>();
         List<Pair> localVarQueryParams = new ArrayList<>(localVarApiClient.parameterToPair("clusterIdentifier", clusterIdentifier));
@@ -890,11 +896,13 @@ public class DefaultApi {
         Object localVarPostBody = null;
 
         // create path and map variables
-        String localVarPath = "/client/env/{environmentUUID}/feature-configs?cluster=" + clusterIdentifier
+        String localVarPath = "/client/env/{environmentUUID}/feature-configs"
                 .replaceAll(
                         "\\{" + "environmentUUID" + "\\}",
                         localVarApiClient.escapeString(environmentUUID)
                 );
+
+        localVarPath += "?cluster=" + clusterIdentifier;
 
         List<Pair> localVarQueryParams = new ArrayList<>(localVarApiClient.parameterToPair("clusterIdentifier", clusterIdentifier));
         List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
