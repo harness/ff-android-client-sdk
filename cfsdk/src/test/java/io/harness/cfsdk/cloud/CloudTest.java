@@ -39,7 +39,7 @@ public class CloudTest {
                 .thenThrow(new ApiException());
 
         AuthResponseDecoder responseDecoder = Mockito.mock(AuthResponseDecoder.class);
-        AuthInfo authInfo = new AuthInfo("", "env", "id", "env_id", "", "", "");
+        AuthInfo authInfo = new AuthInfo("", "env", "id", "env_id", "", "", Mockito.anyString());
         Mockito.doReturn(authInfo).when(responseDecoder).extractInfo(any());
 
         TokenProvider tokenProvider = new TokenProvider();
@@ -83,10 +83,10 @@ public class CloudTest {
 
         ApiResponse response = cloud.getEvaluationForId("flag_1", "demo_target", Mockito.anyString());
         Mockito.verify(defaultApi, Mockito.times(1)).getEvaluationByIdentifier(eq(authInfo.getEnvironment()), eq("flag_1"),
-                eq("demo_target"), "");
+                eq("demo_target"), Mockito.anyString());
         Assert.assertEquals(response.getCode(), 200);
 
-        ApiResponse errorSingleResponse = cloud.getEvaluationForId("flag_1", "demo_target", "");
+        ApiResponse errorSingleResponse = cloud.getEvaluationForId("flag_1", "demo_target", Mockito.anyString());
         Assert.assertNull(errorSingleResponse);
 
         Assert.assertEquals(cloud.getConfig().getAuthentication().getAuthToken(), authToken);
