@@ -192,10 +192,11 @@ public class DefaultApi {
     /**
      * Build call for getEvaluationByIdentifier
      *
-     * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param feature         Unique identifier for the flag object in the API. (required)
-     * @param target          Unique identifier for the target object in the API. (required)
-     * @param _callback       Callback for upload/download progress
+     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
+     * @param feature           Unique identifier for the flag object in the API. (required)
+     * @param target            Unique identifier for the target object in the API. (required)
+     * @param clusterIdentifier Cluster identifier.
+     * @param _callback         Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      *
