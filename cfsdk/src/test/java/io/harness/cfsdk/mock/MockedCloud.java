@@ -70,13 +70,13 @@ public class MockedCloud implements ICloud {
     }
 
     @Override
-    public ApiResponse getEvaluations(String target) {
+    public ApiResponse getEvaluations(String target, String clusterIdentifier) {
 
         return null;
     }
 
     @Override
-    public ApiResponse getEvaluationForId(String identifier, String target) {
+    public ApiResponse getEvaluationForId(String identifier, String target, String clusterIdentifier) {
 
         return null;
     }

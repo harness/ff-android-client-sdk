@@ -80,14 +80,14 @@ public class Cloud implements ICloud {
     }
 
     @Override
-    public ApiResponse getEvaluations(String target) {
+    public ApiResponse getEvaluations(String target, String clusterIdentifier) {
         try {
 
             return new ApiResponse(
 
                     200,
                     "",
-                    defaultApi.getEvaluations(this.authInfo.getEnvironment(), target)
+                    defaultApi.getEvaluations(this.authInfo.getEnvironment(), target, clusterIdentifier)
             );
         } catch (ApiException e) {
 
@@ -97,7 +97,7 @@ public class Cloud implements ICloud {
     }
 
     @Override
-    public ApiResponse getEvaluationForId(String identifier, String target) {
+    public ApiResponse getEvaluationForId(String identifier, String target, String clusterIdentifier) {
 
         try {
             return new ApiResponse(
@@ -105,9 +105,11 @@ public class Cloud implements ICloud {
                     200,
                     "",
                     defaultApi.getEvaluationByIdentifier(
+
                             this.authInfo.getEnvironment(),
                             identifier,
-                            target
+                            target,
+                            clusterIdentifier
                     )
             );
         } catch (ApiException e) {
