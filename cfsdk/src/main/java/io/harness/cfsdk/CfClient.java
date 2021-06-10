@@ -208,8 +208,13 @@ public class CfClient implements Destroyable {
                         if (analyticsEnabled) {
 
                             final String environmentID = authInfo.getEnvironment();
+                            final String clusterID = authInfo.getClusterIdentifier();
+
                             this.analyticsManager.destroy();
-                            this.analyticsManager = getAnalyticsManager(configuration, environmentID);
+                            this.analyticsManager = getAnalyticsManager(
+
+                                    configuration, environmentID, clusterID
+                            );
                         }
                     }
                 }
@@ -370,7 +375,10 @@ public class CfClient implements Destroyable {
 
                     if (analyticsEnabled) {
 
-                        this.analyticsManager = getAnalyticsManager(configuration, environmentID);
+                        this.analyticsManager = getAnalyticsManager(
+
+                                configuration, environmentID, clusterID
+                        );
                     }
 
                     if (authCallback != null) {
@@ -639,11 +647,17 @@ public class CfClient implements Destroyable {
     }
 
     @NotNull
-    protected AnalyticsManager getAnalyticsManager(CfConfiguration configuration, String environmentID) {
+    protected AnalyticsManager getAnalyticsManager(
+
+            CfConfiguration configuration,
+            String environmentID,
+            String clusterIdentifier
+    ) {
 
         return new AnalyticsManager(
 
                 environmentID,
+                clusterIdentifier,
                 cloud.getAuthToken(),
                 configuration
         );
