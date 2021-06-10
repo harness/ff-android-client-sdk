@@ -39,7 +39,7 @@ public class CloudTest {
                 .thenThrow(new ApiException());
 
         AuthResponseDecoder responseDecoder = Mockito.mock(AuthResponseDecoder.class);
-        AuthInfo authInfo = new AuthInfo("", "env", "id", "env_id", "", "", Mockito.anyString());
+        AuthInfo authInfo = new AuthInfo("", "env", "id", "env_id", "", "", "");
         Mockito.doReturn(authInfo).when(responseDecoder).extractInfo(any());
 
         TokenProvider tokenProvider = new TokenProvider();
@@ -56,7 +56,6 @@ public class CloudTest {
 
         Mockito.verify(apiClient, Mockito.times(1)).addDefaultHeader(eq("Authorization"), eq("Bearer " + authToken));
 
-
         List<Evaluation> evaluationList = new LinkedList<>();
         Evaluation evaluation = new Evaluation();
         evaluation.value = "1";
@@ -66,27 +65,27 @@ public class CloudTest {
         Mockito.when(defaultApi.getEvaluations(eq(authInfo.getEnvironment()), eq("demo_target1"), Mockito.anyString()))
                 .thenThrow(new ApiException(400, "Unauthorized"));
 
-        ApiResponse apiResponse = cloud.getEvaluations("demo_target", Mockito.anyString());
+        ApiResponse apiResponse = cloud.getEvaluations("demo_target", "");
 
-        Mockito.verify(defaultApi, Mockito.times(1)).getEvaluations(eq(authInfo.getEnvironment()), eq("demo_target"), Mockito.anyString());
+        Mockito.verify(defaultApi, Mockito.times(1)).getEvaluations(eq(authInfo.getEnvironment()), eq("demo_target"), eq(""));
         Assert.assertEquals(200, apiResponse.getCode());
 
-        ApiResponse errorListResponse = cloud.getEvaluations("demo_target1", Mockito.anyString());
+        ApiResponse errorListResponse = cloud.getEvaluations("demo_target1", "");
         Assert.assertNull(errorListResponse);
 
-        Mockito.verify(defaultApi, Mockito.times(1)).getEvaluations(eq(authInfo.getEnvironment()), eq("demo_target1"), Mockito.anyString());
+        Mockito.verify(defaultApi, Mockito.times(1)).getEvaluations(eq(authInfo.getEnvironment()), eq("demo_target1"), eq(""));
 
         Mockito.when(defaultApi.getEvaluationByIdentifier(eq(authInfo.getEnvironment())
-                , eq("flag_1"), eq("demo_target"), Mockito.anyString())
+                , eq("flag_1"), eq("demo_target"), eq(""))
         ).thenReturn(evaluation)
                 .thenThrow(new ApiException(400, "Unauthorized"));
 
-        ApiResponse response = cloud.getEvaluationForId("flag_1", "demo_target", Mockito.anyString());
+        ApiResponse response = cloud.getEvaluationForId("flag_1", "demo_target", "");
         Mockito.verify(defaultApi, Mockito.times(1)).getEvaluationByIdentifier(eq(authInfo.getEnvironment()), eq("flag_1"),
                 eq("demo_target"), Mockito.anyString());
         Assert.assertEquals(response.getCode(), 200);
 
-        ApiResponse errorSingleResponse = cloud.getEvaluationForId("flag_1", "demo_target", Mockito.anyString());
+        ApiResponse errorSingleResponse = cloud.getEvaluationForId("flag_1", "demo_target", "");
         Assert.assertNull(errorSingleResponse);
 
         Assert.assertEquals(cloud.getConfig().getAuthentication().getAuthToken(), authToken);
