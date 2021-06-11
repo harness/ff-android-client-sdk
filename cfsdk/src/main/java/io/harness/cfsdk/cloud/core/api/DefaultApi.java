@@ -288,8 +288,15 @@ public class DefaultApi {
      *                      </table>
      */
     public Evaluation getEvaluationByIdentifier(String environmentUUID, String feature, String target) throws ApiException {
-        ApiResponse<Evaluation> localVarResp = getEvaluationByIdentifierWithHttpInfo(environmentUUID, feature, target);
-        return localVarResp.getData();
+
+        ApiResponse<Evaluation> response = getEvaluationByIdentifierWithHttpInfo(environmentUUID, feature, target);
+
+        CfLog.OUT.v(
+
+                logTag,
+                String.format("API, getEvaluationByIdentifier: %s", response.getStatusCode())
+        );
+        return response.getData();
     }
 
     /**
@@ -395,10 +402,7 @@ public class DefaultApi {
             throw new ApiException("Missing the required parameter 'target' when calling getEvaluations(Async)");
         }
 
-
-        okhttp3.Call localVarCall = getEvaluationsCall(environmentUUID, target, _callback);
-        return localVarCall;
-
+        return getEvaluationsCall(environmentUUID, target, _callback);
     }
 
     /**
@@ -415,8 +419,15 @@ public class DefaultApi {
      *                      </table>
      */
     public List<Evaluation> getEvaluations(String environmentUUID, String target) throws ApiException {
-        ApiResponse<List<Evaluation>> localVarResp = getEvaluationsWithHttpInfo(environmentUUID, target);
-        return localVarResp.getData();
+
+        ApiResponse<List<Evaluation>> response = getEvaluationsWithHttpInfo(environmentUUID, target);
+
+        CfLog.OUT.v(
+
+                logTag,
+                String.format("API, getEvaluations: %s", response.getStatusCode())
+        );
+        return response.getData();
     }
 
     /**
@@ -433,6 +444,7 @@ public class DefaultApi {
      *                      </table>
      */
     public ApiResponse<List<Evaluation>> getEvaluationsWithHttpInfo(String environmentUUID, String target) throws ApiException {
+
         okhttp3.Call localVarCall = getEvaluationsValidateBeforeCall(environmentUUID, target, null);
         Type localVarReturnType = new TypeToken<List<Evaluation>>() {
         }.getType();
