@@ -85,21 +85,25 @@ class RealServerSentEvent implements ServerSentEvent {
 
     private void enqueue() {
 
-        CfLog.OUT.v(logTag, "sse_flow - SSE starting");
+        CfLog.OUT.v(logTag, "API, SSE starting");
         call.enqueue(
                 new Callback() {
 
                     @Override
                     public void onFailure(@NotNull Call call, @NotNull IOException e) {
 
-                        CfLog.OUT.e(logTag, "sse_flow - SSE failure", e);
+                        CfLog.OUT.e(logTag, "API, SSE failure", e);
                         notifyFailure(e, null);
                     }
 
                     @Override
                     public void onResponse(@NotNull Call call, @NotNull Response response) {
 
-                        CfLog.OUT.v(logTag, "sse_flow - SSE Response received");
+                        CfLog.OUT.v(
+
+                                logTag,
+                                String.format("API, SSE Response received: %s", response.code())
+                        );
                         if (response.isSuccessful()) {
 
                             openSse(response);

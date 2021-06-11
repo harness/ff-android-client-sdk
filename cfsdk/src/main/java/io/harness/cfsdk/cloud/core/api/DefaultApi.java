@@ -31,10 +31,17 @@ import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
 import io.harness.cfsdk.cloud.core.model.AuthenticationResponse;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.core.model.FeatureConfig;
+import io.harness.cfsdk.logging.CfLog;
 
 public class DefaultApi {
 
+    private final String logTag;
     private ApiClient localVarApiClient;
+
+    {
+
+        logTag = DefaultApi.class.getSimpleName();
+    }
 
     public DefaultApi() {
 
@@ -133,8 +140,14 @@ public class DefaultApi {
      */
     public AuthenticationResponse authenticate(AuthenticationRequest authenticationRequest) throws ApiException {
 
-        ApiResponse<AuthenticationResponse> localVarResp = authenticateWithHttpInfo(authenticationRequest);
-        return localVarResp.getData();
+        ApiResponse<AuthenticationResponse> response = authenticateWithHttpInfo(authenticationRequest);
+
+        CfLog.OUT.v(
+
+                logTag,
+                String.format("API, authenticate: %s", response.getStatusCode())
+        );
+        return response.getData();
     }
 
     /**
@@ -540,7 +553,14 @@ public class DefaultApi {
     public ApiResponse<Void> streamWithHttpInfo(String environmentId) throws ApiException {
 
         okhttp3.Call localVarCall = streamValidateBeforeCall(environmentId, null);
-        return localVarApiClient.execute(localVarCall);
+        final ApiResponse<Void> response = localVarApiClient.execute(localVarCall);
+
+        CfLog.OUT.v(
+
+                logTag,
+                String.format("API, streamWithHttpInfo: %s", response.getStatusCode())
+        );
+        return response;
     }
 
     /**
