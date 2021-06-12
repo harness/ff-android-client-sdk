@@ -97,7 +97,7 @@ public class CfClient implements Destroyable {
         }
 
         final String environmentID = authInfo.getEnvironmentIdentifier();
-        final String clusterID = authInfo.getClusterIdentifier();
+        final String cluster = authInfo.getCluster();
 
         switch (statusEvent.getEventType()) {
             case SSE_START:
@@ -108,12 +108,12 @@ public class CfClient implements Destroyable {
 
                 if (networkInfoProvider.isNetworkAvailable()) {
 
-                    initFeatureCache(environmentID, clusterID);
+                    initFeatureCache(environmentID, cluster);
                     this.featureRepository.getAllEvaluations(
 
                             environmentID,
                             target.getIdentifier(),
-                            clusterID,
+                            cluster,
                             false
                     );
                     evaluationPolling.start(this::reschedule);
@@ -127,7 +127,7 @@ public class CfClient implements Destroyable {
 
                         authInfo.getEnvironmentIdentifier(),
                         target.getIdentifier(),
-                        evaluation.getFlag(), clusterID,
+                        evaluation.getFlag(), cluster,
                         false
                 );
                 statusEvent = new StatusEvent(statusEvent.getEventType(), e);
@@ -208,12 +208,12 @@ public class CfClient implements Destroyable {
                         if (analyticsEnabled) {
 
                             final String environmentID = authInfo.getEnvironment();
-                            final String clusterID = authInfo.getClusterIdentifier();
+                            final String cluster = authInfo.getCluster();
 
                             this.analyticsManager.destroy();
                             this.analyticsManager = getAnalyticsManager(
 
-                                    configuration, environmentID, clusterID
+                                    configuration, environmentID, cluster
                             );
                         }
                     }
@@ -224,14 +224,14 @@ public class CfClient implements Destroyable {
                 }
 
                 final String environmentID = authInfo.getEnvironmentIdentifier();
-                final String clusterID = authInfo.getClusterIdentifier();
+                final String cluster = authInfo.getCluster();
 
-                initFeatureCache(environmentID, clusterID);
+                initFeatureCache(environmentID, cluster);
                 List<Evaluation> evaluations = this.featureRepository.getAllEvaluations(
 
                         environmentID,
                         target.getIdentifier(),
-                        clusterID,
+                        cluster,
                         false
                 );
                 sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
@@ -350,9 +350,9 @@ public class CfClient implements Destroyable {
                     this.sseController = cloudFactory.sseController(cloud, this.authInfo, featureCache);
 
                     final String environmentID = authInfo.getEnvironment();
-                    final String clusterID = authInfo.getClusterIdentifier();
+                    final String cluster = authInfo.getCluster();
 
-                    initFeatureCache(environmentID, clusterID);
+                    initFeatureCache(environmentID, cluster);
                     ready = true;
 
                     if (networkInfoProvider.isNetworkAvailable()) {
@@ -360,7 +360,7 @@ public class CfClient implements Destroyable {
                         List<Evaluation> evaluations = featureRepository.getAllEvaluations(
                                 this.authInfo.getEnvironmentIdentifier(),
                                 target.getIdentifier(),
-                                clusterID,
+                                cluster,
                                 false
                         );
                         sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
@@ -377,7 +377,7 @@ public class CfClient implements Destroyable {
 
                         this.analyticsManager = getAnalyticsManager(
 
-                                configuration, environmentID, clusterID
+                                configuration, environmentID, cluster
                         );
                     }
 
@@ -484,12 +484,12 @@ public class CfClient implements Destroyable {
         final Evaluation result = new Evaluation();
         if (ready) {
 
-            final String clusterID = authInfo.getClusterIdentifier();
+            final String cluster = authInfo.getCluster();
             final String identifier = authInfo.getEnvironmentIdentifier();
 
             final Evaluation evaluation = featureRepository.getEvaluation(
 
-                    identifier, target, evaluationId, clusterID, true
+                    identifier, target, evaluationId, cluster, true
             );
 
             if (evaluation == null) {
@@ -651,13 +651,13 @@ public class CfClient implements Destroyable {
 
             CfConfiguration configuration,
             String environmentID,
-            String clusterIdentifier
+            String cluster
     ) {
 
         return new AnalyticsManager(
 
                 environmentID,
-                clusterIdentifier,
+                cluster,
                 cloud.getAuthToken(),
                 configuration
         );
@@ -671,13 +671,13 @@ public class CfClient implements Destroyable {
         if (featureRepository != null) featureRepository.clear();
     }
 
-    private void initFeatureCache(String environmentID, String clusterID) {
+    private void initFeatureCache(String environmentID, String cluster) {
 
         if (CfUtils.Text.isNotEmpty(environmentID)) {
 
             try {
                 final List<FeatureConfig> featureConfigs =
-                        cloud.getFeatureConfig(environmentID, clusterID);
+                        cloud.getFeatureConfig(environmentID, cluster);
 
                 if (featureConfigs != null) {
 

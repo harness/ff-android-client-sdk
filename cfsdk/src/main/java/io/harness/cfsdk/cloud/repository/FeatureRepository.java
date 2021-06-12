@@ -11,7 +11,7 @@ public interface FeatureRepository {
             String environment,
             String target,
             String evaluationId,
-            String clusterIdentifier,
+            String cluster,
             boolean useCache
     );
 
@@ -19,7 +19,7 @@ public interface FeatureRepository {
 
             String environment,
             String target,
-            String clusterIdentifier,
+            String cluster,
             boolean useCache
     );
 

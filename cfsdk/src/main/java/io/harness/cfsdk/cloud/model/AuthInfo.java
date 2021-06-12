@@ -54,7 +54,8 @@ public class AuthInfo {
         return organization;
     }
 
-    public String getClusterIdentifier() {
+    public String getCluster() {
+
         return clusterIdentifier;
     }
 }

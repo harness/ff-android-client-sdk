@@ -70,25 +70,30 @@ public class MockedCloud implements ICloud {
     }
 
     @Override
-    public ApiResponse getEvaluations(String target, String clusterIdentifier) {
+    public ApiResponse getEvaluations(String target, String cluster) {
 
         return null;
     }
 
     @Override
-    public ApiResponse getEvaluationForId(String identifier, String target, String clusterIdentifier) {
+    public ApiResponse getEvaluationForId(String identifier, String target, String cluster) {
 
         return null;
     }
 
     @Override
-    public List<FeatureConfig> getFeatureConfig(String environmentID, String clusterID) throws ApiException {
+    public List<FeatureConfig> getFeatureConfig(String environmentID, String cluster) throws ApiException {
 
         return new LinkedList<>();
     }
 
     @Override
-    public FeatureConfig getFeatureConfigByIdentifier(String identifier, String environmentUUID, String clusterIdentifier) throws ApiException {
+    public FeatureConfig getFeatureConfigByIdentifier(
+
+            String identifier,
+            String environmentUUID,
+            String cluster
+    ) {
 
         return new FeatureConfig();
     }

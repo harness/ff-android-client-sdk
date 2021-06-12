@@ -56,7 +56,7 @@ public class AnalyticsPublisherService {
     private final DefaultApi metricsAPI;
     private final Cache analyticsCache;
     private final String environmentID;
-    private final String clusterIdentifier;
+    private final String cluster;
 
     {
 
@@ -68,14 +68,14 @@ public class AnalyticsPublisherService {
             final String authToken,
             final CfConfiguration config,
             final String environmentID,
-            final String clusterIdentifier,
+            final String cluster,
             final Cache analyticsCache
     ) {
 
         metricsAPI = MetricsApiFactory.create(authToken, config);
         this.analyticsCache = analyticsCache;
         this.environmentID = environmentID;
-        this.clusterIdentifier = clusterIdentifier;
+        this.cluster = cluster;
     }
 
     /**
@@ -92,7 +92,7 @@ public class AnalyticsPublisherService {
                 CfLog.OUT.d(logTag, "metrics " + metrics);
                 final List<MetricsData> metricsData = metrics.getMetricsData();
                 if ((metricsData != null && !metricsData.isEmpty())) {
-                    metricsAPI.postMetrics(environmentID, clusterIdentifier, metrics);
+                    metricsAPI.postMetrics(environmentID, cluster, metrics);
                 }
                 globalTargetSet.addAll(stagingTargetSet);
                 stagingTargetSet.clear();

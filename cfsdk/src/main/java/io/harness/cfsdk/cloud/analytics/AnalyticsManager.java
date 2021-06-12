@@ -41,7 +41,7 @@ public class AnalyticsManager implements Destroyable {
     public AnalyticsManager(
 
             final String environmentID,
-            final String clusterIdentifier,
+            final String cluster,
             final String authToken,
             final CfConfiguration config
     ) {
@@ -51,7 +51,7 @@ public class AnalyticsManager implements Destroyable {
         AnalyticsPublisherService analyticsPublisherService =
                 new AnalyticsPublisherService(
 
-                        authToken, config, environmentID, clusterIdentifier, analyticsCache
+                        authToken, config, environmentID, cluster, analyticsCache
                 );
 
         ringBuffer = createRingBuffer(config.getBufferSize(), analyticsPublisherService);

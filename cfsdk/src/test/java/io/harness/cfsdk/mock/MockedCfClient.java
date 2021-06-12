@@ -22,7 +22,8 @@ public class MockedCfClient extends CfClient {
 
             CfConfiguration configuration,
             String environmentID,
-            String clusterIdentifier
+            String cluster
+
     ) {
 
         if (analyticsManager == null) {

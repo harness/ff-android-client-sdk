@@ -25,7 +25,7 @@ public class FeatureRepositoryImpl implements FeatureRepository {
             String environment,
             String target,
             String evaluationId,
-            String clusterIdentifier,
+            String cluster,
             boolean useCache
     ) {
         if (useCache) {
@@ -35,7 +35,7 @@ public class FeatureRepositoryImpl implements FeatureRepository {
 
             ApiResponse apiResponse = this.featureService.getEvaluationForId(
 
-                    evaluationId, target, clusterIdentifier
+                    evaluationId, target, cluster
             );
             if (apiResponse != null && apiResponse.isSuccess()) {
 
@@ -51,14 +51,14 @@ public class FeatureRepositoryImpl implements FeatureRepository {
     @Override
     public List<Evaluation> getAllEvaluations(
 
-            String environment, String target, String clusterIdentifier, boolean fromCache
+            String environment, String target, String cluster, boolean fromCache
     ) {
 
         if (fromCache) {
 
             return this.cloudCache.getAllEvaluations(environment + "_" + target);
         }
-        ApiResponse apiResponse = this.featureService.getEvaluations(target, clusterIdentifier);
+        ApiResponse apiResponse = this.featureService.getEvaluations(target, cluster);
         if (apiResponse != null && apiResponse.isSuccess()) {
             List<Evaluation> evaluationList = apiResponse.body();
             for (Evaluation evaluation : evaluationList) {
