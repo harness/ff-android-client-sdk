@@ -7,16 +7,14 @@ import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 
 public interface FeatureService {
 
-    ApiResponse getEvaluations(String target);
+    ApiResponse getEvaluations(String target, String cluster);
 
-    ApiResponse getEvaluationForId(String identifier, String target);
-
-
+    ApiResponse getEvaluationForId(String identifier, String target, String cluster);
 
     List<FeatureConfig> getFeatureConfig(
 
             final String environmentID,
-            final String clusterID
+            final String cluster
 
     ) throws ApiException;
 
@@ -24,7 +22,7 @@ public interface FeatureService {
 
             String identifier,
             String environmentUUID,
-            String clusterIdentifier
+            String cluster
 
     ) throws ApiException;
 }

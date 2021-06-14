@@ -192,10 +192,11 @@ public class DefaultApi {
     /**
      * Build call for getEvaluationByIdentifier
      *
-     * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param feature         Unique identifier for the flag object in the API. (required)
-     * @param target          Unique identifier for the target object in the API. (required)
-     * @param _callback       Callback for upload/download progress
+     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
+     * @param feature           Unique identifier for the flag object in the API. (required)
+     * @param target            Unique identifier for the target object in the API. (required)
+     * @param cluster Cluster identifier.
+     * @param _callback         Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      *
@@ -204,16 +205,26 @@ public class DefaultApi {
      *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
      *                      </table>
      */
-    public okhttp3.Call getEvaluationByIdentifierCall(String environmentUUID, String feature, String target, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call getEvaluationByIdentifierCall(
+
+            String environmentUUID,
+            String feature,
+            String target,
+            String cluster,
+            final ApiCallback _callback
+
+    ) throws ApiException {
         Object localVarPostBody = null;
 
         // create path and map variables
         String localVarPath = "/client/env/{environmentUUID}/target/{target}/evaluations/{feature}"
                 .replaceAll("\\{" + "environmentUUID" + "\\}", localVarApiClient.escapeString(environmentUUID.toString()))
-                .replaceAll("\\{" + "feature" + "\\}", localVarApiClient.escapeString(feature.toString()))
-                .replaceAll("\\{" + "target" + "\\}", localVarApiClient.escapeString(target.toString()));
+                .replaceAll("\\{" + "feature" + "\\}", localVarApiClient.escapeString(feature))
+                .replaceAll("\\{" + "target" + "\\}", localVarApiClient.escapeString(target));
 
-        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        localVarPath += "?cluster=" + cluster;
+
+        List<Pair> localVarQueryParams = new ArrayList<>(localVarApiClient.parameterToPair("cluster", cluster));
         List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
         Map<String, String> localVarCookieParams = new HashMap<String, String>();
@@ -237,7 +248,15 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call getEvaluationByIdentifierValidateBeforeCall(String environmentUUID, String feature, String target, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call getEvaluationByIdentifierValidateBeforeCall(
+
+            String environmentUUID,
+            String feature,
+            String target,
+            String cluster,
+            final ApiCallback _callback
+
+    ) throws ApiException {
 
         // verify the required parameter 'environmentUUID' is set
         if (environmentUUID == null) {
@@ -254,18 +273,19 @@ public class DefaultApi {
             throw new ApiException("Missing the required parameter 'target' when calling getEvaluationByIdentifier(Async)");
         }
 
+        return getEvaluationByIdentifierCall(
 
-        okhttp3.Call localVarCall = getEvaluationByIdentifierCall(environmentUUID, feature, target, _callback);
-        return localVarCall;
-
+                environmentUUID, feature, target, cluster, _callback
+        );
     }
 
     /**
      * Get feature evaluations for target
      *
-     * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param feature         Unique identifier for the flag object in the API. (required)
-     * @param target          Unique identifier for the target object in the API. (required)
+     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
+     * @param feature           Unique identifier for the flag object in the API. (required)
+     * @param target            Unique identifier for the target object in the API. (required)
+     * @param cluster Cluster identifier.
      * @return Evaluation
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
@@ -274,17 +294,29 @@ public class DefaultApi {
      *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
      *                      </table>
      */
-    public Evaluation getEvaluationByIdentifier(String environmentUUID, String feature, String target) throws ApiException {
-        ApiResponse<Evaluation> localVarResp = getEvaluationByIdentifierWithHttpInfo(environmentUUID, feature, target);
+    public Evaluation getEvaluationByIdentifier(
+
+            String environmentUUID,
+            String feature,
+            String target,
+            String cluster
+
+    ) throws ApiException {
+
+        ApiResponse<Evaluation> localVarResp = getEvaluationByIdentifierWithHttpInfo(
+
+                environmentUUID, feature, target, cluster
+        );
         return localVarResp.getData();
     }
 
     /**
      * Get feature evaluations for target
      *
-     * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param feature         Unique identifier for the flag object in the API. (required)
-     * @param target          Unique identifier for the target object in the API. (required)
+     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
+     * @param feature           Unique identifier for the flag object in the API. (required)
+     * @param target            Unique identifier for the target object in the API. (required)
+     * @param cluster Cluster identifier.
      * @return ApiResponse&lt;Evaluation&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
@@ -293,8 +325,18 @@ public class DefaultApi {
      *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
      *                      </table>
      */
-    public ApiResponse<Evaluation> getEvaluationByIdentifierWithHttpInfo(String environmentUUID, String feature, String target) throws ApiException {
-        okhttp3.Call localVarCall = getEvaluationByIdentifierValidateBeforeCall(environmentUUID, feature, target, null);
+    public ApiResponse<Evaluation> getEvaluationByIdentifierWithHttpInfo(
+
+            String environmentUUID,
+            String feature,
+            String target,
+            String cluster
+
+    ) throws ApiException {
+
+        okhttp3.Call localVarCall = getEvaluationByIdentifierValidateBeforeCall(
+                environmentUUID, feature, target, cluster, null
+        );
         Type localVarReturnType = new TypeToken<Evaluation>() {
         }.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -303,10 +345,11 @@ public class DefaultApi {
     /**
      * Get feature evaluations for target (asynchronously)
      *
-     * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param feature         Unique identifier for the flag object in the API. (required)
-     * @param target          Unique identifier for the target object in the API. (required)
-     * @param _callback       The callback to be executed when the API call finishes
+     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
+     * @param feature           Unique identifier for the flag object in the API. (required)
+     * @param target            Unique identifier for the target object in the API. (required)
+     * @param cluster Cluster identifier.
+     * @param _callback         The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      *
@@ -315,9 +358,21 @@ public class DefaultApi {
      *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
      *                      </table>
      */
-    public okhttp3.Call getEvaluationByIdentifierAsync(String environmentUUID, String feature, String target, final ApiCallback<Evaluation> _callback) throws ApiException {
+    public okhttp3.Call getEvaluationByIdentifierAsync(
 
-        okhttp3.Call localVarCall = getEvaluationByIdentifierValidateBeforeCall(environmentUUID, feature, target, _callback);
+            String environmentUUID,
+            String feature,
+            String target,
+            String cluster,
+            final ApiCallback<Evaluation> _callback
+
+    ) throws ApiException {
+
+        okhttp3.Call localVarCall = getEvaluationByIdentifierValidateBeforeCall(
+
+                environmentUUID, feature, target, cluster, _callback
+        );
+
         Type localVarReturnType = new TypeToken<Evaluation>() {
         }.getType();
         localVarApiClient.executeAsync(localVarCall, localVarReturnType, _callback);
@@ -327,9 +382,10 @@ public class DefaultApi {
     /**
      * Build call for getEvaluations
      *
-     * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param target          Unique identifier for the target object in the API. (required)
-     * @param _callback       Callback for upload/download progress
+     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
+     * @param target            Unique identifier for the target object in the API. (required)
+     * @param cluster Cluster identifier.
+     * @param _callback         Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      *
@@ -338,15 +394,25 @@ public class DefaultApi {
      *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
      *                      </table>
      */
-    public okhttp3.Call getEvaluationsCall(String environmentUUID, String target, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call getEvaluationsCall(
+
+            String environmentUUID,
+            String target,
+            String cluster,
+            final ApiCallback _callback
+
+    ) throws ApiException {
+
         Object localVarPostBody = null;
 
         // create path and map variables
         String localVarPath = "/client/env/{environmentUUID}/target/{target}/evaluations"
                 .replaceAll("\\{" + "environmentUUID" + "\\}", localVarApiClient.escapeString(environmentUUID.toString()))
-                .replaceAll("\\{" + "target" + "\\}", localVarApiClient.escapeString(target.toString()));
+                .replaceAll("\\{" + "target" + "\\}", localVarApiClient.escapeString(target));
 
-        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        localVarPath += "?cluster=" + cluster;
+
+        List<Pair> localVarQueryParams = new ArrayList<>(localVarApiClient.parameterToPair("cluster", cluster));
         List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
         Map<String, String> localVarCookieParams = new HashMap<String, String>();
@@ -370,7 +436,14 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call getEvaluationsValidateBeforeCall(String environmentUUID, String target, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call getEvaluationsValidateBeforeCall(
+
+            String environmentUUID,
+            String target,
+            String cluster,
+            final ApiCallback _callback
+
+    ) throws ApiException {
 
         // verify the required parameter 'environmentUUID' is set
         if (environmentUUID == null) {
@@ -382,8 +455,10 @@ public class DefaultApi {
             throw new ApiException("Missing the required parameter 'target' when calling getEvaluations(Async)");
         }
 
+        okhttp3.Call localVarCall = getEvaluationsCall(
 
-        okhttp3.Call localVarCall = getEvaluationsCall(environmentUUID, target, _callback);
+                environmentUUID, target, cluster, _callback
+        );
         return localVarCall;
 
     }
@@ -391,8 +466,9 @@ public class DefaultApi {
     /**
      * Get feature evaluations for target
      *
-     * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param target          Unique identifier for the target object in the API. (required)
+     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
+     * @param target            Unique identifier for the target object in the API. (required)
+     * @param cluster Cluster identifier.
      * @return List&lt;Evaluation&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
@@ -401,16 +477,27 @@ public class DefaultApi {
      *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
      *                      </table>
      */
-    public List<Evaluation> getEvaluations(String environmentUUID, String target) throws ApiException {
-        ApiResponse<List<Evaluation>> localVarResp = getEvaluationsWithHttpInfo(environmentUUID, target);
+    public List<Evaluation> getEvaluations(
+
+            String environmentUUID,
+            String target,
+            String cluster
+
+    ) throws ApiException {
+
+        ApiResponse<List<Evaluation>> localVarResp = getEvaluationsWithHttpInfo(
+
+                environmentUUID, target, cluster
+        );
         return localVarResp.getData();
     }
 
     /**
      * Get feature evaluations for target
      *
-     * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param target          Unique identifier for the target object in the API. (required)
+     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
+     * @param target            Unique identifier for the target object in the API. (required)
+     * @param cluster Cluster identifier.
      * @return ApiResponse&lt;List&lt;Evaluation&gt;&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
@@ -419,8 +506,18 @@ public class DefaultApi {
      *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
      *                      </table>
      */
-    public ApiResponse<List<Evaluation>> getEvaluationsWithHttpInfo(String environmentUUID, String target) throws ApiException {
-        okhttp3.Call localVarCall = getEvaluationsValidateBeforeCall(environmentUUID, target, null);
+    public ApiResponse<List<Evaluation>> getEvaluationsWithHttpInfo(
+
+            String environmentUUID,
+            String target,
+            String cluster
+
+    ) throws ApiException {
+
+        okhttp3.Call localVarCall = getEvaluationsValidateBeforeCall(
+
+                environmentUUID, target, cluster, null
+        );
         Type localVarReturnType = new TypeToken<List<Evaluation>>() {
         }.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -429,9 +526,10 @@ public class DefaultApi {
     /**
      * Get feature evaluations for target (asynchronously)
      *
-     * @param environmentUUID Unique identifier for the environment object in the API. (required)
-     * @param target          Unique identifier for the target object in the API. (required)
-     * @param _callback       The callback to be executed when the API call finishes
+     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
+     * @param target            Unique identifier for the target object in the API. (required)
+     * @param cluster Cluster identifier.
+     * @param _callback         The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      *
@@ -440,9 +538,19 @@ public class DefaultApi {
      *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
      *                      </table>
      */
-    public okhttp3.Call getEvaluationsAsync(String environmentUUID, String target, final ApiCallback<List<Evaluation>> _callback) throws ApiException {
+    public okhttp3.Call getEvaluationsAsync(
 
-        okhttp3.Call localVarCall = getEvaluationsValidateBeforeCall(environmentUUID, target, _callback);
+            String environmentUUID,
+            String target,
+            String cluster,
+            final ApiCallback<List<Evaluation>> _callback
+
+    ) throws ApiException {
+
+        okhttp3.Call localVarCall = getEvaluationsValidateBeforeCall(
+
+                environmentUUID, target, cluster, _callback
+        );
         Type localVarReturnType = new TypeToken<List<Evaluation>>() {
         }.getType();
         localVarApiClient.executeAsync(localVarCall, localVarReturnType, _callback);
@@ -569,19 +677,19 @@ public class DefaultApi {
      * All feature flags with activations in project environment
      *
      * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param clusterIdentifier Unique identifier for the cluster for the account (optional)
+     * @param cluster Unique identifier for the cluster for the account (optional)
      * @return List&lt;FeatureConfig&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
     public List<FeatureConfig> getFeatureConfig(
 
             String environmentUUID,
-            String clusterIdentifier
+            String cluster
     ) throws ApiException {
 
         ApiResponse<List<FeatureConfig>> localVarResp = getFeatureConfigWithHttpInfo(
 
-                environmentUUID, clusterIdentifier
+                environmentUUID, cluster
         );
         return localVarResp.getData();
     }
@@ -591,7 +699,7 @@ public class DefaultApi {
      *
      * @param identifier        Unique identifier for the flag object in the API. (required)
      * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param clusterIdentifier Unique identifier for the cluster for the account (optional)
+     * @param cluster Unique identifier for the cluster for the account (optional)
      * @return FeatureConfig
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
@@ -599,14 +707,15 @@ public class DefaultApi {
 
             String identifier,
             String environmentUUID,
-            String clusterIdentifier
+            String cluster
+
     ) throws ApiException {
 
         ApiResponse<FeatureConfig> localVarResp = getFeatureConfigByIdentifierWithHttpInfo(
 
                 identifier,
                 environmentUUID,
-                clusterIdentifier
+                cluster
         );
         return localVarResp.getData();
     }
@@ -616,7 +725,7 @@ public class DefaultApi {
      *
      * @param identifier        Unique identifier for the flag object in the API. (required)
      * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param clusterIdentifier Unique identifier for the cluster for the account (optional)
+     * @param cluster Unique identifier for the cluster for the account (optional)
      * @return ApiResponse&lt;FeatureConfig&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
@@ -624,14 +733,14 @@ public class DefaultApi {
 
             String identifier,
             String environmentUUID,
-            String clusterIdentifier
+            String cluster
     ) throws ApiException {
 
         okhttp3.Call localVarCall = getFeatureConfigByIdentifierValidateBeforeCall(
 
                 identifier,
                 environmentUUID,
-                clusterIdentifier,
+                cluster,
                 null
         );
         Type localVarReturnType = new TypeToken<FeatureConfig>() {
@@ -644,7 +753,7 @@ public class DefaultApi {
 
             String identifier,
             String environmentUUID,
-            String clusterIdentifier,
+            String cluster,
             final ApiCallback _callback
 
     ) throws ApiException {
@@ -672,7 +781,7 @@ public class DefaultApi {
 
                 identifier,
                 environmentUUID,
-                clusterIdentifier,
+                cluster,
                 _callback
         );
     }
@@ -682,12 +791,20 @@ public class DefaultApi {
      *
      * @param identifier        Unique identifier for the flag object in the API. (required)
      * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param clusterIdentifier Unique identifier for the cluster for the account (optional)
+     * @param cluster Unique identifier for the cluster for the account (optional)
      * @param _callback         Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
-    public okhttp3.Call getFeatureConfigByIdentifierCall(String identifier, String environmentUUID, String clusterIdentifier, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call getFeatureConfigByIdentifierCall(
+
+            String identifier,
+            String environmentUUID,
+            String cluster,
+            final ApiCallback _callback
+
+    ) throws ApiException {
+
         Object localVarPostBody = null;
 
         // create path and map variables
@@ -695,11 +812,10 @@ public class DefaultApi {
                 .replaceAll("\\{" + "identifier" + "\\}", localVarApiClient.escapeString(identifier.toString()))
                 .replaceAll("\\{" + "environmentUUID" + "\\}", localVarApiClient.escapeString(environmentUUID.toString()));
 
-        List<Pair> localVarQueryParams = new ArrayList<Pair>();
-        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
-        if (clusterIdentifier != null) {
-            localVarQueryParams.addAll(localVarApiClient.parameterToPair("clusterIdentifier", clusterIdentifier));
-        }
+        localVarPath += "?cluster=" + cluster;
+
+        List<Pair> localVarCollectionQueryParams = new ArrayList<>();
+        List<Pair> localVarQueryParams = new ArrayList<>(localVarApiClient.parameterToPair("cluster", cluster));
 
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
         Map<String, String> localVarCookieParams = new HashMap<String, String>();
@@ -727,18 +843,18 @@ public class DefaultApi {
      * All feature flags with activations in project environment
      *
      * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param clusterIdentifier Unique identifier for the cluster for the account (optional)
+     * @param cluster Unique identifier for the cluster for the account (optional)
      * @return ApiResponse&lt;List&lt;FeatureConfig&gt;&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
     public ApiResponse<List<FeatureConfig>> getFeatureConfigWithHttpInfo(
 
-            String environmentUUID, String clusterIdentifier
+            String environmentUUID, String cluster
     ) throws ApiException {
 
         okhttp3.Call localVarCall = getFeatureConfigValidateBeforeCall(
 
-                environmentUUID, clusterIdentifier, null
+                environmentUUID, cluster, null
         );
         Type localVarReturnType = new TypeToken<List<FeatureConfig>>() {
         }.getType();
@@ -748,8 +864,9 @@ public class DefaultApi {
     private okhttp3.Call getFeatureConfigValidateBeforeCall(
 
             String environmentUUID,
-            String clusterIdentifier,
+            String cluster,
             final ApiCallback _callback
+
     ) throws ApiException {
 
         // verify the required parameter 'environmentUUID' is set
@@ -758,7 +875,7 @@ public class DefaultApi {
             throw new ApiException("Missing the required parameter 'environmentUUID' when calling getFeatureConfig(Async)");
         }
 
-        okhttp3.Call localVarCall = getFeatureConfigCall(environmentUUID, clusterIdentifier, _callback);
+        okhttp3.Call localVarCall = getFeatureConfigCall(environmentUUID, cluster, _callback);
         return localVarCall;
     }
 
@@ -766,7 +883,7 @@ public class DefaultApi {
      * Build call for getFeatureConfig
      *
      * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param clusterIdentifier Unique identifier for the cluster for the account (optional)
+     * @param cluster Unique identifier for the cluster for the account (optional)
      * @param _callback         Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
@@ -774,8 +891,9 @@ public class DefaultApi {
     public okhttp3.Call getFeatureConfigCall(
 
             final String environmentUUID,
-            String clusterIdentifier,
+            String cluster,
             final ApiCallback _callback
+
     ) throws ApiException {
 
         Object localVarPostBody = null;
@@ -787,14 +905,10 @@ public class DefaultApi {
                         localVarApiClient.escapeString(environmentUUID)
                 );
 
-        List<Pair> localVarQueryParams = new ArrayList<Pair>();
-        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
-        if (clusterIdentifier != null) {
+        localVarPath += "?cluster=" + cluster;
 
-            localVarQueryParams.addAll(
-                    localVarApiClient.parameterToPair("clusterIdentifier", clusterIdentifier)
-            );
-        }
+        List<Pair> localVarQueryParams = new ArrayList<>(localVarApiClient.parameterToPair("cluster", cluster));
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
 
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
         Map<String, String> localVarCookieParams = new HashMap<String, String>();

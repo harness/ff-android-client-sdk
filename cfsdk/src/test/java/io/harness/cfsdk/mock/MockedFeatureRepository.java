@@ -51,6 +51,7 @@ public class MockedFeatureRepository implements FeatureRepository {
             String environment,
             String target,
             String evaluationId,
+            String cluster,
             boolean useCache
     ) {
 
@@ -62,6 +63,7 @@ public class MockedFeatureRepository implements FeatureRepository {
 
             String environment,
             String target,
+            String cluster,
             boolean useCache
     ) {
 

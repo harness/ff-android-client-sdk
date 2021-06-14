@@ -6,9 +6,22 @@ import io.harness.cfsdk.cloud.core.model.Evaluation;
 
 public interface FeatureRepository {
 
-    Evaluation getEvaluation(String environment, String target, String evaluationId, boolean useCache);
+    Evaluation getEvaluation(
 
-    List<Evaluation> getAllEvaluations(String environment, String target, boolean useCache);
+            String environment,
+            String target,
+            String evaluationId,
+            String cluster,
+            boolean useCache
+    );
+
+    List<Evaluation> getAllEvaluations(
+
+            String environment,
+            String target,
+            String cluster,
+            boolean useCache
+    );
 
     void remove(String environment, String target, String evaluationId);
 

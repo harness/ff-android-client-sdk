@@ -36,8 +36,10 @@ public class SSEController implements SSEControlling {
 
         if (config != null && config.getAuthentication() != null) {
 
+            final String cluster = authInfo.getCluster();
+
             Request request = new Request.Builder()
-                    .url(config.getUrl())
+                    .url(config.getUrl() + "?cluster=" + cluster)
                     .build();
 
             OkSse okSse = new OkSse();
