@@ -14,6 +14,7 @@ public class FeatureRepositoryImpl implements FeatureRepository {
     private final CloudCache cloudCache;
 
     public FeatureRepositoryImpl(FeatureService featureService, CloudCache cloudCache) {
+
         this.featureService = featureService;
         this.cloudCache = cloudCache;
     }
@@ -24,6 +25,7 @@ public class FeatureRepositoryImpl implements FeatureRepository {
             String environment,
             String target,
             String evaluationId,
+            String cluster,
             boolean useCache
     ) {
         if (useCache) {
@@ -31,7 +33,10 @@ public class FeatureRepositoryImpl implements FeatureRepository {
             return cloudCache.getEvaluation(buildKey(environment, target, evaluationId));
         } else {
 
-            ApiResponse apiResponse = this.featureService.getEvaluationForId(evaluationId, target);
+            ApiResponse apiResponse = this.featureService.getEvaluationForId(
+
+                    evaluationId, target, cluster
+            );
             if (apiResponse != null && apiResponse.isSuccess()) {
 
                 final String key = buildKey(environment, target, evaluationId);
@@ -44,13 +49,16 @@ public class FeatureRepositoryImpl implements FeatureRepository {
     }
 
     @Override
-    public List<Evaluation> getAllEvaluations(String environment, String target, boolean fromCache) {
+    public List<Evaluation> getAllEvaluations(
+
+            String environment, String target, String cluster, boolean fromCache
+    ) {
 
         if (fromCache) {
 
             return this.cloudCache.getAllEvaluations(environment + "_" + target);
         }
-        ApiResponse apiResponse = this.featureService.getEvaluations(target);
+        ApiResponse apiResponse = this.featureService.getEvaluations(target, cluster);
         if (apiResponse != null && apiResponse.isSuccess()) {
             List<Evaluation> evaluationList = apiResponse.body();
             for (Evaluation evaluation : evaluationList) {

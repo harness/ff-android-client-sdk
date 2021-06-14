@@ -57,10 +57,10 @@ public class Cloud implements ICloud {
     public List<FeatureConfig> getFeatureConfig(
 
             final String environmentID,
-            final String clusterID
+            final String cluster
     ) throws ApiException {
 
-        return defaultApi.getFeatureConfig(environmentID, clusterID);
+        return defaultApi.getFeatureConfig(environmentID, cluster);
     }
 
     @Override
@@ -68,26 +68,27 @@ public class Cloud implements ICloud {
 
             String identifier,
             String environmentUUID,
-            String clusterIdentifier
+            String cluster
+
     ) throws ApiException {
 
         return defaultApi.getFeatureConfigByIdentifier(
 
                 identifier,
                 environmentUUID,
-                clusterIdentifier
+                cluster
         );
     }
 
     @Override
-    public ApiResponse getEvaluations(String target) {
+    public ApiResponse getEvaluations(String target, String cluster) {
         try {
 
             return new ApiResponse(
 
                     200,
                     "",
-                    defaultApi.getEvaluations(this.authInfo.getEnvironment(), target)
+                    defaultApi.getEvaluations(this.authInfo.getEnvironment(), target, cluster)
             );
         } catch (ApiException e) {
 
@@ -97,7 +98,7 @@ public class Cloud implements ICloud {
     }
 
     @Override
-    public ApiResponse getEvaluationForId(String identifier, String target) {
+    public ApiResponse getEvaluationForId(String identifier, String target, String cluster) {
 
         try {
             return new ApiResponse(
@@ -105,9 +106,11 @@ public class Cloud implements ICloud {
                     200,
                     "",
                     defaultApi.getEvaluationByIdentifier(
+
                             this.authInfo.getEnvironment(),
                             identifier,
-                            target
+                            target,
+                            cluster
                     )
             );
         } catch (ApiException e) {

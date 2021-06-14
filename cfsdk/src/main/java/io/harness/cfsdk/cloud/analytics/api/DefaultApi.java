@@ -39,15 +39,17 @@ public class DefaultApi {
     /**
      * Build call for postMetrics
      *
-     * @param environment environment parameter in query. (required)
-     * @param metrics     (optional)
-     * @param _callback   Callback for upload/download progress
+     * @param environment       environment parameter in query. (required)
+     * @param cluster Cluster identifier.
+     * @param metrics           (optional)
+     * @param _callback         Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
     public okhttp3.Call postMetricsCall(
 
             String environment,
+            String cluster,
             Metrics metrics,
             final ApiCallback _callback
 
@@ -59,7 +61,9 @@ public class DefaultApi {
         String localVarPath = "/metrics/{environment}"
                 .replaceAll("\\{" + "environment" + "\\}", localVarApiClient.escapeString(environment.toString()));
 
-        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        localVarPath += "?cluster=" + cluster;
+
+        List<Pair> localVarQueryParams = new ArrayList<>(localVarApiClient.parameterToPair("cluster", cluster));
         List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
         Map<String, String> localVarCookieParams = new HashMap<String, String>();
@@ -96,41 +100,65 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call postMetricsValidateBeforeCall(String environment, Metrics metrics, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call postMetricsValidateBeforeCall(
+
+            String environment,
+            String cluster,
+            Metrics metrics,
+            final ApiCallback _callback
+
+    ) throws ApiException {
 
         // verify the required parameter 'environment' is set
         if (environment == null) {
 
             throw new ApiException("Missing the required parameter 'environment' when calling postMetrics(Async)");
         }
-        return postMetricsCall(environment, metrics, _callback);
+        return postMetricsCall(environment, cluster, metrics, _callback);
     }
 
     /**
      * Send metrics to the Analytics server.
      * Send metrics to Analytics server
      *
-     * @param environment environment parameter in query. (required)
-     * @param metrics     (optional)
+     * @param environment       environment parameter in query. (required)
+     * @param cluster Cluster identifier.
+     * @param metrics           (optional)
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public void postMetrics(String environment, Metrics metrics) throws ApiException {
+    public void postMetrics(
 
-        postMetricsWithHttpInfo(environment, metrics);
+            String environment,
+            String cluster,
+            Metrics metrics
+
+    ) throws ApiException {
+
+        postMetricsWithHttpInfo(environment, cluster, metrics);
     }
 
     /**
      * Send metrics to the Analytics server.
      * Send metrics to Analytics server
      *
-     * @param environment environment parameter in query. (required)
-     * @param metrics     (optional)
+     * @param environment       Environment parameter in query. (required)
+     * @param cluster Cluster identifier.
+     * @param metrics           (optional)
      * @return ApiResponse&lt;Void&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<Void> postMetricsWithHttpInfo(String environment, Metrics metrics) throws ApiException {
+    public ApiResponse<Void> postMetricsWithHttpInfo(
 
-        okhttp3.Call localVarCall = postMetricsValidateBeforeCall(environment, metrics, null);
+            String environment,
+            String cluster,
+            Metrics metrics
+
+    ) throws ApiException {
+
+        okhttp3.Call localVarCall = postMetricsValidateBeforeCall(
+
+                environment, cluster, metrics, null
+        );
         return localVarApiClient.execute(localVarCall);
     }
 
@@ -138,15 +166,26 @@ public class DefaultApi {
      * Send metrics to the Analytics server. (asynchronously)
      * Send metrics to Analytics server
      *
-     * @param environment environment parameter in query. (required)
-     * @param metrics     (optional)
-     * @param _callback   The callback to be executed when the API call finishes
+     * @param environment       environment parameter in query. (required)
+     * @param cluster Cluster identifier.
+     * @param metrics           (optional)
+     * @param _callback         The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */
-    public okhttp3.Call postMetricsAsync(String environment, Metrics metrics, final ApiCallback<Void> _callback) throws ApiException {
+    public okhttp3.Call postMetricsAsync(
 
-        okhttp3.Call localVarCall = postMetricsValidateBeforeCall(environment, metrics, _callback);
+            String environment,
+            String cluster,
+            Metrics metrics,
+            final ApiCallback<Void> _callback
+
+    ) throws ApiException {
+
+        okhttp3.Call localVarCall = postMetricsValidateBeforeCall(
+
+                environment, cluster, metrics, _callback
+        );
         localVarApiClient.executeAsync(localVarCall, _callback);
         return localVarCall;
     }

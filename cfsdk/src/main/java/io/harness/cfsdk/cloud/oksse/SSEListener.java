@@ -130,14 +130,14 @@ public class SSEListener implements ServerSentEvent.Listener {
                 try {
 
                     final String environmentID = authInfo.getEnvironmentIdentifier();
-                    final String clusterID = authInfo.getClusterIdentifier();
+                    final String cluster = authInfo.getCluster();
 
                     FeatureConfig featureConfig =
                             cloud.getFeatureConfigByIdentifier(
 
                                     identifier,
                                     environmentID,
-                                    clusterID
+                                    cluster
                             );
 
                     if (version.equals(featureConfig.getVersion())) {

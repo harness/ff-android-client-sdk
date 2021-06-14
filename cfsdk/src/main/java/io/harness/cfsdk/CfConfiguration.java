@@ -233,7 +233,7 @@ public class CfConfiguration {
             }
             return new CfConfiguration(
 
-                    baseURL, streamURL, streamEnabled, analyticsEnabled, pollingInterval
+                    baseURL, streamURL, eventURL, streamEnabled, analyticsEnabled, pollingInterval
             );
         }
     }

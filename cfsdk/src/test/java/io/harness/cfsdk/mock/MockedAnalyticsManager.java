@@ -18,7 +18,7 @@ public class MockedAnalyticsManager extends AnalyticsManager {
             CfConfiguration config
     ) {
 
-        super(environmentID, authToken, config);
+        super(environmentID, "", authToken, config);
     }
 
     @NotNull

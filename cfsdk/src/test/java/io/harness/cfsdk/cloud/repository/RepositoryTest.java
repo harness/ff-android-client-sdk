@@ -19,10 +19,14 @@ import io.harness.cfsdk.logging.CfLog;
 
 public class RepositoryTest {
 
-    @Mock FeatureService mockService;
-    @Mock CloudCache mockCache;
-    @Mock ApiResponse demoFlagResponse;
-    @Mock ApiResponse demoListResponse;
+    @Mock
+    FeatureService mockService;
+    @Mock
+    CloudCache mockCache;
+    @Mock
+    ApiResponse demoFlagResponse;
+    @Mock
+    ApiResponse demoListResponse;
 
     Evaluation demoFlagEvaluation;
     Evaluation secondFlagEvaluation;
@@ -64,9 +68,9 @@ public class RepositoryTest {
         Mockito.doNothing().when(mockCache).saveEvaluation(Mockito.anyString(), Mockito.any());
         Mockito.when(mockCache.getAllEvaluations(Mockito.anyString())).thenReturn(demoEvaluationList);
 
-        Mockito.when(mockService.getEvaluationForId(Mockito.anyString(),Mockito.anyString()))
+        Mockito.when(mockService.getEvaluationForId(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(demoFlagResponse);
-        Mockito.when(mockService.getEvaluations(Mockito.anyString())).thenReturn(demoListResponse);
+        Mockito.when(mockService.getEvaluations(Mockito.anyString(), Mockito.anyString())).thenReturn(demoListResponse);
         repository = new FeatureRepositoryImpl(mockService, mockCache);
     }
 
@@ -74,10 +78,10 @@ public class RepositoryTest {
     public void repositoryTest() {
 
         Evaluation evaluation =
-                repository.getEvaluation("demo", "target", "demo_flag", true);
+                repository.getEvaluation("demo", "target", "demo_flag", "", true);
 
         Assert.assertEquals(evaluation.getFlag(), demoFlagEvaluation.getFlag());
-        Assert.assertEquals((String)evaluation.getValue(), demoFlagEvaluation.getValue());
+        Assert.assertEquals((String) evaluation.getValue(), demoFlagEvaluation.getValue());
 
         Mockito.verify(mockCache, Mockito.times(1)).getEvaluation(
                 Mockito.anyString()
@@ -85,14 +89,14 @@ public class RepositoryTest {
 
 
         Evaluation cloudEvaluation =
-                repository.getEvaluation("demo", "target", "demo_flag", false);
+                repository.getEvaluation("demo", "target", "demo_flag", "", false);
 
         Assert.assertEquals(cloudEvaluation.getFlag(), demoFlagEvaluation.getFlag());
-        Assert.assertEquals((String)cloudEvaluation.getValue(), demoFlagEvaluation.getValue());
+        Assert.assertEquals((String) cloudEvaluation.getValue(), demoFlagEvaluation.getValue());
 
 
         Mockito.verify(mockService, Mockito.times(1)).getEvaluationForId(
-                Mockito.eq("demo_flag"), Mockito.anyString()
+                Mockito.eq("demo_flag"), Mockito.anyString(), Mockito.anyString()
         );
         Mockito.verify(mockCache, Mockito.times(1)).getEvaluation(
                 Mockito.anyString()
@@ -102,11 +106,11 @@ public class RepositoryTest {
         );
 
 
-        repository.getAllEvaluations("demo", "target", true);
+        repository.getAllEvaluations("demo", "target", "", true);
         Mockito.verify(mockCache, Mockito.atMostOnce()).getAllEvaluations(Mockito.anyString());
 
-        repository.getAllEvaluations("demo", "target", false);
-        Mockito.verify(mockService, Mockito.atMostOnce()).getEvaluations(Mockito.anyString());
+        repository.getAllEvaluations("demo", "target", "", false);
+        Mockito.verify(mockService, Mockito.atMostOnce()).getEvaluations(Mockito.anyString(), Mockito.anyString());
 
         Mockito.verify(mockCache, Mockito.times(2)).saveEvaluation(
                 Mockito.anyString(), Mockito.eq(demoFlagEvaluation)
@@ -123,7 +127,7 @@ public class RepositoryTest {
         Mockito.doNothing().when(mockCache).removeEvaluation(Mockito.anyString());
         Mockito.doNothing().when(mockCache).clear();
 
-        repository.remove("demo","target", "demo_flag");
+        repository.remove("demo", "target", "demo_flag");
 
         Mockito.verify(mockCache, Mockito.atMostOnce()).removeEvaluation(Mockito.eq("demo_flag"));
 

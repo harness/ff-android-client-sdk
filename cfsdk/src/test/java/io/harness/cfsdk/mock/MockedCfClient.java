@@ -18,7 +18,13 @@ public class MockedCfClient extends CfClient {
 
     @NotNull
     @Override
-    protected AnalyticsManager getAnalyticsManager(CfConfiguration configuration, String environmentID) {
+    protected AnalyticsManager getAnalyticsManager(
+
+            CfConfiguration configuration,
+            String environmentID,
+            String cluster
+
+    ) {
 
         if (analyticsManager == null) {
 
