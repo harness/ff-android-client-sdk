@@ -41,9 +41,9 @@ public class CfConfiguration {
 
     static {
 
-        BASE_URL = "https://config.feature-flags.uat.harness.io/api/1.0";
+        BASE_URL = "https://config.ff.harness.io/api/1.0";
         STREAM_URL = BASE_URL + "/stream";
-        EVENT_URL = "https://event.feature-flags.uat.harness.io/api/1.0";
+        EVENT_URL = "https://events.ff.harness.io/api/1.0";
     }
 
     protected CfConfiguration(
