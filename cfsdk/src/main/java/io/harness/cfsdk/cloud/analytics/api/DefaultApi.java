@@ -12,10 +12,17 @@ import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.client.ApiResponse;
 import io.harness.cfsdk.cloud.core.client.Configuration;
 import io.harness.cfsdk.cloud.core.client.Pair;
+import io.harness.cfsdk.logging.CfLog;
 
 public class DefaultApi {
 
+    private final String logTag;
     private ApiClient localVarApiClient;
+
+    {
+
+        logTag = DefaultApi.class.getSimpleName();
+    }
 
     public DefaultApi() {
 
@@ -39,10 +46,10 @@ public class DefaultApi {
     /**
      * Build call for postMetrics
      *
-     * @param environment       environment parameter in query. (required)
-     * @param cluster Cluster identifier.
-     * @param metrics           (optional)
-     * @param _callback         Callback for upload/download progress
+     * @param environment environment parameter in query. (required)
+     * @param cluster     Cluster identifier.
+     * @param metrics     (optional)
+     * @param _callback   Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
@@ -121,9 +128,9 @@ public class DefaultApi {
      * Send metrics to the Analytics server.
      * Send metrics to Analytics server
      *
-     * @param environment       environment parameter in query. (required)
-     * @param cluster Cluster identifier.
-     * @param metrics           (optional)
+     * @param environment environment parameter in query. (required)
+     * @param cluster     Cluster identifier.
+     * @param metrics     (optional)
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
     public void postMetrics(
@@ -134,16 +141,21 @@ public class DefaultApi {
 
     ) throws ApiException {
 
-        postMetricsWithHttpInfo(environment, cluster, metrics);
+        final ApiResponse<Void> response = postMetricsWithHttpInfo(environment, cluster, metrics);
+        CfLog.OUT.v(
+
+                logTag,
+                String.format("API, postMetrics: %s", response.getStatusCode())
+        );
     }
 
     /**
      * Send metrics to the Analytics server.
      * Send metrics to Analytics server
      *
-     * @param environment       Environment parameter in query. (required)
-     * @param cluster Cluster identifier.
-     * @param metrics           (optional)
+     * @param environment Environment parameter in query. (required)
+     * @param cluster     Cluster identifier.
+     * @param metrics     (optional)
      * @return ApiResponse&lt;Void&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
@@ -166,10 +178,10 @@ public class DefaultApi {
      * Send metrics to the Analytics server. (asynchronously)
      * Send metrics to Analytics server
      *
-     * @param environment       environment parameter in query. (required)
-     * @param cluster Cluster identifier.
-     * @param metrics           (optional)
-     * @param _callback         The callback to be executed when the API call finishes
+     * @param environment environment parameter in query. (required)
+     * @param cluster     Cluster identifier.
+     * @param metrics     (optional)
+     * @param _callback   The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */

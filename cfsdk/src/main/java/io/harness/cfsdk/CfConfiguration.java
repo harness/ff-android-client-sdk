@@ -26,6 +26,8 @@ public class CfConfiguration {
 
     private String analyticsCacheType;
 
+    private long metricsServiceAcceptableDuration;
+
     static {
 
         MIN_FREQUENCY = 60;
@@ -36,6 +38,7 @@ public class CfConfiguration {
         bufferSize = 1024;
         analyticsEnabled = true;
         frequency = MIN_FREQUENCY; // unit: second
+        metricsServiceAcceptableDuration = 10000;
         analyticsCacheType = AnalyticsCacheFactory.GUAVA_CACHE;
     }
 
@@ -157,10 +160,12 @@ public class CfConfiguration {
         private int pollingInterval;
         private boolean streamEnabled;
         private boolean analyticsEnabled;
+        private long metricsServiceAcceptableDuration;
 
         {
 
             analyticsEnabled = true;
+            metricsServiceAcceptableDuration = 10000;
         }
 
         /**
@@ -217,6 +222,26 @@ public class CfConfiguration {
             return this;
         }
 
+        /**
+         * Metrics service acceptable duration.
+         *
+         * @return Duration in milliseconds.
+         */
+        public long getMetricsServiceAcceptableDuration() {
+
+            return metricsServiceAcceptableDuration;
+        }
+
+        /**
+         * @param metricsServiceAcceptableDuration Metrics service acceptable duration.
+         * @return This builder.
+         */
+        public Builder setMetricsServiceAcceptableDuration(long metricsServiceAcceptableDuration) {
+
+            this.metricsServiceAcceptableDuration = metricsServiceAcceptableDuration;
+            return this;
+        }
+
         public CfConfiguration build() {
 
             if (baseURL == null || baseURL.isEmpty()) {
@@ -231,10 +256,14 @@ public class CfConfiguration {
 
                 streamURL = STREAM_URL;
             }
-            return new CfConfiguration(
+
+            final CfConfiguration cfConfiguration = new CfConfiguration(
 
                     baseURL, streamURL, eventURL, streamEnabled, analyticsEnabled, pollingInterval
             );
+
+            cfConfiguration.setMetricsServiceAcceptableDuration(metricsServiceAcceptableDuration);
+            return cfConfiguration;
         }
     }
 
@@ -260,5 +289,15 @@ public class CfConfiguration {
     public void setAnalyticsCacheType(String analyticsCacheType) {
 
         this.analyticsCacheType = analyticsCacheType;
+    }
+
+    public long getMetricsServiceAcceptableDuration() {
+
+        return metricsServiceAcceptableDuration;
+    }
+
+    public void setMetricsServiceAcceptableDuration(long metricsServiceAcceptableDuration) {
+
+        this.metricsServiceAcceptableDuration = metricsServiceAcceptableDuration;
     }
 }
