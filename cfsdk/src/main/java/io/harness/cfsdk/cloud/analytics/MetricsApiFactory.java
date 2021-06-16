@@ -44,6 +44,7 @@ public class MetricsApiFactory {
             try {
 
                 hostname = InetAddress.getLocalHost().getHostName();
+                CfLog.OUT.v(logTag, "Hostname: " + hostname);
             } catch (UnknownHostException e) {
 
                 CfLog.OUT.w(logTag, "Unable to get hostname");
