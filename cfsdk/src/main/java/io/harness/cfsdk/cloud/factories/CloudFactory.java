@@ -4,8 +4,11 @@ import android.content.Context;
 
 import com.google.common.cache.Cache;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 
+import io.harness.cfsdk.BuildConfig;
 import io.harness.cfsdk.cloud.AuthResponseDecoder;
 import io.harness.cfsdk.cloud.Cloud;
 import io.harness.cfsdk.cloud.FeatureService;
@@ -27,10 +30,17 @@ import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.repository.FeatureRepositoryImpl;
 import io.harness.cfsdk.cloud.sse.SSEController;
 import io.harness.cfsdk.cloud.sse.SSEControlling;
+import io.harness.cfsdk.logging.CfLog;
 
 public class CloudFactory implements ICloudFactory {
 
+    private final String logTag;
     private TokenProvider tokenProvider;
+
+    {
+
+        logTag = CloudFactory.class.getSimpleName();
+    }
 
     @Override
     public AuthResponseDecoder getAuthResponseDecoder() {
@@ -80,12 +90,26 @@ public class CloudFactory implements ICloudFactory {
     }
 
     @Override
-    public ApiClient apiClient(){
-        return new ApiClient();
+    public ApiClient apiClient() {
+
+        final ApiClient apiClient = new ApiClient();
+        apiClient.setUserAgent("android " + BuildConfig.APP_VERSION_NAME);
+        String hostname = "UnknownHost";
+        try {
+
+            hostname = InetAddress.getLocalHost().getHostName();
+            CfLog.OUT.v(logTag, "Hostname: " + hostname);
+        } catch (UnknownHostException e) {
+
+            CfLog.OUT.w(logTag, "Unable to get hostname");
+        }
+        apiClient.addDefaultHeader("Hostname", hostname);
+        return apiClient;
     }
 
     @Override
-    public DefaultApi defaultApi(ApiClient apiClient){
+    public DefaultApi defaultApi(ApiClient apiClient) {
+
         return new DefaultApi(apiClient);
     }
 
