@@ -20,7 +20,7 @@ import io.harness.cfsdk.logging.CfLog;
  */
 public class AnalyticsPublisherService {
 
-    private static final String SERVER;
+    private static final String CLIENT;
     private static final String SDK_TYPE;
     private static final String SDK_VERSION;
     private static final String SDK_LANGUAGE;
@@ -31,7 +31,7 @@ public class AnalyticsPublisherService {
 
     static {
 
-        SERVER = "server";
+        CLIENT = "client";
         SDK_TYPE = "SDK_TYPE";
         TARGET_ATTRIBUTE = "target";
         SDK_VERSION = "SDK_VERSION";
@@ -130,7 +130,7 @@ public class AnalyticsPublisherService {
             setMetricsAttributes(metricsData, FEATURE_NAME_ATTRIBUTE, entry.getKey().getFeatureName());
             setMetricsAttributes(metricsData, VARIATION_IDENTIFIER_ATTRIBUTE, entry.getKey().getVariationIdentifier());
             setMetricsAttributes(metricsData, TARGET_ATTRIBUTE, GLOBAL_TARGET);
-            setMetricsAttributes(metricsData, SDK_TYPE, SERVER);
+            setMetricsAttributes(metricsData, SDK_TYPE, CLIENT);
             setMetricsAttributes(metricsData, SDK_LANGUAGE, "android");
             setMetricsAttributes(metricsData, SDK_VERSION, BuildConfig.APP_VERSION_NAME);
 
