@@ -20,25 +20,23 @@ import io.harness.cfsdk.logging.CfLog;
  */
 public class AnalyticsPublisherService {
 
-    private static final String GLOBAL_TARGET;
     private static final String SERVER;
+    private static final String SDK_TYPE;
+    private static final String SDK_VERSION;
+    private static final String SDK_LANGUAGE;
+    private static final String GLOBAL_TARGET;
+    private static final String TARGET_ATTRIBUTE;
     private static final String FEATURE_NAME_ATTRIBUTE;
     private static final String VARIATION_IDENTIFIER_ATTRIBUTE;
-    private static final String TARGET_ATTRIBUTE;
-    private static final String JAR_VERSION;
-    private static final String SDK_TYPE;
-    private static final String SDK_LANGUAGE;
-    private static final String SDK_VERSION;
 
     static {
 
         SERVER = "server";
         SDK_TYPE = "SDK_TYPE";
-        GLOBAL_TARGET = "global";
-        JAR_VERSION = "JAR_VERSION";
         TARGET_ATTRIBUTE = "target";
         SDK_VERSION = "SDK_VERSION";
         SDK_LANGUAGE = "SDK_LANGUAGE";
+        GLOBAL_TARGET = "__global__cf_target";
         FEATURE_NAME_ATTRIBUTE = "featureName";
         VARIATION_IDENTIFIER_ATTRIBUTE = "variationIdentifier";
     }
@@ -132,7 +130,6 @@ public class AnalyticsPublisherService {
             setMetricsAttributes(metricsData, FEATURE_NAME_ATTRIBUTE, entry.getKey().getFeatureName());
             setMetricsAttributes(metricsData, VARIATION_IDENTIFIER_ATTRIBUTE, entry.getKey().getVariationIdentifier());
             setMetricsAttributes(metricsData, TARGET_ATTRIBUTE, GLOBAL_TARGET);
-            setMetricsAttributes(metricsData, JAR_VERSION, BuildConfig.APP_VERSION_NAME);
             setMetricsAttributes(metricsData, SDK_TYPE, SERVER);
             setMetricsAttributes(metricsData, SDK_LANGUAGE, "android");
             setMetricsAttributes(metricsData, SDK_VERSION, BuildConfig.APP_VERSION_NAME);
