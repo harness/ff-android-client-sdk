@@ -743,13 +743,14 @@ public class DefaultApi {
 
     ) throws ApiException {
 
-        ApiResponse<FeatureConfig> localVarResp = getFeatureConfigByIdentifierWithHttpInfo(
+        ApiResponse<FeatureConfig> response = getFeatureConfigByIdentifierWithHttpInfo(
 
                 identifier,
                 environmentUUID,
                 cluster
         );
-        return localVarResp.getData();
+        CfLog.OUT.v(logTag, "API, getFeatureConfigByIdentifier: " + response.getStatusCode());
+        return response.getData();
     }
 
     /**
