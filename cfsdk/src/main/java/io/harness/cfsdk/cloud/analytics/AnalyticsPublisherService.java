@@ -77,7 +77,10 @@ public class AnalyticsPublisherService {
 
         CfLog.OUT.d(logTag, "Reading from queue and building cache");
         final Map<Analytics, Integer> all = analyticsCache.getAll();
-        if (!all.isEmpty()) {
+        if (all.isEmpty()) {
+
+            CfLog.OUT.d(logTag, "Cache is empty");
+        } else {
             try {
 
                 Metrics metrics = prepareSummaryMetricsBody(all);

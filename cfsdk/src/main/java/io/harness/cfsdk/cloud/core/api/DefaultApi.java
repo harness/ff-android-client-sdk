@@ -205,11 +205,11 @@ public class DefaultApi {
     /**
      * Build call for getEvaluationByIdentifier
      *
-     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param feature           Unique identifier for the flag object in the API. (required)
-     * @param target            Unique identifier for the target object in the API. (required)
-     * @param cluster Cluster identifier.
-     * @param _callback         Callback for upload/download progress
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param feature         Unique identifier for the flag object in the API. (required)
+     * @param target          Unique identifier for the target object in the API. (required)
+     * @param cluster         Cluster identifier.
+     * @param _callback       Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      *
@@ -295,10 +295,10 @@ public class DefaultApi {
     /**
      * Get feature evaluations for target
      *
-     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param feature           Unique identifier for the flag object in the API. (required)
-     * @param target            Unique identifier for the target object in the API. (required)
-     * @param cluster Cluster identifier.
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param feature         Unique identifier for the flag object in the API. (required)
+     * @param target          Unique identifier for the target object in the API. (required)
+     * @param cluster         Cluster identifier.
      * @return Evaluation
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
@@ -331,10 +331,10 @@ public class DefaultApi {
     /**
      * Get feature evaluations for target
      *
-     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param feature           Unique identifier for the flag object in the API. (required)
-     * @param target            Unique identifier for the target object in the API. (required)
-     * @param cluster Cluster identifier.
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param feature         Unique identifier for the flag object in the API. (required)
+     * @param target          Unique identifier for the target object in the API. (required)
+     * @param cluster         Cluster identifier.
      * @return ApiResponse&lt;Evaluation&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
@@ -363,11 +363,11 @@ public class DefaultApi {
     /**
      * Get feature evaluations for target (asynchronously)
      *
-     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param feature           Unique identifier for the flag object in the API. (required)
-     * @param target            Unique identifier for the target object in the API. (required)
-     * @param cluster Cluster identifier.
-     * @param _callback         The callback to be executed when the API call finishes
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param feature         Unique identifier for the flag object in the API. (required)
+     * @param target          Unique identifier for the target object in the API. (required)
+     * @param cluster         Cluster identifier.
+     * @param _callback       The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      *
@@ -400,10 +400,10 @@ public class DefaultApi {
     /**
      * Build call for getEvaluations
      *
-     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param target            Unique identifier for the target object in the API. (required)
-     * @param cluster Cluster identifier.
-     * @param _callback         Callback for upload/download progress
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param target          Unique identifier for the target object in the API. (required)
+     * @param cluster         Cluster identifier.
+     * @param _callback       Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      *
@@ -484,9 +484,9 @@ public class DefaultApi {
     /**
      * Get feature evaluations for target
      *
-     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param target            Unique identifier for the target object in the API. (required)
-     * @param cluster Cluster identifier.
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param target          Unique identifier for the target object in the API. (required)
+     * @param cluster         Cluster identifier.
      * @return List&lt;Evaluation&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
@@ -518,9 +518,9 @@ public class DefaultApi {
     /**
      * Get feature evaluations for target
      *
-     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param target            Unique identifier for the target object in the API. (required)
-     * @param cluster Cluster identifier.
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param target          Unique identifier for the target object in the API. (required)
+     * @param cluster         Cluster identifier.
      * @return ApiResponse&lt;List&lt;Evaluation&gt;&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      *
@@ -549,10 +549,10 @@ public class DefaultApi {
     /**
      * Get feature evaluations for target (asynchronously)
      *
-     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param target            Unique identifier for the target object in the API. (required)
-     * @param cluster Cluster identifier.
-     * @param _callback         The callback to be executed when the API call finishes
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param target          Unique identifier for the target object in the API. (required)
+     * @param cluster         Cluster identifier.
+     * @param _callback       The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      *
@@ -706,8 +706,8 @@ public class DefaultApi {
      * Get all feature flags activations
      * All feature flags with activations in project environment
      *
-     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param cluster Unique identifier for the cluster for the account (optional)
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param cluster         Unique identifier for the cluster for the account (optional)
      * @return List&lt;FeatureConfig&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
@@ -717,19 +717,21 @@ public class DefaultApi {
             String cluster
     ) throws ApiException {
 
-        ApiResponse<List<FeatureConfig>> localVarResp = getFeatureConfigWithHttpInfo(
+        ApiResponse<List<FeatureConfig>> response = getFeatureConfigWithHttpInfo(
 
                 environmentUUID, cluster
         );
-        return localVarResp.getData();
+
+        CfLog.OUT.v(logTag, "API, getFeatureConfig: " + response.getStatusCode());
+        return response.getData();
     }
 
     /**
      * Get feature config
      *
-     * @param identifier        Unique identifier for the flag object in the API. (required)
-     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param cluster Unique identifier for the cluster for the account (optional)
+     * @param identifier      Unique identifier for the flag object in the API. (required)
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param cluster         Unique identifier for the cluster for the account (optional)
      * @return FeatureConfig
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
@@ -753,9 +755,9 @@ public class DefaultApi {
     /**
      * Get feature config
      *
-     * @param identifier        Unique identifier for the flag object in the API. (required)
-     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param cluster Unique identifier for the cluster for the account (optional)
+     * @param identifier      Unique identifier for the flag object in the API. (required)
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param cluster         Unique identifier for the cluster for the account (optional)
      * @return ApiResponse&lt;FeatureConfig&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
@@ -819,10 +821,10 @@ public class DefaultApi {
     /**
      * Build call for getFeatureConfigByIdentifier
      *
-     * @param identifier        Unique identifier for the flag object in the API. (required)
-     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param cluster Unique identifier for the cluster for the account (optional)
-     * @param _callback         Callback for upload/download progress
+     * @param identifier      Unique identifier for the flag object in the API. (required)
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param cluster         Unique identifier for the cluster for the account (optional)
+     * @param _callback       Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
@@ -872,8 +874,8 @@ public class DefaultApi {
      * Get all feature flags activations
      * All feature flags with activations in project environment
      *
-     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param cluster Unique identifier for the cluster for the account (optional)
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param cluster         Unique identifier for the cluster for the account (optional)
      * @return ApiResponse&lt;List&lt;FeatureConfig&gt;&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
@@ -912,9 +914,9 @@ public class DefaultApi {
     /**
      * Build call for getFeatureConfig
      *
-     * @param environmentUUID   Unique identifier for the environment object in the API. (required)
-     * @param cluster Unique identifier for the cluster for the account (optional)
-     * @param _callback         Callback for upload/download progress
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param cluster         Unique identifier for the cluster for the account (optional)
+     * @param _callback       Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
