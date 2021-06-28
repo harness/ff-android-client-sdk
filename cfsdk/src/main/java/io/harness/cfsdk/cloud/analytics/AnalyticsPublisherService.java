@@ -2,6 +2,7 @@ package io.harness.cfsdk.cloud.analytics;
 
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -160,21 +161,25 @@ public class AnalyticsPublisherService {
             metrics.addMetricsDataItem(metricsData);
         }
 
+        final List<MetricsData> mData = metrics.getMetricsData();
+        if (mData != null) {
+
+            CfLog.OUT.v(logTag, "Metrics data size: " + mData.size());
+        } else {
+
+            CfLog.OUT.w(logTag, "Metrics data size: no data");
+        }
         return metrics;
     }
 
     private SummaryMetrics prepareSummaryMetricsKey(Analytics key) {
 
-        final SummaryMetrics summaryMetrics = new SummaryMetrics(
+        return new SummaryMetrics(
 
                 key.getVariation().getName(),
                 key.getVariation().getValue(),
                 key.getVariation().getIdentifier()
         );
-
-        CfLog.OUT.v(logTag, "Summary metrics: " + summaryMetrics);
-
-        return summaryMetrics;
     }
 
     private void setMetricsAttributes(MetricsData metricsData, String key, String value) {
