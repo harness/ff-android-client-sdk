@@ -2,16 +2,42 @@ package io.harness.cfsdk.example
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 
 import android.widget.Toast
 
 import io.harness.cfsdk.*
+import io.harness.cfsdk.cloud.core.model.Evaluation
+import io.harness.cfsdk.cloud.events.EvaluationListener
 import io.harness.cfsdk.cloud.model.Target
+import io.harness.cfsdk.cloud.oksse.EventsListener
+import io.harness.cfsdk.cloud.oksse.model.StatusEvent
 import io.harness.cfsdk.logging.CfLog
 
 class MainActivity : AppCompatActivity() {
 
     private val logTag = MainActivity::class.simpleName
+
+    private var eventsListener = EventsListener { event ->
+
+        CfLog.OUT.v(logTag, "Event: ${event.eventType}")
+
+        if (event.eventType == StatusEvent.EVENT_TYPE.EVALUATION_CHANGE) {
+
+            val evaluation: Evaluation = event.extractPayload()
+            CfLog.OUT.v(logTag, "Evaluation changed: $evaluation")
+
+        } else if (event.eventType == StatusEvent.EVENT_TYPE.EVALUATION_RELOAD) {
+
+            CfLog.OUT.v(logTag, "Evaluation reload")
+        }
+    }
+
+    private val darkModeListener: EvaluationListener = EvaluationListener {
+
+        CfLog.OUT.v(logTag, "Dark mode")
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +67,18 @@ class MainActivity : AppCompatActivity() {
 
                     if (result.isSuccess) {
 
+                        val registerEventsOk = CfClient.getInstance().registerEventsListener(eventsListener)
 
+                        val registerEvaluationsOk = CfClient.getInstance().registerEvaluationListener(
+
+                            "harnessappdemodarkmode",
+                            darkModeListener
+                        )
+
+                        if (registerEventsOk && registerEvaluationsOk) {
+
+                            CfLog.OUT.v(logTag, "Registrations OK")
+                        }
                     } else {
 
                         val e = result.error
