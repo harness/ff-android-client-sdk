@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity() {
     private val darkModeListener: EvaluationListener = EvaluationListener {
 
         val eval = CfClient.getInstance().boolVariation(Const.FF_DARK_MODE, false)
-        CfLog.OUT.v(logTag, "Dark mode value: ${eval}")
+        CfLog.OUT.v(logTag, "Dark mode value: $eval")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
