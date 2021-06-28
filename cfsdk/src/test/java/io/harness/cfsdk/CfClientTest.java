@@ -116,7 +116,7 @@ public class CfClientTest {
 
         Assert.assertTrue(initOk.get());
 
-        final SSEControlling controlling = cloudFactory.sseController(null, null, null);
+        final SSEControlling controlling = cloudFactory.sseController(null, null);
         Assert.assertTrue(controlling instanceof MockedSSEController);
         final MockedSSEController controller = (MockedSSEController) controlling;
         final EventsListener controllersListener = controller.getListener();

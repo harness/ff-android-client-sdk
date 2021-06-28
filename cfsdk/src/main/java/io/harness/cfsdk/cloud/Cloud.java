@@ -6,7 +6,6 @@ import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
 import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
-import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
@@ -51,33 +50,6 @@ public class Cloud implements ICloud {
         this.target = target;
         apiClient.setDebugging(false);
         apiClient.setBasePath(baseUrl);
-    }
-
-    @Override
-    public List<FeatureConfig> getFeatureConfig(
-
-            final String environmentID,
-            final String cluster
-    ) throws ApiException {
-
-        return defaultApi.getFeatureConfig(environmentID, cluster);
-    }
-
-    @Override
-    public FeatureConfig getFeatureConfigByIdentifier(
-
-            String identifier,
-            String environmentUUID,
-            String cluster
-
-    ) throws ApiException {
-
-        return defaultApi.getFeatureConfigByIdentifier(
-
-                identifier,
-                environmentUUID,
-                cluster
-        );
     }
 
     @Override

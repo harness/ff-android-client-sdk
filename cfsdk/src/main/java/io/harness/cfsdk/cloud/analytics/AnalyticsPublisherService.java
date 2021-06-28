@@ -3,6 +3,7 @@ package io.harness.cfsdk.cloud.analytics;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import io.harness.cfsdk.BuildConfig;
 import io.harness.cfsdk.CfConfiguration;
@@ -111,7 +112,11 @@ public class AnalyticsPublisherService {
         final Metrics metrics = new Metrics();
         final Map<SummaryMetrics, Integer> summaryMetricsData = new HashMap<>();
 
-        for (Map.Entry<Analytics, Integer> entry : data.entrySet()) {
+        final Set<Map.Entry<Analytics, Integer>> entrySet = data.entrySet();
+
+        CfLog.OUT.v(logTag, "Entry set size: " + entrySet.size());
+
+        for (Map.Entry<Analytics, Integer> entry : entrySet) {
 
             final SummaryMetrics summaryMetrics = prepareSummaryMetricsKey(entry.getKey());
             final Integer summaryCount = summaryMetricsData.get(summaryMetrics);
@@ -121,9 +126,24 @@ public class AnalyticsPublisherService {
             } else {
                 summaryMetricsData.put(summaryMetrics, summaryCount + entry.getValue());
             }
+
+            CfLog.OUT.v(
+
+                    logTag,
+                    String.format(
+
+                            "Summary metrics appended: %s, %s",
+                            summaryMetrics,
+                            summaryMetricsData.get(summaryMetrics)
+                    )
+            );
         }
 
-        for (Map.Entry<SummaryMetrics, Integer> entry : summaryMetricsData.entrySet()) {
+        final Set<Map.Entry<SummaryMetrics, Integer>> summaryEntrySet = summaryMetricsData.entrySet();
+
+        CfLog.OUT.v(logTag, "Summary metrics entry set size: " + entrySet.size());
+
+        for (Map.Entry<SummaryMetrics, Integer> entry : summaryEntrySet) {
 
             MetricsData metricsData = new MetricsData();
             metricsData.setTimestamp(System.currentTimeMillis());
@@ -139,17 +159,22 @@ public class AnalyticsPublisherService {
 
             metrics.addMetricsDataItem(metricsData);
         }
+
         return metrics;
     }
 
     private SummaryMetrics prepareSummaryMetricsKey(Analytics key) {
 
-        return new SummaryMetrics(
+        final SummaryMetrics summaryMetrics = new SummaryMetrics(
 
-                key.getFeatureConfig().getFeature(),
+                key.getVariation().getName(),
                 key.getVariation().getValue(),
                 key.getVariation().getIdentifier()
         );
+
+        CfLog.OUT.v(logTag, "Summary metrics: " + summaryMetrics);
+
+        return summaryMetrics;
     }
 
     private void setMetricsAttributes(MetricsData metricsData, String key, String value) {

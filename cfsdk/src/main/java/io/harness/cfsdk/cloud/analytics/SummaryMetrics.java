@@ -42,4 +42,14 @@ public class SummaryMetrics {
 
         this.variationValue = variationValue;
     }
+
+    @Override
+    public String toString() {
+
+        return "SummaryMetrics{" +
+                "featureName='" + featureName + '\'' +
+                ", variationValue='" + variationValue + '\'' +
+                ", variationIdentifier='" + variationIdentifier + '\'' +
+                '}';
+    }
 }

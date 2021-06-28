@@ -4,9 +4,6 @@ import android.content.Context;
 
 import androidx.annotation.Nullable;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,9 +25,7 @@ import java.util.concurrent.TimeUnit;
 import io.harness.cfsdk.cloud.ICloud;
 import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
 import io.harness.cfsdk.cloud.cache.CloudCache;
-import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
-import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.events.AuthCallback;
 import io.harness.cfsdk.cloud.events.AuthResult;
@@ -48,7 +43,6 @@ import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.sse.SSEControlling;
 import io.harness.cfsdk.common.Destroyable;
 import io.harness.cfsdk.logging.CfLog;
-import io.harness.cfsdk.utils.CfUtils;
 
 /**
  * Main class used for any operation on SDK. Operations include, but not limited to, reading evaluations and
@@ -76,7 +70,6 @@ public class CfClient implements Destroyable {
     private final Executor listenerUpdateExecutor;
     private NetworkInfoProviding networkInfoProvider;
     private final Set<EventsListener> eventsListenerSet;
-    private final Cache<String, FeatureConfig> featureCache;
     private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet;
 
     {
@@ -85,7 +78,6 @@ public class CfClient implements Destroyable {
         executor = Executors.newSingleThreadExecutor();
         evaluationListenerSet = new ConcurrentHashMap<>();
         listenerUpdateExecutor = Executors.newSingleThreadExecutor();
-        featureCache = CacheBuilder.newBuilder().maximumSize(10000).build();
         eventsListenerSet = Collections.synchronizedSet(new LinkedHashSet<>());
     }
 
@@ -108,7 +100,6 @@ public class CfClient implements Destroyable {
 
                 if (networkInfoProvider.isNetworkAvailable()) {
 
-                    initFeatureCache(environmentID, cluster);
                     this.featureRepository.getAllEvaluations(
 
                             environmentID,
@@ -226,7 +217,6 @@ public class CfClient implements Destroyable {
                 final String environmentID = authInfo.getEnvironmentIdentifier();
                 final String cluster = authInfo.getCluster();
 
-                initFeatureCache(environmentID, cluster);
                 List<Evaluation> evaluations = this.featureRepository.getAllEvaluations(
 
                         environmentID,
@@ -347,12 +337,11 @@ public class CfClient implements Destroyable {
                 if (success) {
 
                     this.authInfo = cloud.getAuthInfo();
-                    this.sseController = cloudFactory.sseController(cloud, this.authInfo, featureCache);
+                    this.sseController = cloudFactory.sseController(cloud, this.authInfo);
 
                     final String environmentID = authInfo.getEnvironment();
                     final String cluster = authInfo.getCluster();
 
-                    initFeatureCache(environmentID, cluster);
                     ready = true;
 
                     if (networkInfoProvider.isNetworkAvailable()) {
@@ -509,19 +498,17 @@ public class CfClient implements Destroyable {
                     .flag(evaluationId);
         }
 
-        final FeatureConfig featureConfig = featureCache.getIfPresent(evaluationId);
         if (
                 this.target.isValid()
                         && analyticsEnabled
                         && analyticsManager != null
-                        && featureConfig != null
         ) {
 
             final Variation variation = new Variation();
             variation.setName(evaluationId);
             variation.setValue(String.valueOf(result));
             variation.setIdentifier(result.getIdentifier());
-            analyticsManager.pushToQueue(this.target, featureConfig, variation);
+            analyticsManager.pushToQueue(this.target, variation);
         }
 
         return result;
@@ -669,31 +656,5 @@ public class CfClient implements Destroyable {
         stopSSE();
         if (evaluationPolling != null) evaluationPolling.stop();
         if (featureRepository != null) featureRepository.clear();
-    }
-
-    private void initFeatureCache(String environmentID, String cluster) {
-
-        if (CfUtils.Text.isNotEmpty(environmentID)) {
-
-            try {
-                final List<FeatureConfig> featureConfigs =
-                        cloud.getFeatureConfig(environmentID, cluster);
-
-                if (featureConfigs != null) {
-
-                    for (final FeatureConfig config : featureConfigs) {
-                        featureCache.put(config.getFeature(), config);
-                    }
-                }
-                CfLog.OUT.d(logTag, "Feature cache populated");
-            } catch (ApiException e) {
-
-                final String error = e.getMessage();
-                CfLog.OUT.e(logTag, "Feature cache error: " + error, e);
-            }
-        } else {
-
-            CfLog.OUT.e(logTag, "Environment ID is null or empty");
-        }
     }
 }

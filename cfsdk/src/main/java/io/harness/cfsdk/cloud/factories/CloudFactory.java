@@ -2,8 +2,6 @@ package io.harness.cfsdk.cloud.factories;
 
 import android.content.Context;
 
-import com.google.common.cache.Cache;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
@@ -19,7 +17,6 @@ import io.harness.cfsdk.cloud.cache.InMemoryCacheImpl;
 import io.harness.cfsdk.cloud.cache.StorageCache;
 import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
-import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkInfoProvider;
@@ -64,11 +61,10 @@ public class CloudFactory implements ICloudFactory {
     public SSEControlling sseController(
 
             ICloud cloud,
-            AuthInfo authInfo,
-            Cache<String, FeatureConfig> featureCache
+            AuthInfo authInfo
     ) {
 
-        return new SSEController(cloud, authInfo, featureCache);
+        return new SSEController(authInfo);
     }
 
     @Override

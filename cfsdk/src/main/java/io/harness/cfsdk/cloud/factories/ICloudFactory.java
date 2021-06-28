@@ -2,8 +2,6 @@ package io.harness.cfsdk.cloud.factories;
 
 import android.content.Context;
 
-import com.google.common.cache.Cache;
-
 import java.util.concurrent.TimeUnit;
 
 import io.harness.cfsdk.cloud.AuthResponseDecoder;
@@ -13,7 +11,6 @@ import io.harness.cfsdk.cloud.TokenProvider;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
-import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
@@ -32,8 +29,7 @@ public interface ICloudFactory {
     SSEControlling sseController(
 
             ICloud cloud,
-            AuthInfo authInfo,
-            Cache<String, FeatureConfig> featureCache
+            AuthInfo authInfo
     );
 
     EvaluationPolling evaluationPolling(int pollingInterval, TimeUnit timeUnit);

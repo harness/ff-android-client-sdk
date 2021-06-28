@@ -1,16 +1,12 @@
 package io.harness.cfsdk.cloud.oksse;
 
 
-import com.google.common.cache.Cache;
+
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import io.harness.cfsdk.cloud.ICloud;
-import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
-import io.harness.cfsdk.cloud.core.model.FeatureConfig;
-import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
 import io.harness.cfsdk.logging.CfLog;
 import okhttp3.Request;
@@ -18,29 +14,17 @@ import okhttp3.Response;
 
 public class SSEListener implements ServerSentEvent.Listener {
 
-    private final ICloud cloud;
     private final String logTag;
-    private final AuthInfo authInfo;
     private final EventsListener eventsListener;
-    private final Cache<String, FeatureConfig> featureCache;
 
     {
 
         logTag = SSEListener.class.getSimpleName();
     }
 
-    public SSEListener(
+    public SSEListener(EventsListener eventsListener) {
 
-            ICloud cloud,
-            AuthInfo authInfo,
-            EventsListener eventsListener,
-            Cache<String, FeatureConfig> featureCache
-    ) {
-
-        this.cloud = cloud;
-        this.authInfo = authInfo;
         this.eventsListener = eventsListener;
-        this.featureCache = featureCache;
     }
 
     @Override
@@ -62,7 +46,6 @@ public class SSEListener implements ServerSentEvent.Listener {
             jsonObject = new JSONObject(message);
             String identifier = jsonObject.getString("identifier");
             String eventType = jsonObject.getString("event");
-            String domain = jsonObject.getString("domain");
 
             Evaluation evaluation = new Evaluation();
             evaluation.flag(identifier);
@@ -79,11 +62,6 @@ public class SSEListener implements ServerSentEvent.Listener {
 
                         new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_REMOVE, evaluation)
                 );
-            }
-
-            if ("flag".equals(domain)) {
-
-                processFeature(jsonObject);
             }
         } catch (JSONException e) {
 
@@ -116,53 +94,5 @@ public class SSEListener implements ServerSentEvent.Listener {
     @Override
     public Request onPreRetry(ServerSentEvent serverSentEvent, Request request) {
         return null;
-    }
-
-    private void processFeature(JSONObject jsonObject) {
-
-        CfLog.OUT.v(logTag, "Syncing the latest features..");
-        try {
-
-            final String identifier = jsonObject.getString("identifier");
-            final Long version = jsonObject.getLong("version");
-
-            for (int i = 0; i < 3; i++) {
-                try {
-
-                    final String environmentID = authInfo.getEnvironmentIdentifier();
-                    final String cluster = authInfo.getCluster();
-
-                    FeatureConfig featureConfig =
-                            cloud.getFeatureConfigByIdentifier(
-
-                                    identifier,
-                                    environmentID,
-                                    cluster
-                            );
-
-                    if (version.equals(featureConfig.getVersion())) {
-
-                        featureCache.put(featureConfig.getFeature(), featureConfig);
-                        break;
-                    }
-                } catch (ApiException e) {
-
-                    CfLog.OUT.e(
-
-                            logTag,
-                            String.format(
-
-                                    "Failed to sync the feature %s due to %s",
-                                    identifier,
-                                    e.getMessage()
-                            ),
-                            e
-                    );
-                }
-            }
-        } catch (JSONException e) {
-
-            CfLog.OUT.e(logTag, e.getMessage(), e);
-        }
     }
 }

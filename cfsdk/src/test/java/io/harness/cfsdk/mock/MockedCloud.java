@@ -1,12 +1,8 @@
 package io.harness.cfsdk.mock;
 
-import java.util.LinkedList;
-import java.util.List;
 
 import io.harness.cfsdk.cloud.ApiResponse;
 import io.harness.cfsdk.cloud.ICloud;
-import io.harness.cfsdk.cloud.core.client.ApiException;
-import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.oksse.SSEAuthentication;
 import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
@@ -79,22 +75,5 @@ public class MockedCloud implements ICloud {
     public ApiResponse getEvaluationForId(String identifier, String target, String cluster) {
 
         return null;
-    }
-
-    @Override
-    public List<FeatureConfig> getFeatureConfig(String environmentID, String cluster) throws ApiException {
-
-        return new LinkedList<>();
-    }
-
-    @Override
-    public FeatureConfig getFeatureConfigByIdentifier(
-
-            String identifier,
-            String environmentUUID,
-            String cluster
-    ) {
-
-        return new FeatureConfig();
     }
 }
