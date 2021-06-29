@@ -95,13 +95,14 @@ public class AnalyticsPublisherService {
                     if ((endTime - startTime) > config.getMetricsServiceAcceptableDuration()) {
                         CfLog.OUT.w(logTag, "Metrics service API duration=" + (endTime - startTime));
                     }
+                    CfLog.OUT.v(logTag, "Successfully sent analytics data to the server");
                 } else {
 
                     CfLog.OUT.v(logTag, "No analytics data to send the server");
                 }
 
-                CfLog.OUT.v(logTag, "Successfully sent analytics data to the server");
                 analyticsCache.resetCache();
+                CfLog.OUT.v(logTag, "Cache is cleared");
             } catch (ApiException e) {
 
                 // Clear the set because the cache is only invalidated when there is no
