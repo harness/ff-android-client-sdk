@@ -142,7 +142,7 @@ public class AnalyticsPublisherService {
 
         final Set<Map.Entry<SummaryMetrics, Integer>> summaryEntrySet = summaryMetricsData.entrySet();
 
-        CfLog.OUT.v(logTag, "Summary metrics entry set size: " + entrySet.size());
+        CfLog.OUT.v(logTag, "Summary metrics entry set size: " + summaryEntrySet.size());
 
         for (Map.Entry<SummaryMetrics, Integer> entry : summaryEntrySet) {
 
