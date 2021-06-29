@@ -52,14 +52,14 @@ import io.harness.cfsdk.logging.CfLog;
 public class CfClient implements Destroyable {
 
     protected ICloud cloud;
+    protected Target target;
+    protected boolean analyticsEnabled;
 
-    private Target target;
     private AuthInfo authInfo;
     private boolean useStream;
     private final String logTag;
     private volatile boolean ready;
     private final Executor executor;
-    private boolean analyticsEnabled;
     private static CfClient instance;
     private SSEControlling sseController;
     private CfConfiguration configuration;
@@ -498,12 +498,7 @@ public class CfClient implements Destroyable {
                     .flag(evaluationId);
         }
 
-        if (
-                this.target.isValid() &&
-                        result.isValid() &&
-                        analyticsEnabled &&
-                        analyticsManager != null
-        ) {
+        if (canPushToMetrics(result)) {
 
             final Variation variation = new Variation();
             variation.setName(evaluationId);
@@ -649,6 +644,14 @@ public class CfClient implements Destroyable {
                 cloud.getAuthToken(),
                 configuration
         );
+    }
+
+    protected boolean canPushToMetrics(Evaluation result) {
+
+        return this.target.isValid() &&
+                result.isValid() &&
+                analyticsEnabled &&
+                analyticsManager != null;
     }
 
     private void unregister() {
