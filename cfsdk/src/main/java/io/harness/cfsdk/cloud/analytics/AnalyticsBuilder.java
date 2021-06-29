@@ -8,6 +8,7 @@ import io.harness.cfsdk.cloud.model.Target;
 public class AnalyticsBuilder {
 
     private Target target;
+    private String evaluationId;
     private Variation variation;
     private EventType eventType;
 
@@ -34,11 +35,18 @@ public class AnalyticsBuilder {
         return this;
     }
 
+    public AnalyticsBuilder evaluationId(String evaluationId) {
+
+        this.evaluationId = evaluationId;
+        return this;
+    }
+
     public Analytics build() {
 
         return new Analytics(
 
                 target,
+                evaluationId,
                 variation,
                 eventType
         );

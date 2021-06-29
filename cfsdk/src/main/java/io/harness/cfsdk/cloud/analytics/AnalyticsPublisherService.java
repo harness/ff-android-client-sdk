@@ -86,7 +86,7 @@ public class AnalyticsPublisherService {
         } else {
             try {
 
-                Metrics metrics = prepareSummaryMetricsBody(all);
+                final Metrics metrics = prepareSummaryMetricsBody(all);
                 if (metrics.getMetricsData() != null && !metrics.getMetricsData().isEmpty()) {
 
                     long startTime = System.currentTimeMillis();

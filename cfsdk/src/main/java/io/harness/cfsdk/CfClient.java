@@ -499,16 +499,17 @@ public class CfClient implements Destroyable {
         }
 
         if (
-                this.target.isValid()
-                        && analyticsEnabled
-                        && analyticsManager != null
+                this.target.isValid() &&
+                        result.isValid() &&
+                        analyticsEnabled &&
+                        analyticsManager != null
         ) {
 
             final Variation variation = new Variation();
             variation.setName(evaluationId);
             variation.setValue(String.valueOf(result));
             variation.setIdentifier(result.getIdentifier());
-            analyticsManager.pushToQueue(this.target, variation);
+            analyticsManager.pushToQueue(this.target, evaluationId, variation);
         }
 
         return result;

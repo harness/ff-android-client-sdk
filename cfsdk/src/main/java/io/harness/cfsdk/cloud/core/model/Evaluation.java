@@ -17,6 +17,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.Objects;
 
+import io.harness.cfsdk.utils.CfUtils;
 import io.swagger.annotations.ApiModelProperty;
 
 /**
@@ -132,21 +133,24 @@ public class Evaluation {
 
     @Override
     public int hashCode() {
+
         return Objects.hash(flag, value);
     }
 
+    public boolean isValid() {
+
+        return CfUtils.Text.isNotEmpty(kind) && CfUtils.Text.isNotEmpty(identifier);
+    }
 
     @Override
     public String toString() {
 
-        return new StringBuilder()
-                .append("class Evaluation {\n")
-                .append("    flag: ").append(toIndentedString(flag)).append("\n")
-                .append("    value: ").append(toIndentedString(value)).append("\n")
-                .append("    kind: ").append(toIndentedString(kind)).append("\n")
-                .append("    identifier: ").append(toIndentedString(identifier)).append("\n")
-                .append("}")
-                .toString();
+        return "class Evaluation {\n" +
+                "    flag: " + toIndentedString(flag) + "\n" +
+                "    value: " + toIndentedString(value) + "\n" +
+                "    kind: " + toIndentedString(kind) + "\n" +
+                "    identifier: " + toIndentedString(identifier) + "\n" +
+                "}";
     }
 
     /**
@@ -160,6 +164,5 @@ public class Evaluation {
         }
         return o.toString().replace("\n", "\n    ");
     }
-
 }
 
