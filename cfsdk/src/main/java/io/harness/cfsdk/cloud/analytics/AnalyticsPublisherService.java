@@ -94,6 +94,9 @@ public class AnalyticsPublisherService {
                     if ((endTime - startTime) > config.getMetricsServiceAcceptableDuration()) {
                         CfLog.OUT.w(logTag, "Metrics service API duration=" + (endTime - startTime));
                     }
+                } else {
+
+                    CfLog.OUT.v(logTag, "No analytics data to send the server");
                 }
 
                 CfLog.OUT.v(logTag, "Successfully sent analytics data to the server");
