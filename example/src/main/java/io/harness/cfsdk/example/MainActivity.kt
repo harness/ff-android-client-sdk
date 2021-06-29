@@ -80,6 +80,16 @@ class MainActivity : AppCompatActivity() {
 
                             CfLog.OUT.v(logTag, "Registrations OK")
                         }
+
+                        var eval = CfClient.getInstance().boolVariation("firstbooleanflag", false)
+                        CfLog.OUT.v(logTag, "firstbooleanflag: $eval")
+
+                        eval = CfClient.getInstance().boolVariation("somethingelse", false)
+                        CfLog.OUT.v(logTag, "somethingelse: $eval")
+
+                        eval = CfClient.getInstance().boolVariation(Const.FF_DARK_MODE, false)
+                        CfLog.OUT.v(logTag, "${Const.FF_DARK_MODE}: $eval")
+
                     } else {
 
                         val e = result.error
