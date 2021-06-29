@@ -70,6 +70,8 @@ public class DefaultApi {
 
         localVarPath += "?cluster=" + cluster;
 
+        CfLog.OUT.v(logTag, "API, url: " + localVarPath);
+
         List<Pair> localVarQueryParams = new ArrayList<>(localVarApiClient.parameterToPair("cluster", cluster));
         List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
