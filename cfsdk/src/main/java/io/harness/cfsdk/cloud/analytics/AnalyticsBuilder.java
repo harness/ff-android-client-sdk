@@ -1,7 +1,6 @@
 package io.harness.cfsdk.cloud.analytics;
 
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
-import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.EventType;
 import io.harness.cfsdk.cloud.model.Target;
@@ -9,9 +8,9 @@ import io.harness.cfsdk.cloud.model.Target;
 public class AnalyticsBuilder {
 
     private Target target;
+    private String evaluationId;
     private Variation variation;
     private EventType eventType;
-    private FeatureConfig featureConfig;
 
     {
 
@@ -36,9 +35,9 @@ public class AnalyticsBuilder {
         return this;
     }
 
-    public AnalyticsBuilder featureConfig(FeatureConfig featureConfig) {
+    public AnalyticsBuilder evaluationId(String evaluationId) {
 
-        this.featureConfig = featureConfig;
+        this.evaluationId = evaluationId;
         return this;
     }
 
@@ -47,9 +46,9 @@ public class AnalyticsBuilder {
         return new Analytics(
 
                 target,
+                evaluationId,
                 variation,
-                eventType,
-                featureConfig
+                eventType
         );
     }
 }

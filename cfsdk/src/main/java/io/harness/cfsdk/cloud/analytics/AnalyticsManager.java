@@ -12,7 +12,6 @@ import java.util.concurrent.Executors;
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.cache.Cache;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
-import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.EventType;
 import io.harness.cfsdk.cloud.model.Target;
@@ -98,11 +97,13 @@ public class AnalyticsManager implements Destroyable {
     }
 
     // push the incoming data to the ring buffer
-    public void pushToQueue(Target target, FeatureConfig featureConfig, Variation variation) {
+    public void pushToQueue(Target target, String evaluationId, Variation variation) {
+
+        CfLog.OUT.v(logTag, "pushToQueue: Variation=" + variation);
 
         Analytics analytics = new AnalyticsBuilder()
-                .featureConfig(featureConfig)
                 .target(target)
+                .evaluationId(evaluationId)
                 .variation(variation)
                 .eventType(EventType.METRICS)
                 .build();
@@ -112,9 +113,11 @@ public class AnalyticsManager implements Destroyable {
 
             sequence = ringBuffer.tryNext(); // Grab the next sequence
             Analytics event = ringBuffer.get(sequence); // Get the entry in the Disruptor for the sequence
-            event.setFeatureConfig(analytics.getFeatureConfig());
             event.setTarget(analytics.getTarget());
+            event.setEvaluationId(analytics.getEvaluationId());
             event.setVariation(analytics.getVariation());
+            event.setEventType(analytics.getEventType());
+
         } catch (InsufficientCapacityException e) {
 
             CfLog.OUT.w(logTag, "Insufficient capacity in the analytics ringBuffer");

@@ -1,8 +1,5 @@
 package io.harness.cfsdk.mock;
 
-import com.google.common.cache.Cache;
-
-import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.oksse.EventsListener;
 import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
@@ -18,13 +15,6 @@ public class MockedSSEController implements SSEControlling {
     {
 
         logTag = MockedSSEController.class.getSimpleName();
-    }
-
-    public MockedSSEController(Cache<String, FeatureConfig> featureCache) {
-
-        featureCache.put(MockedFeatureRepository.MOCK_BOOL, new FeatureConfig());
-        featureCache.put(MockedFeatureRepository.MOCK_NUMBER, new FeatureConfig());
-        featureCache.put(MockedFeatureRepository.MOCK_STRING, new FeatureConfig());
     }
 
     @Override

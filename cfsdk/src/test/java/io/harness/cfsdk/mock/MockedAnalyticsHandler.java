@@ -10,7 +10,7 @@ import io.harness.cfsdk.cloud.analytics.model.Analytics;
 
 public class MockedAnalyticsHandler extends AnalyticsEventHandler {
 
-    private Set<MockedAnalyticsHandlerCallback> callbacks;
+    private final Set<MockedAnalyticsHandlerCallback> callbacks;
 
     {
 

@@ -2,7 +2,10 @@ package io.harness.cfsdk.cloud.analytics;
 
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.harness.cfsdk.BuildConfig;
 import io.harness.cfsdk.CfConfiguration;
@@ -83,19 +86,24 @@ public class AnalyticsPublisherService {
         } else {
             try {
 
-                Metrics metrics = prepareSummaryMetricsBody(all);
+                final Metrics metrics = prepareSummaryMetricsBody(all);
                 if (metrics.getMetricsData() != null && !metrics.getMetricsData().isEmpty()) {
 
                     long startTime = System.currentTimeMillis();
+                    CfLog.OUT.v(logTag, "Sending metrics");
                     metricsAPI.postMetrics(environmentID, cluster, metrics);
                     long endTime = System.currentTimeMillis();
                     if ((endTime - startTime) > config.getMetricsServiceAcceptableDuration()) {
                         CfLog.OUT.w(logTag, "Metrics service API duration=" + (endTime - startTime));
                     }
+                    CfLog.OUT.v(logTag, "Successfully sent analytics data to the server");
+                } else {
+
+                    CfLog.OUT.v(logTag, "No analytics data to send the server");
                 }
 
-                CfLog.OUT.v(logTag, "Successfully sent analytics data to the server");
                 analyticsCache.resetCache();
+                CfLog.OUT.v(logTag, "Cache is cleared");
             } catch (ApiException e) {
 
                 // Clear the set because the cache is only invalidated when there is no
@@ -108,22 +116,43 @@ public class AnalyticsPublisherService {
 
     private Metrics prepareSummaryMetricsBody(Map<Analytics, Integer> data) {
 
+        CfLog.OUT.v(logTag, "Data size: " + data.size());
+
         final Metrics metrics = new Metrics();
         final Map<SummaryMetrics, Integer> summaryMetricsData = new HashMap<>();
 
-        for (Map.Entry<Analytics, Integer> entry : data.entrySet()) {
+        final Iterator<Analytics> iterator = data.keySet().iterator();
+        while (iterator.hasNext()) {
 
-            final SummaryMetrics summaryMetrics = prepareSummaryMetricsKey(entry.getKey());
+            final Analytics analytics = iterator.next();
+            final int count = data.get(analytics);
+
+            final SummaryMetrics summaryMetrics = prepareSummaryMetricsKey(analytics);
             final Integer summaryCount = summaryMetricsData.get(summaryMetrics);
 
             if (summaryCount == null) {
-                summaryMetricsData.put(summaryMetrics, entry.getValue());
+                summaryMetricsData.put(summaryMetrics, count);
             } else {
-                summaryMetricsData.put(summaryMetrics, summaryCount + entry.getValue());
+                summaryMetricsData.put(summaryMetrics, summaryCount + count);
             }
+
+            CfLog.OUT.v(
+
+                    logTag,
+                    String.format(
+
+                            "Summary metrics appended: %s, %s",
+                            summaryMetrics,
+                            summaryMetricsData.get(summaryMetrics)
+                    )
+            );
         }
 
-        for (Map.Entry<SummaryMetrics, Integer> entry : summaryMetricsData.entrySet()) {
+        CfLog.OUT.v(logTag, "Summary metrics size: " + summaryMetricsData.size());
+
+        final Set<Map.Entry<SummaryMetrics, Integer>> summaryEntrySet = summaryMetricsData.entrySet();
+
+        for (Map.Entry<SummaryMetrics, Integer> entry : summaryEntrySet) {
 
             MetricsData metricsData = new MetricsData();
             metricsData.setTimestamp(System.currentTimeMillis());
@@ -139,6 +168,15 @@ public class AnalyticsPublisherService {
 
             metrics.addMetricsDataItem(metricsData);
         }
+
+        final List<MetricsData> mData = metrics.getMetricsData();
+        if (mData != null) {
+
+            CfLog.OUT.v(logTag, "Metrics data size: " + mData.size());
+        } else {
+
+            CfLog.OUT.w(logTag, "Metrics data size: no data");
+        }
         return metrics;
     }
 
@@ -146,7 +184,7 @@ public class AnalyticsPublisherService {
 
         return new SummaryMetrics(
 
-                key.getFeatureConfig().getFeature(),
+                key.getVariation().getName(),
                 key.getVariation().getValue(),
                 key.getVariation().getIdentifier()
         );

@@ -24,156 +24,132 @@ import io.swagger.annotations.ApiModelProperty;
  */
 public class Variation {
 
-  public static final String SERIALIZED_NAME_IDENTIFIER = "identifier";
-  @SerializedName(SERIALIZED_NAME_IDENTIFIER)
-  private String identifier;
+    public static final String SERIALIZED_NAME_IDENTIFIER = "identifier";
+    @SerializedName(SERIALIZED_NAME_IDENTIFIER)
+    private String identifier;
 
-  public static final String SERIALIZED_NAME_VALUE = "value";
-  @SerializedName(SERIALIZED_NAME_VALUE)
-  private String value;
+    public static final String SERIALIZED_NAME_VALUE = "value";
+    @SerializedName(SERIALIZED_NAME_VALUE)
+    private String value;
 
-  public static final String SERIALIZED_NAME_NAME = "name";
-  @SerializedName(SERIALIZED_NAME_NAME)
-  private String name;
+    public static final String SERIALIZED_NAME_NAME = "name";
+    @SerializedName(SERIALIZED_NAME_NAME)
+    private String name;
 
-  public static final String SERIALIZED_NAME_DESCRIPTION = "description";
-  @SerializedName(SERIALIZED_NAME_DESCRIPTION)
-  private String description;
+    public Variation identifier(String identifier) {
 
-
-  public Variation identifier(String identifier) {
-    
-    this.identifier = identifier;
-    return this;
-  }
-
-   /**
-   * Get identifier
-   * @return identifier
-  **/
-  @ApiModelProperty(required = true, value = "")
-
-  public String getIdentifier() {
-    return identifier;
-  }
-
-
-  public void setIdentifier(String identifier) {
-    this.identifier = identifier;
-  }
-
-
-  public Variation value(String value) {
-    
-    this.value = value;
-    return this;
-  }
-
-   /**
-   * Get value
-   * @return value
-  **/
-  @ApiModelProperty(required = true, value = "")
-
-  public String getValue() {
-    return value;
-  }
-
-
-  public void setValue(String value) {
-    this.value = value;
-  }
-
-
-  public Variation name(String name) {
-    
-    this.name = name;
-    return this;
-  }
-
-   /**
-   * Get name
-   * @return name
-  **/
-  @androidx.annotation.Nullable
-  @ApiModelProperty(value = "")
-
-  public String getName() {
-    return name;
-  }
-
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-
-  public Variation description(String description) {
-    
-    this.description = description;
-    return this;
-  }
-
-   /**
-   * Get description
-   * @return description
-  **/
-  @androidx.annotation.Nullable
-  @ApiModelProperty(value = "")
-
-  public String getDescription() {
-    return description;
-  }
-
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
+        this.identifier = identifier;
+        return this;
     }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
+
+    /**
+     * Get identifier
+     *
+     * @return identifier
+     **/
+    @ApiModelProperty(required = true, value = "")
+
+    public String getIdentifier() {
+        return identifier;
     }
-    Variation variation = (Variation) o;
-    return Objects.equals(this.identifier, variation.identifier) &&
-        Objects.equals(this.value, variation.value) &&
-        Objects.equals(this.name, variation.name) &&
-        Objects.equals(this.description, variation.description);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(identifier, value, name, description);
-  }
 
 
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class Variation {\n");
-    sb.append("    identifier: ").append(toIndentedString(identifier)).append("\n");
-    sb.append("    value: ").append(toIndentedString(value)).append("\n");
-    sb.append("    name: ").append(toIndentedString(name)).append("\n");
-    sb.append("    description: ").append(toIndentedString(description)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
-
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
     }
-    return o.toString().replace("\n", "\n    ");
-  }
 
+
+    public Variation value(String value) {
+
+        this.value = value;
+        return this;
+    }
+
+    /**
+     * Get value
+     *
+     * @return value
+     **/
+    @ApiModelProperty(required = true, value = "")
+
+    public String getValue() {
+        return value;
+    }
+
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+
+    public Variation name(String name) {
+
+        this.name = name;
+        return this;
+    }
+
+    /**
+     * Get name
+     *
+     * @return name
+     **/
+    @androidx.annotation.Nullable
+    @ApiModelProperty(value = "")
+
+    public String getName() {
+        return name;
+    }
+
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) {
+
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+
+            return false;
+        }
+
+        final Variation variation = (Variation) o;
+        return Objects.equals(this.identifier, variation.identifier) &&
+                Objects.equals(this.value, variation.value) &&
+                Objects.equals(this.name, variation.name);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(identifier, value, name);
+    }
+
+
+    @Override
+    public String toString() {
+
+        return "class Variation {\n" +
+                "    identifier: " + toIndentedString(identifier) + "\n" +
+                "    value: " + toIndentedString(value) + "\n" +
+                "    name: " + toIndentedString(name) + "\n" +
+                "}";
+    }
+
+    /**
+     * Convert the given object to string with each line indented by 4 spaces
+     * (except the first line).
+     */
+    private String toIndentedString(Object o) {
+        if (o == null) {
+
+            return "null";
+        }
+        return o.toString().replace("\n", "\n    ");
+    }
 }
 

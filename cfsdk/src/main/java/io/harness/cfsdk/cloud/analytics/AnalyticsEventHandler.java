@@ -53,16 +53,6 @@ public class AnalyticsEventHandler implements EventHandler<Analytics> {
 
     protected void onMetricsEvent(Analytics analytics) {
 
-        CfLog.OUT.d(
-
-                logTag,
-                String.format(
-
-                        "Analytics object received in queue: Target: %s, FeatureFlag: %s",
-                        analytics.getTarget().getIdentifier(),
-                        analytics.getFeatureConfig().getFeature()
-                )
-        );
         Integer count = analyticsCache.get(analytics);
         if (count == null) {
 
@@ -71,6 +61,18 @@ public class AnalyticsEventHandler implements EventHandler<Analytics> {
 
             analyticsCache.put(analytics, count + 1);
         }
+
+        CfLog.OUT.d(
+
+                logTag,
+                String.format(
+
+                        "Analytics object received in queue: Target='%s', Variation name='%s', Count=%s",
+                        analytics.getTarget().getIdentifier(),
+                        analytics.getVariation().getName(),
+                        analyticsCache.get(analytics)
+                )
+        );
     }
 
     // Uncomment the below line to print the cache for debugging purpose

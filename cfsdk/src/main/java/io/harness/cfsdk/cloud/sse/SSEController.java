@@ -1,9 +1,5 @@
 package io.harness.cfsdk.cloud.sse;
 
-import com.google.common.cache.Cache;
-
-import io.harness.cfsdk.cloud.ICloud;
-import io.harness.cfsdk.cloud.core.model.FeatureConfig;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.oksse.EventsListener;
 import io.harness.cfsdk.cloud.oksse.OkSse;
@@ -14,21 +10,13 @@ import okhttp3.Request;
 
 public class SSEController implements SSEControlling {
 
-    private final ICloud cloud;
+
     private final AuthInfo authInfo;
     private ServerSentEvent serverSentEvent;
-    private final Cache<String, FeatureConfig> featureCache;
 
-    public SSEController(
+    public SSEController(AuthInfo authInfo) {
 
-            ICloud cloud,
-            AuthInfo authInfo,
-            Cache<String, FeatureConfig> featureCache
-    ) {
-
-        this.cloud = cloud;
         this.authInfo = authInfo;
-        this.featureCache = featureCache;
     }
 
     @Override
@@ -46,7 +34,7 @@ public class SSEController implements SSEControlling {
             serverSentEvent = okSse.newServerSentEvent(
 
                     request,
-                    new SSEListener(cloud, authInfo, eventsListener, featureCache),
+                    new SSEListener(eventsListener),
                     config.getAuthentication()
             );
         }
