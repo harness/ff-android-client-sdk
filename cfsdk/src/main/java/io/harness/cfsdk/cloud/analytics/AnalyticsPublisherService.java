@@ -2,6 +2,7 @@ package io.harness.cfsdk.cloud.analytics;
 
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -115,22 +116,24 @@ public class AnalyticsPublisherService {
 
     private Metrics prepareSummaryMetricsBody(Map<Analytics, Integer> data) {
 
+        CfLog.OUT.v(logTag, "Data size: " + data.size());
+
         final Metrics metrics = new Metrics();
         final Map<SummaryMetrics, Integer> summaryMetricsData = new HashMap<>();
 
-        final Set<Map.Entry<Analytics, Integer>> entrySet = data.entrySet();
+        final Iterator<Analytics> iterator = data.keySet().iterator();
+        while (iterator.hasNext()) {
 
-        CfLog.OUT.v(logTag, "Entry set size: " + entrySet.size());
+            final Analytics analytics = iterator.next();
+            final int count = data.get(analytics);
 
-        for (Map.Entry<Analytics, Integer> entry : entrySet) {
-
-            final SummaryMetrics summaryMetrics = prepareSummaryMetricsKey(entry.getKey());
+            final SummaryMetrics summaryMetrics = prepareSummaryMetricsKey(analytics);
             final Integer summaryCount = summaryMetricsData.get(summaryMetrics);
 
             if (summaryCount == null) {
-                summaryMetricsData.put(summaryMetrics, entry.getValue());
+                summaryMetricsData.put(summaryMetrics, count);
             } else {
-                summaryMetricsData.put(summaryMetrics, summaryCount + entry.getValue());
+                summaryMetricsData.put(summaryMetrics, summaryCount + count);
             }
 
             CfLog.OUT.v(
@@ -145,9 +148,9 @@ public class AnalyticsPublisherService {
             );
         }
 
-        final Set<Map.Entry<SummaryMetrics, Integer>> summaryEntrySet = summaryMetricsData.entrySet();
+        CfLog.OUT.v(logTag, "Summary metrics size: " + summaryMetricsData.size());
 
-        CfLog.OUT.v(logTag, "Summary metrics entry set size: " + summaryEntrySet.size());
+        final Set<Map.Entry<SummaryMetrics, Integer>> summaryEntrySet = summaryMetricsData.entrySet();
 
         for (Map.Entry<SummaryMetrics, Integer> entry : summaryEntrySet) {
 
