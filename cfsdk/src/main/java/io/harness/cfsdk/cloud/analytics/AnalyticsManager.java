@@ -99,6 +99,8 @@ public class AnalyticsManager implements Destroyable {
     // push the incoming data to the ring buffer
     public void pushToQueue(Target target, Variation variation) {
 
+        CfLog.OUT.v(logTag, "pushToQueue: Variation=" + variation);
+
         Analytics analytics = new AnalyticsBuilder()
                 .target(target)
                 .variation(variation)
