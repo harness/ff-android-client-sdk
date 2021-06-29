@@ -67,8 +67,9 @@ public class AnalyticsEventHandler implements EventHandler<Analytics> {
                 logTag,
                 String.format(
 
-                        "Analytics object received in queue: Target: %s, Count: %s",
+                        "Analytics object received in queue: Target='%s', Variation name='%s', Count=%s",
                         analytics.getTarget().getIdentifier(),
+                        analytics.getVariation().getName(),
                         analyticsCache.get(analytics)
                 )
         );

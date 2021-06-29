@@ -89,6 +89,7 @@ public class AnalyticsPublisherService {
                 if (metrics.getMetricsData() != null && !metrics.getMetricsData().isEmpty()) {
 
                     long startTime = System.currentTimeMillis();
+                    CfLog.OUT.v(logTag, "Sending metrics");
                     metricsAPI.postMetrics(environmentID, cluster, metrics);
                     long endTime = System.currentTimeMillis();
                     if ((endTime - startTime) > config.getMetricsServiceAcceptableDuration()) {
