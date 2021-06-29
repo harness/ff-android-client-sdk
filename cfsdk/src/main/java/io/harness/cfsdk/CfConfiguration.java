@@ -39,7 +39,7 @@ public class CfConfiguration {
         analyticsEnabled = true;
         frequency = MIN_FREQUENCY; // unit: second
         metricsServiceAcceptableDuration = 10000;
-        analyticsCacheType = AnalyticsCacheFactory.GUAVA_CACHE;
+        analyticsCacheType = AnalyticsCacheFactory.DEFAULT_CACHE;
     }
 
     static {
