@@ -1,4 +1,4 @@
-package io.harness.cfsdk.testwrapper
+package io.harness.cfsdk.testwrapper.capability
 
 interface Termination {
 

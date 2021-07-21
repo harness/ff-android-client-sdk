@@ -1,5 +1,8 @@
 package io.harness.cfsdk.testwrapper
 
+import io.harness.cfsdk.testwrapper.capability.Initialization
+import io.harness.cfsdk.testwrapper.capability.Status
+import io.harness.cfsdk.testwrapper.capability.Termination
 import java.util.concurrent.atomic.AtomicBoolean
 
 class WrapperServer : Initialization, Termination, Status {
