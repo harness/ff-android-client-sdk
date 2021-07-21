@@ -1,10 +1,14 @@
 package io.harness.cfsdk.testwrapper
 
+import com.google.gson.Gson
 import io.harness.cfsdk.logging.CfLog
-import io.harness.cfsdk.testwrapper.environment.Variables
+import io.harness.cfsdk.testwrapper.configuration.TestConfiguration
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.InputStream
 
 class WrapperTest {
 
@@ -26,13 +30,13 @@ class WrapperTest {
 
         try {
 
-            val envSelfTest = System.getenv(Variables.ENV_VAR_SELF_TEST)
-            envSelfTest?.let {
+            val inputStream: InputStream = File("wrapper.json").inputStream()
+            val inputString = inputStream.bufferedReader().use { it.readText() }
+            val config = Gson().fromJson(inputString, TestConfiguration::class.java)
 
-                CfLog.OUT.v(tag, "Environment variable '${Variables.ENV_VAR_SELF_TEST}': $it")
-            }
+            CfLog.OUT.v(tag, "$config")
 
-            // TODO:
+            selfTest = config.selfTest
 
         } catch (e: NullPointerException) {
 
@@ -40,6 +44,9 @@ class WrapperTest {
         } catch (e: SecurityException) {
 
             Assert.fail(e.message)
+        } catch (e: FileNotFoundException) {
+
+            CfLog.OUT.v(tag, "No test configuration file provided")
         }
     }
 
