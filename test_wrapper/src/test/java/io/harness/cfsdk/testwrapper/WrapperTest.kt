@@ -7,6 +7,8 @@ import org.junit.Test
 
 class WrapperTest {
 
+    private val selfTest = true
+
     private val server = WrapperServer()
     private val tag = WrapperTest::class.simpleName
 
@@ -26,12 +28,15 @@ class WrapperTest {
 
         CfLog.OUT.v(tag, "Local server is running")
 
-        Assert.assertTrue(
+        if (selfTest) {
 
-            runTests()
-        )
+            Assert.assertTrue(
 
-        CfLog.OUT.v(tag, "Test have been executed")
+                runTests()
+            )
+
+            CfLog.OUT.v(tag, "Test have been executed")
+        }
 
         Assert.assertTrue(
 
