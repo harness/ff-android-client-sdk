@@ -7,6 +7,12 @@ import org.junit.Test
 
 class WrapperTest {
 
+    /**
+     * Start the wrapper server and execute tests
+     *
+     * True == Execute tests and shutdown the server
+     * False == Start server and wait for 3rd party to perform the tests.
+     */
     private val selfTest = true
 
     private val server = WrapperServer()
@@ -36,14 +42,20 @@ class WrapperTest {
             )
 
             CfLog.OUT.v(tag, "Test have been executed")
+
+            Assert.assertTrue(
+
+                terminateLocalServer()
+            )
+
+            CfLog.OUT.v(tag, "Local server has been shut down")
+        } else {
+
+            while (server.isActive()) {
+
+                Thread.yield()
+            }
         }
-
-        Assert.assertTrue(
-
-            terminateLocalServer()
-        )
-
-        CfLog.OUT.v(tag, "Local server has been shut down")
     }
 
     private fun initLocalServer(): Boolean {
@@ -55,7 +67,10 @@ class WrapperTest {
     private fun runTests(): Boolean {
 
         CfLog.OUT.v(tag, "Running tests")
-        return false
+
+        // TODO:
+
+        return true
     }
 
     private fun terminateLocalServer(): Boolean {

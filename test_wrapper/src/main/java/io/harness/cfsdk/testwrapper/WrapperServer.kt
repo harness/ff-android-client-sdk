@@ -1,14 +1,28 @@
 package io.harness.cfsdk.testwrapper
 
-class WrapperServer : Initialization, Termination {
+import java.util.concurrent.atomic.AtomicBoolean
+
+class WrapperServer : Initialization, Termination, Status {
+
+    private val running = AtomicBoolean()
 
     override fun init(): Boolean {
 
-        return false
+        running.set(true)
+
+        // TODO:
+
+        return running.get()
     }
 
     override fun shutdown(): Boolean {
 
-        return false
+        running.set(false)
+
+        // TODO:
+
+        return isNotActive()
     }
+
+    override fun isActive() = running.get()
 }
