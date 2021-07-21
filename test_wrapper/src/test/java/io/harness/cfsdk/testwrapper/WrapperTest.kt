@@ -9,10 +9,10 @@ import org.junit.Test
 class WrapperTest {
 
     /**
-     * Start the wrapper server and execute tests
+     * Start the wrapper server and execute the tests.
      *
-     * True == Execute tests and shutdown the server
-     * False == Start server and wait for 3rd party to perform the tests.
+     * True == Start the local server, execute tests and shutdown the server.
+     * False == Start the local server and wait for 3rd party to perform the tests.
      */
     private var selfTest = true
 
@@ -27,7 +27,10 @@ class WrapperTest {
         try {
 
             val envSelfTest = System.getenv(Variables.ENV_VAR_SELF_TEST)
-            CfLog.OUT.v(tag, "Environment variable ${Variables.ENV_VAR_SELF_TEST}: $envSelfTest")
+            envSelfTest?.let {
+
+                CfLog.OUT.v(tag, "Environment variable '${Variables.ENV_VAR_SELF_TEST}': $it")
+            }
 
             // TODO:
 
