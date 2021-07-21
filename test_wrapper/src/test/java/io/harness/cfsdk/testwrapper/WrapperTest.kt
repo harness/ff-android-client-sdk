@@ -5,6 +5,8 @@ import org.junit.Test
 
 class WrapperTest {
 
+    private val server = WrapperServer()
+
     @Test
     fun testSDK() {
 
@@ -24,7 +26,7 @@ class WrapperTest {
 
     private fun initLocalServer(): Boolean {
 
-        return false
+        return server.init()
     }
 
     private fun runTests(): Boolean {
@@ -34,6 +36,6 @@ class WrapperTest {
 
     private fun terminateLocalServer(): Boolean {
 
-        return false
+        return server.shutdown()
     }
 }
