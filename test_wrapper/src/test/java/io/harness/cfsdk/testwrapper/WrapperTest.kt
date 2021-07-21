@@ -1,6 +1,7 @@
 package io.harness.cfsdk.testwrapper
 
 import io.harness.cfsdk.logging.CfLog
+import io.harness.cfsdk.testwrapper.environment.Variables
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -13,7 +14,7 @@ class WrapperTest {
      * True == Execute tests and shutdown the server
      * False == Start server and wait for 3rd party to perform the tests.
      */
-    private val selfTest = true
+    private var selfTest = true
 
     private val server = WrapperServer()
     private val tag = WrapperTest::class.simpleName
@@ -22,6 +23,21 @@ class WrapperTest {
     fun setup() {
 
         CfLog.testModeOn()
+
+        try {
+
+            val envSelfTest = System.getenv(Variables.ENV_VAR_SELF_TEST)
+            CfLog.OUT.v(tag, "Environment variable ${Variables.ENV_VAR_SELF_TEST}: $envSelfTest")
+
+            // TODO:
+
+        } catch (e: NullPointerException) {
+
+            Assert.fail(e.message)
+        } catch (e: SecurityException) {
+
+            Assert.fail(e.message)
+        }
     }
 
     @Test
