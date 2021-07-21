@@ -1,13 +1,14 @@
 package io.harness.cfsdk.testwrapper
 
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import io.harness.cfsdk.logging.CfLog
-import io.harness.cfsdk.testwrapper.configuration.TestConfiguration
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.IOException
 import java.io.InputStream
 
 class WrapperTest {
@@ -28,11 +29,12 @@ class WrapperTest {
 
         CfLog.testModeOn()
 
+        var inputStream: InputStream? = null
         try {
 
-            val inputStream: InputStream = File("wrapper.json").inputStream()
+            inputStream = File(WrapperTestConfiguration.CONFIGURATION_FILE).inputStream()
             val inputString = inputStream.bufferedReader().use { it.readText() }
-            val config = Gson().fromJson(inputString, TestConfiguration::class.java)
+            val config = Gson().fromJson(inputString, WrapperTestConfiguration::class.java)
 
             CfLog.OUT.v(tag, "$config")
 
@@ -44,9 +46,24 @@ class WrapperTest {
         } catch (e: SecurityException) {
 
             Assert.fail(e.message)
+        } catch (e: JsonSyntaxException) {
+
+            Assert.fail(e.message)
         } catch (e: FileNotFoundException) {
 
             CfLog.OUT.v(tag, "No test configuration file provided")
+        } finally {
+
+            inputStream?.let {
+
+                try {
+
+                    it.close()
+                } catch (e: IOException) {
+
+                    CfLog.OUT.w(tag, e)
+                }
+            }
         }
     }
 
