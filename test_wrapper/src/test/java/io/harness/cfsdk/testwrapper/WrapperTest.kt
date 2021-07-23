@@ -7,6 +7,7 @@ import io.harness.cfsdk.testwrapper.context.api.SimpleContextService
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import retrofit2.Response
 import retrofit2.Retrofit
 import java.io.File
 import java.io.FileNotFoundException
@@ -124,6 +125,8 @@ class WrapperTest {
 
         CfLog.OUT.v(tag, "Running tests")
 
+        val responses = mutableListOf<Response<*>>()
+
         val retrofit = Retrofit.Builder()
             .baseUrl("https://localhost:$serverPort/")
             .build()
@@ -131,8 +134,17 @@ class WrapperTest {
         val simpleContextService = retrofit.create(SimpleContextService::class.java)
         val versionCall = simpleContextService.version()
         val response = versionCall.execute()
+        responses.add(response)
 
-        return response.isSuccessful
+        responses.forEach {
+
+            if (!it.isSuccessful) {
+
+                return false
+            }
+        }
+
+        return true
     }
 
     private fun terminateLocalServer(): Boolean {
