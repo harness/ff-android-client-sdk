@@ -1,6 +1,7 @@
 package io.harness.cfsdk.testwrapper
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
 import io.harness.cfsdk.logging.CfLog
 import io.harness.cfsdk.testwrapper.context.api.SimpleContextService
@@ -9,6 +10,7 @@ import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -127,8 +129,11 @@ class WrapperTest {
 
         val responses = mutableListOf<Response<*>>()
 
+        val gsonBuilder = GsonBuilder()
+
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://localhost:$serverPort/")
+            .baseUrl("http://localhost:$serverPort/")
+            .addConverterFactory(GsonConverterFactory.create(gsonBuilder.create()))
             .build()
 
         val simpleContextService = retrofit.create(SimpleContextService::class.java)
