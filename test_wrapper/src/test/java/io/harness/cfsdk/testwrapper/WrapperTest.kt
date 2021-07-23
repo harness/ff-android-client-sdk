@@ -21,7 +21,12 @@ class WrapperTest {
      */
     private var selfTest = true
 
-    private val server = WrapperServer()
+    /**
+     * Port to be used by local server instance.
+     */
+    private var serverPort = 4000
+
+    lateinit var server: WrapperServer
     private val tag = WrapperTest::class.simpleName
 
     @Before
@@ -39,6 +44,7 @@ class WrapperTest {
             CfLog.OUT.v(tag, "$config")
 
             selfTest = config.selfTest
+            serverPort = config.port
 
         } catch (e: NullPointerException) {
 
@@ -65,6 +71,11 @@ class WrapperTest {
                 }
             }
         }
+
+        server = WrapperServer(
+
+            port = serverPort
+        )
     }
 
     @Test

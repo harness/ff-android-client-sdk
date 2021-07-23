@@ -1,13 +1,10 @@
 package io.harness.cfsdk.example
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-
 import android.widget.Toast
-
-import io.harness.cfsdk.*
+import androidx.appcompat.app.AppCompatActivity
+import io.harness.cfsdk.CfClient
+import io.harness.cfsdk.CfConfiguration
 import io.harness.cfsdk.cloud.core.model.Evaluation
 import io.harness.cfsdk.cloud.events.EvaluationListener
 import io.harness.cfsdk.cloud.model.Target
