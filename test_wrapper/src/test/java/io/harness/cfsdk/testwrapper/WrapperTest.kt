@@ -138,6 +138,8 @@ class WrapperTest {
 
         responses.forEach {
 
+            CfLog.OUT.i(tag, "Response: code=${response.code()}, payload=${response.body()}")
+
             if (!it.isSuccessful) {
 
                 return false
