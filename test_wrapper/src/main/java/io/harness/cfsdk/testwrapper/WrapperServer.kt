@@ -14,19 +14,15 @@ class WrapperServer(port: Int) : Initialization, Termination, Status {
 
     override fun init(): Boolean {
 
+        server.start()
         running.set(true)
-
-        // TODO:
-
         return running.get()
     }
 
     override fun shutdown(): Boolean {
 
         running.set(false)
-
-        // TODO:
-
+        server.stop(0)
         return isNotActive()
     }
 
