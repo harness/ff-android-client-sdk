@@ -122,7 +122,7 @@ class WrapperTest {
 
         CfLog.OUT.v(tag, "Running tests")
 
-        // TODO:
+        // TODO: Use Retrofit to execute API calls
 
         return true
     }
