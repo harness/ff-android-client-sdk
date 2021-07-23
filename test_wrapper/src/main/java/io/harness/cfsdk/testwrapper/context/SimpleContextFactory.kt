@@ -1,18 +1,23 @@
 package io.harness.cfsdk.testwrapper.context
 
+import com.google.gson.Gson
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import io.harness.cfsdk.BuildConfig
+import io.harness.cfsdk.testwrapper.context.api.VersionResponse
 import io.harness.cfsdk.testwrapper.request.REQUEST_METHOD
 import java.io.ByteArrayInputStream
 
 internal class SimpleContextFactory : ContextFactory {
 
-    private val versionPath = "/sdk/version"
+    companion object {
+
+        const val PATH_VERSION = "/sdk/version"
+    }
 
     override fun build(server: HttpServer) {
 
-        server.createContext(versionPath) { exchange -> handleExchange(exchange) }
+        server.createContext(PATH_VERSION) { exchange -> handleExchange(exchange) }
     }
 
     private fun handleExchange(exchange: HttpExchange) {
@@ -23,12 +28,13 @@ internal class SimpleContextFactory : ContextFactory {
 
                 when (exchange.requestURI.path) {
 
-                    versionPath -> {
+                    PATH_VERSION -> {
 
-                        val version = BuildConfig.APP_VERSION_NAME
+                        val version = VersionResponse(BuildConfig.APP_VERSION_NAME)
+                        val json = Gson().toJson(version)
                         exchange.sendResponseHeaders(200, 0)
                         val output = exchange.responseBody
-                        val input = ByteArrayInputStream(version.toByteArray())
+                        val input = ByteArrayInputStream(json.toByteArray())
                         input.copyTo(output)
                         input.close()
                         output.close()
