@@ -3,9 +3,11 @@ package io.harness.cfsdk.testwrapper
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import io.harness.cfsdk.logging.CfLog
+import io.harness.cfsdk.testwrapper.context.api.SimpleContextService
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import retrofit2.Retrofit
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -122,9 +124,15 @@ class WrapperTest {
 
         CfLog.OUT.v(tag, "Running tests")
 
-        // TODO: Use Retrofit to execute API calls
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://localhost:$serverPort/")
+            .build()
 
-        return true
+        val simpleContextService = retrofit.create(SimpleContextService::class.java)
+        val versionCall = simpleContextService.version()
+        val response = versionCall.execute()
+
+        return response.isSuccessful
     }
 
     private fun terminateLocalServer(): Boolean {
