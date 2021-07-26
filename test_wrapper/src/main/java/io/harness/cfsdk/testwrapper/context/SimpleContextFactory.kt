@@ -7,6 +7,7 @@ import io.harness.cfsdk.BuildConfig
 import io.harness.cfsdk.testwrapper.context.api.VersionResponse
 import io.harness.cfsdk.testwrapper.request.REQUEST_METHOD
 import java.io.ByteArrayInputStream
+import java.io.IOException
 
 internal class SimpleContextFactory : CommonContextFactory() {
 
@@ -22,29 +23,35 @@ internal class SimpleContextFactory : CommonContextFactory() {
 
     private fun handleExchange(exchange: HttpExchange) {
 
-        when (exchange.requestMethod) {
+        try {
 
-            REQUEST_METHOD.GET -> {
+            when (exchange.requestMethod) {
 
-                when (exchange.requestURI.path) {
+                REQUEST_METHOD.GET -> {
 
-                    PATH_VERSION -> {
+                    when (exchange.requestURI.path) {
 
-                        val version = VersionResponse(BuildConfig.APP_VERSION_NAME)
-                        val json = Gson().toJson(version)
-                        exchange.sendResponseHeaders(200, 0)
-                        val output = exchange.responseBody
-                        val input = ByteArrayInputStream(json.toByteArray())
-                        input.copyTo(output)
-                        input.close()
-                        output.close()
-                    }
-                    else -> {
+                        PATH_VERSION -> {
 
-                        err404(exchange)
+                            val version = VersionResponse(BuildConfig.APP_VERSION_NAME)
+                            val json = Gson().toJson(version)
+                            exchange.sendResponseHeaders(200, 0)
+                            val output = exchange.responseBody
+                            val input = ByteArrayInputStream(json.toByteArray())
+                            input.copyTo(output)
+                            input.close()
+                            output.close()
+                        }
+                        else -> {
+
+                            err404(exchange)
+                        }
                     }
                 }
             }
+        } catch (e: IOException) {
+
+            err500(exchange, e)
         }
     }
 }
