@@ -4,11 +4,12 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
 import io.harness.cfsdk.logging.CfLog
+import io.harness.cfsdk.testwrapper.context.api.ApiContextService
 import io.harness.cfsdk.testwrapper.context.api.SimpleContextService
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import retrofit2.Response
+import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
@@ -127,7 +128,7 @@ class WrapperTest {
 
         CfLog.OUT.v(tag, "Running tests")
 
-        val responses = mutableListOf<Response<*>>()
+        val calls = mutableListOf<Call<*>>()
 
         val gsonBuilder = GsonBuilder()
 
@@ -136,16 +137,25 @@ class WrapperTest {
             .addConverterFactory(GsonConverterFactory.create(gsonBuilder.create()))
             .build()
 
+        val apiContextService = retrofit.create(ApiContextService::class.java)
         val simpleContextService = retrofit.create(SimpleContextService::class.java)
-        val versionCall = simpleContextService.version()
-        val response = versionCall.execute()
-        responses.add(response)
 
-        responses.forEach {
+        calls.addAll(
+
+            listOf(
+
+                apiContextService.ping(),
+                simpleContextService.version()
+            )
+        )
+
+        calls.forEach {
+
+            val response = it.execute()
 
             CfLog.OUT.i(tag, "Response: code=${response.code()}, payload=${response.body()}")
 
-            if (!it.isSuccessful) {
+            if (!response.isSuccessful) {
 
                 return false
             }
