@@ -8,7 +8,7 @@ import io.harness.cfsdk.testwrapper.context.api.VersionResponse
 import io.harness.cfsdk.testwrapper.request.REQUEST_METHOD
 import java.io.ByteArrayInputStream
 
-internal class SimpleContextFactory : ContextFactory {
+internal class SimpleContextFactory : CommonContextFactory() {
 
     companion object {
 
@@ -46,15 +46,5 @@ internal class SimpleContextFactory : ContextFactory {
                 }
             }
         }
-    }
-
-    private fun err404(exchange: HttpExchange) {
-
-        exchange.sendResponseHeaders(404, 0)
-        val output = exchange.responseBody
-        val input = ByteArrayInputStream("Not found".toByteArray())
-        input.copyTo(output)
-        input.close()
-        output.close()
     }
 }
