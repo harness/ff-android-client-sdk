@@ -1,20 +1,34 @@
-package io.harness.cfsdk.testwrapper
+package io.harness.cfsdk.testwrapper.client
 
 import io.harness.cfsdk.CfClient
 import io.harness.cfsdk.CfConfiguration
-import io.harness.cfsdk.cloud.cache.CloudCache
+import io.harness.cfsdk.cloud.cache.InMemoryCacheImpl
 import io.harness.cfsdk.cloud.events.AuthCallback
 import io.harness.cfsdk.cloud.factories.CloudFactory
 import io.harness.cfsdk.cloud.model.Target
 
 class WrapperClient(cloudFactory: CloudFactory?) : CfClient(cloudFactory) {
 
+    companion object {
+
+        fun getInstance(): CfClient {
+
+            if (instance == null) {
+                synchronized(WrapperClient::class.java) {
+                    if (instance == null) {
+                        instance = WrapperClient(CloudFactory())
+                    }
+                }
+            }
+            return instance
+        }
+    }
+
     fun initialize(
 
         apiKey: String?,
         configuration: CfConfiguration?,
         target: Target?,
-        cloudCache: CloudCache?,
         authCallback: AuthCallback?
     ) {
 
@@ -23,7 +37,7 @@ class WrapperClient(cloudFactory: CloudFactory?) : CfClient(cloudFactory) {
             apiKey,
             configuration,
             target,
-            cloudCache,
+            InMemoryCacheImpl(TmpStorage()),
             authCallback
         )
     }

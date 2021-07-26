@@ -3,6 +3,8 @@ package io.harness.cfsdk.testwrapper
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
+import io.harness.cfsdk.CfConfiguration
+import io.harness.cfsdk.cloud.model.Target
 import io.harness.cfsdk.logging.CfLog
 import io.harness.cfsdk.testwrapper.context.api.ApiContextService
 import io.harness.cfsdk.testwrapper.context.api.FlagCheckRequest
@@ -80,9 +82,18 @@ class WrapperTest {
             }
         }
 
+        val configuration = CfConfiguration.Builder()
+            .enableAnalytics(true)
+            .enableStream(true)
+            .pollingInterval(60)
+            .build()
+
         server = WrapperServer(
 
-            port = serverPort
+            port = serverPort,
+            apiKey = "TbD", // TODO:
+            target = Target(),
+            configuration = configuration
         )
     }
 

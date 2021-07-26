@@ -53,13 +53,13 @@ public class CfClient implements Destroyable {
     protected ICloud cloud;
     protected Target target;
     protected boolean analyticsEnabled;
+    protected static CfClient instance;
 
     private AuthInfo authInfo;
     private boolean useStream;
     private final String logTag;
     private volatile boolean ready;
     private final Executor executor;
-    private static CfClient instance;
     private SSEControlling sseController;
     private CfConfiguration configuration;
     private final CloudFactory cloudFactory;
