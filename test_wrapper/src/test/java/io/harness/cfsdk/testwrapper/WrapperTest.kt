@@ -164,7 +164,7 @@ class WrapperTest {
 
             if (!response.isSuccessful) {
 
-                CfLog.OUT.e(tag, msg)
+                CfLog.OUT.e(tag, "$msg, error=\"${response.errorBody()?.string()}\"")
                 return false
             }
 
