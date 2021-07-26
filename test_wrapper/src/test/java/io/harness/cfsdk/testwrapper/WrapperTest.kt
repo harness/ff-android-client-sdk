@@ -160,7 +160,7 @@ class WrapperTest {
 
             val response = it.execute()
 
-            val msg = "Response: code=${response.code()}, payload=${response.body()}"
+            val msg = "url=${it.request().url} code=${response.code()}, payload=${response.body()}"
 
             if (!response.isSuccessful) {
 
