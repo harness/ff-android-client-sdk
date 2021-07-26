@@ -1,14 +1,21 @@
 package io.harness.cfsdk.testwrapper.context
 
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
+import io.harness.cfsdk.logging.CfLog
+import io.harness.cfsdk.testwrapper.context.api.FlagCheckRequest
+import io.harness.cfsdk.testwrapper.context.api.FlagCheckResponse
 import io.harness.cfsdk.testwrapper.context.api.PongResponse
 import io.harness.cfsdk.testwrapper.request.REQUEST_METHOD
+import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.IOException
 
 class ApiContextFactory : CommonContextFactory() {
+
+    private val tag = ApiContextFactory::class.simpleName
 
     companion object {
 
@@ -52,7 +59,37 @@ class ApiContextFactory : CommonContextFactory() {
 
                         PATH_CHECK_FLAG -> {
 
-                            // TODO:
+                            val reader = BufferedReader(exchange.requestBody.reader())
+                            var content: String
+                            try {
+
+                                content = reader.readText()
+                            } finally {
+
+                                reader.close()
+                            }
+
+                            val request = Gson().fromJson(content, FlagCheckRequest::class.java)
+
+                            val key = request.flagKey
+                            val kind = request.flagKind
+                            val target = request.target
+
+                            CfLog.OUT.v(tag, "key=$key, kind=$kind, target=$target")
+
+//                            val checkFlagResponse = FlagCheckResponse(
+//
+//
+//                            )
+//
+//                            val json = Gson().toJson(checkFlagResponse)
+//                            exchange.sendResponseHeaders(200, 0)
+//                            val output = exchange.responseBody
+//                            val input = ByteArrayInputStream(json.toByteArray())
+//                            input.copyTo(output)
+//                            input.close()
+//                            output.close()
+
                             err404(exchange)
                         }
                         else -> err404(exchange)
@@ -61,6 +98,9 @@ class ApiContextFactory : CommonContextFactory() {
                 else -> err404(exchange)
             }
         } catch (e: IOException) {
+
+            err500(exchange, e)
+        } catch (e: JsonSyntaxException) {
 
             err500(exchange, e)
         }
