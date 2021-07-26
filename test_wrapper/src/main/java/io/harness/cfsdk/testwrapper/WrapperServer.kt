@@ -31,6 +31,8 @@ class WrapperServer(port: Int) : Initialization, Termination, Status {
             it.build(server)
         }
 
+        // TODO: Init SDK
+
         running.set(true)
         return running.get()
     }
