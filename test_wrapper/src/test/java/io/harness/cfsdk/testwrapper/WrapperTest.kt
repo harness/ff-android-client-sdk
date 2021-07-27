@@ -8,6 +8,7 @@ import io.harness.cfsdk.cloud.model.Target
 import io.harness.cfsdk.logging.CfLog
 import io.harness.cfsdk.testwrapper.context.api.*
 import io.harness.cfsdk.utils.CfUtils
+import org.json.JSONObject
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -255,6 +256,8 @@ class WrapperTest {
 
                         val j = v.flagValue
                         Assert.assertTrue(CfUtils.Text.isNotEmpty(j))
+                        val o = Gson().fromJson(j, JSONObject::class.java)
+                        Assert.assertNotNull(o)
                     }
                 }
                 else -> Assert.fail("Unknown kind: '$key'")
