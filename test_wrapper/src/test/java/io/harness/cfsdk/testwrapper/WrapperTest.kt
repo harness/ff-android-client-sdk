@@ -36,6 +36,11 @@ class WrapperTest {
      */
     private var serverPort = 4000
 
+    /**
+     * API key used to initialize the SDK.
+     */
+    private var apiKey = "YOUR_API_KEY"
+
     lateinit var server: WrapperServer
     private val tag = WrapperTest::class.simpleName
 
@@ -55,6 +60,7 @@ class WrapperTest {
 
             selfTest = config.selfTest
             serverPort = config.port
+            apiKey = config.apiKey
 
         } catch (e: NullPointerException) {
 
@@ -88,11 +94,14 @@ class WrapperTest {
             .pollingInterval(60)
             .build()
 
+        val wTest = "wrapper_test"
+        val target = Target().identifier(wTest).name(wTest)
+
         server = WrapperServer(
 
             port = serverPort,
-            apiKey = "dea3dfec-8e59-48bc-a570-b12221627bf0", // TODO:
-            target = Target(),
+            apiKey = apiKey,
+            target = target,
             configuration = configuration
         )
     }

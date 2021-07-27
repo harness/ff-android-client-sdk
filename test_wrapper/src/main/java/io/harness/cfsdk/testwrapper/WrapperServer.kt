@@ -2,7 +2,6 @@ package io.harness.cfsdk.testwrapper
 
 import com.sun.net.httpserver.HttpServer
 import io.harness.cfsdk.CfConfiguration
-import io.harness.cfsdk.cloud.events.AuthCallback
 import io.harness.cfsdk.cloud.model.Target
 import io.harness.cfsdk.logging.CfLog
 import io.harness.cfsdk.testwrapper.capability.Initialization
