@@ -52,8 +52,9 @@ public class CfClient implements Destroyable {
 
     protected ICloud cloud;
     protected Target target;
-    protected boolean analyticsEnabled;
     protected static CfClient instance;
+    protected boolean analyticsEnabled;
+    protected NetworkInfoProviding networkInfoProvider;
 
     private AuthInfo authInfo;
     private boolean useStream;
@@ -67,7 +68,6 @@ public class CfClient implements Destroyable {
     private FeatureRepository featureRepository;
     private EvaluationPolling evaluationPolling;
     private final Executor listenerUpdateExecutor;
-    private NetworkInfoProviding networkInfoProvider;
     private final Set<EventsListener> eventsListenerSet;
     private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet;
 

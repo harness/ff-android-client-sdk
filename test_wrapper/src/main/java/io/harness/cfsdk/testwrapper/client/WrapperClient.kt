@@ -33,6 +33,7 @@ class WrapperClient(cloudFactory: CloudFactory?) : CfClient(cloudFactory) {
         authCallback: AuthCallback?
     ) {
 
+        setupNetworkInfo()
         doInitialize(
 
             apiKey,
@@ -41,5 +42,16 @@ class WrapperClient(cloudFactory: CloudFactory?) : CfClient(cloudFactory) {
             InMemoryCacheImpl(TmpStorage()),
             authCallback
         )
+    }
+
+    private fun setupNetworkInfo() {
+
+        if (networkInfoProvider != null) {
+
+            networkInfoProvider.unregisterAll()
+        } else {
+
+            networkInfoProvider = WrapperClientNetworkInfoProvider()
+        }
     }
 }
