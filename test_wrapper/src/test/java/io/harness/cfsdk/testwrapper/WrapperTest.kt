@@ -7,10 +7,12 @@ import io.harness.cfsdk.CfConfiguration
 import io.harness.cfsdk.cloud.model.Target
 import io.harness.cfsdk.logging.CfLog
 import io.harness.cfsdk.testwrapper.context.api.*
+import io.harness.cfsdk.utils.CfUtils
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
@@ -148,7 +150,7 @@ class WrapperTest {
         CfLog.OUT.v(tag, "Running tests")
 
         val calls = mutableListOf<Call<*>>()
-        val flagChecks = mutableListOf<Call<FlagCheckResponse>>()
+        val flagChecks = mutableMapOf<KIND, Call<FlagCheckResponse>>()
 
         val gsonBuilder = GsonBuilder()
 
@@ -160,12 +162,12 @@ class WrapperTest {
         val apiContextService = retrofit.create(ApiContextService::class.java)
         val simpleContextService = retrofit.create(SimpleContextService::class.java)
 
-        val flagCheckRequests = listOf(
+        val flagCheckRequests = mapOf(
 
-            FlagCheckRequest(KIND.BOOLEAN.value, "flag1"),
-            FlagCheckRequest(KIND.INT.value, "flag2"),
-            FlagCheckRequest(KIND.STRING.value, "flag3"),
-            // FlagCheckRequest(KIND.JSON.value, "flag4")
+            KIND.BOOLEAN to "flag1",
+            KIND.INT to "flag2",
+            KIND.STRING to "flag3",
+            // KIND.JSON to "flag4"
         )
 
         calls.addAll(
@@ -177,43 +179,78 @@ class WrapperTest {
             )
         )
 
-        flagCheckRequests.forEach {
+        flagCheckRequests.forEach { (key, value) ->
 
-            flagChecks.add(apiContextService.checkFlag(it))
+            flagChecks[key] = apiContextService.checkFlag(FlagCheckRequest(key.value, value))
         }
 
-        calls.forEach {
+        calls.forEach { request ->
 
-            if (execute(it)) {
+            val response = request.execute()
+            val msg = getMsg(request, response)
 
+            if (!response.isSuccessful) {
+
+                CfLog.OUT.e(tag, getErrMsg(msg, response))
                 return false
             }
+
+            CfLog.OUT.i(tag, msg)
         }
-        flagChecks.forEach {
 
-            if (execute(it)) {
+        flagChecks.forEach { (key, request) ->
 
+            val response = request.execute()
+            val msg = getMsg(request, response)
+
+            if (!response.isSuccessful) {
+
+                CfLog.OUT.e(tag, getErrMsg(msg, response))
                 return false
+            }
+
+            CfLog.OUT.i(tag, msg)
+
+            when (key) {
+
+                KIND.BOOLEAN -> {
+
+                    val value = response.body()
+                    Assert.assertNotNull(value)
+
+                    value?.let { v ->
+
+                        val b = v.flagValue.toBoolean()
+                        Assert.assertTrue(b)
+                    }
+                }
+                KIND.INT -> {
+
+                    val value = response.body()
+                    Assert.assertNotNull(value)
+
+                    value?.let { v ->
+
+                        val no = v.flagValue.toDouble()
+                        Assert.assertTrue(no > 0)
+                    }
+                }
+                KIND.STRING -> {
+
+                    val value = response.body()
+                    Assert.assertNotNull(value)
+
+                    value?.let { v ->
+
+                        val s = v.flagValue
+                        Assert.assertTrue(CfUtils.Text.isNotEmpty(s))
+                    }
+                }
+                else -> Assert.fail("Unknown kind: '$key'")
             }
         }
 
         return true
-    }
-
-    private fun execute(it: Call<*>): Boolean {
-
-        val response = it.execute()
-
-        val msg = "url=${it.request().url} code=${response.code()}, payload=${response.body()}"
-
-        if (!response.isSuccessful) {
-
-            CfLog.OUT.e(tag, "$msg, error=\"${response.errorBody()?.string()}\"")
-            return true
-        }
-
-        CfLog.OUT.i(tag, msg)
-        return false
     }
 
     private fun terminateLocalServer(): Boolean {
@@ -221,4 +258,18 @@ class WrapperTest {
         CfLog.OUT.v(tag, "Shutting down local server")
         return server.shutdown()
     }
+
+    private fun getErrMsg(
+
+        msg: String,
+        response: Response<out Any>
+
+    ) = "$msg, error=\"${response.errorBody()?.string()}\""
+
+    private fun getMsg(
+
+        it: Call<*>,
+        response: Response<out Any>
+
+    ) = "url=${it.request().url} code=${response.code()}, payload=${response.body()}"
 }
