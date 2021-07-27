@@ -12,3 +12,6 @@ Inside the root of the `test_wrappers` directory make sure that the configuratio
 }
 ```
 
+## Running test wrapper inside a container
+
+Tbd.
