@@ -1,0 +1,10 @@
+FROM androidsdk/android-30:latest
+
+ARG PORT
+ARG API_KEY
+ARG SELF_TEST
+
+ENV PORT "$PORT"
+ENV API_KEY "$API_KEY"
+ENV SELF_TEST "$SELF_TEST"
+
