@@ -4,11 +4,14 @@ import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
+import io.harness.cfsdk.CfClient
 import io.harness.cfsdk.logging.CfLog
 import io.harness.cfsdk.testwrapper.context.api.FlagCheckRequest
+import io.harness.cfsdk.testwrapper.context.api.FlagCheckResponse
 import io.harness.cfsdk.testwrapper.context.api.KIND
 import io.harness.cfsdk.testwrapper.context.api.PongResponse
 import io.harness.cfsdk.testwrapper.request.REQUEST_METHOD
+import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.IOException
@@ -73,41 +76,45 @@ class ApiContextFactory : CommonContextFactory() {
 
                             val key = request.flagKey
                             val kind = request.flagKind
-                            val target = request.target
 
-                            CfLog.OUT.v(tag, "key=$key, kind=$kind, target=$target")
+                            CfLog.OUT.v(tag, "key=$key, kind=$kind")
 
-                            val flagValue = when (kind) {
+                            val flagValue : Any = when (kind) {
 
                                 KIND.BOOLEAN.value -> {
 
+                                    CfClient.getInstance().boolVariation(key, false)
                                 }
                                 KIND.INT.value -> {
 
+                                    CfClient.getInstance().numberVariation(key, 0.0)
                                 }
                                 KIND.STRING.value -> {
 
+                                    CfClient.getInstance().stringVariation(key, "")
                                 }
                                 KIND.JSON.value -> {
 
+                                    CfClient.getInstance().jsonVariation(key, JSONObject())
                                 }
                                 else -> throw IllegalArgumentException("Unknown kind: '$kind'")
                             }
 
-//                            val checkFlagResponse = FlagCheckResponse(
-//
-//
-//                            )
-//
-//                            val json = Gson().toJson(checkFlagResponse)
-//                            exchange.sendResponseHeaders(200, 0)
-//                            val output = exchange.responseBody
-//                            val input = ByteArrayInputStream(json.toByteArray())
-//                            input.copyTo(output)
-//                            input.close()
-//                            output.close()
+                            CfLog.OUT.v(tag, "Flag value: $flagValue")
 
-                            err404(exchange)
+                            val checkFlagResponse = FlagCheckResponse(
+
+                                key,
+                                flagValue.toString()
+                            )
+
+                            val json = Gson().toJson(checkFlagResponse)
+                            exchange.sendResponseHeaders(200, 0)
+                            val output = exchange.responseBody
+                            val input = ByteArrayInputStream(json.toByteArray())
+                            input.copyTo(output)
+                            input.close()
+                            output.close()
                         }
                         else -> err404(exchange)
                     }

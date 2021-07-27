@@ -6,10 +6,7 @@ import com.google.gson.JsonSyntaxException
 import io.harness.cfsdk.CfConfiguration
 import io.harness.cfsdk.cloud.model.Target
 import io.harness.cfsdk.logging.CfLog
-import io.harness.cfsdk.testwrapper.context.api.ApiContextService
-import io.harness.cfsdk.testwrapper.context.api.FlagCheckRequest
-import io.harness.cfsdk.testwrapper.context.api.FlagCheckRequestTarget
-import io.harness.cfsdk.testwrapper.context.api.SimpleContextService
+import io.harness.cfsdk.testwrapper.context.api.*
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -162,9 +159,7 @@ class WrapperTest {
         val apiContextService = retrofit.create(ApiContextService::class.java)
         val simpleContextService = retrofit.create(SimpleContextService::class.java)
 
-        val test = "Test"
-        val target = FlagCheckRequestTarget(test, test)
-        val flagCheckRequest = FlagCheckRequest("", "", target)
+        val flagCheckRequest = FlagCheckRequest(KIND.BOOLEAN.value, "flag1")
 
         calls.addAll(
 

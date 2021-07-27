@@ -8,7 +8,5 @@ data class FlagCheckRequest(
     val flagKind: String,
 
     @SerializedName("flag_key")
-    val flagKey: String,
-
-    val target: FlagCheckRequestTarget
+    val flagKey: String
 )
