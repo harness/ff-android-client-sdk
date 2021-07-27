@@ -95,7 +95,8 @@ class ApiContextFactory : CommonContextFactory() {
                                 }
                                 KIND.JSON.value -> {
 
-                                    CfClient.getInstance().jsonVariation(key, JSONObject())
+                                    val o = CfClient.getInstance().jsonVariation(key, JSONObject())
+                                    Gson().toJson(o)
                                 }
                                 else -> throw IllegalArgumentException("Unknown kind: '$kind'")
                             }
@@ -109,6 +110,8 @@ class ApiContextFactory : CommonContextFactory() {
                             )
 
                             val json = Gson().toJson(checkFlagResponse)
+                            CfLog.OUT.v(tag, "JSON: $json")
+
                             exchange.sendResponseHeaders(200, 0)
                             val output = exchange.responseBody
                             val input = ByteArrayInputStream(json.toByteArray())

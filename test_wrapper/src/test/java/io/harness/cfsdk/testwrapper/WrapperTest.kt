@@ -167,7 +167,7 @@ class WrapperTest {
             KIND.BOOLEAN to "flag1",
             KIND.INT to "flag2",
             KIND.STRING to "flag3",
-            // KIND.JSON to "flag4"
+            KIND.JSON to "flag4"
         )
 
         calls.addAll(
@@ -244,6 +244,17 @@ class WrapperTest {
 
                         val s = v.flagValue
                         Assert.assertTrue(CfUtils.Text.isNotEmpty(s))
+                    }
+                }
+                KIND.JSON -> {
+
+                    val value = response.body()
+                    Assert.assertNotNull(value)
+
+                    value?.let { v ->
+
+                        val j = v.flagValue
+                        Assert.assertTrue(CfUtils.Text.isNotEmpty(j))
                     }
                 }
                 else -> Assert.fail("Unknown kind: '$key'")
