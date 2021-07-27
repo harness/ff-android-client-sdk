@@ -54,7 +54,15 @@ data class WrapperServer(
             configuration,
             target
 
-        ) { _, result ->
+        ) { authInfo, result ->
+
+            if (authInfo == null) {
+
+                CfLog.OUT.e(tag, "No auth info!")
+            } else {
+
+                CfLog.OUT.v(tag, "Auth info: $authInfo")
+            }
 
             success = result.isSuccess
             if (!success) {

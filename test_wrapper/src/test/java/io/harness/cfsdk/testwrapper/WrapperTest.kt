@@ -91,7 +91,7 @@ class WrapperTest {
         server = WrapperServer(
 
             port = serverPort,
-            apiKey = "TbD", // TODO:
+            apiKey = "dea3dfec-8e59-48bc-a570-b12221627bf0", // TODO:
             target = Target(),
             configuration = configuration
         )

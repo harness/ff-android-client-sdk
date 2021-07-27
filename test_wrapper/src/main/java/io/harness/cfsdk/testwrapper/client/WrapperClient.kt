@@ -16,7 +16,8 @@ class WrapperClient(cloudFactory: CloudFactory?) : CfClient(cloudFactory) {
             if (instance == null) {
                 synchronized(WrapperClient::class.java) {
                     if (instance == null) {
-                        instance = WrapperClient(CloudFactory())
+
+                        instance = WrapperClient(WrapperClientCloudFactory())
                     }
                 }
             }
