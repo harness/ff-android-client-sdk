@@ -23,7 +23,8 @@ RUN dnf group install -y "Development Tools" && \
     git clone https://github.com/drone/ff-android-client-sdk.git . && \
     git checkout FFM-1005 && \
     echo "sdk.dir=/Android" > local.properties && \
-    ../gradle-7.0/bin/gradle wrapper --gradle-version 6.7.1
+    ../gradle-7.0/bin/gradle wrapper --gradle-version 6.7.1 && \
+    ./gradlew clean
 
 
 EXPOSE "$PORT"
