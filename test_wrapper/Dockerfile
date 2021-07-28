@@ -21,9 +21,8 @@ RUN dnf group install -y "Development Tools" && \
     unzip "gradle-7.0-bin.zip" && \
     mkdir CFAndroidSDK && cd ./CFAndroidSDK && \
     git clone https://github.com/drone/ff-android-client-sdk.git . && \
-    git checkout FFM-1005
-#    && \
-#    ../gradle-7.0/ gradle wrapper --gradle-version 6.7.1 --distribution-type all
+    git checkout FFM-1005 && \
+    ../gradle-7.0/bin/gradle wrapper --gradle-version 6.7.1
 
 
 EXPOSE "$PORT"
