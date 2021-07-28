@@ -15,8 +15,8 @@ RUN dnf group install -y "Development Tools" && \
     wget "https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip" && \
     unzip "commandlinetools-linux-7302050_latest.zip" && \
     mkdir -p /Android && cd /cmdline-tools/bin && \
-    echo y | ./sdkmanager "platform-tools" "platforms;android-30" --sdk_root="/Android"
-
+    echo y | ./sdkmanager "platform-tools" "platforms;android-30" "sources;android-30" \
+        "build-tools;30.0.3" "add-ons;addon-google_apis-google-24" "cmdline-tools;latest" --sdk_root="/Android"
 
 #    dnf install -y gradle && \
 #    cd / && \
