@@ -11,9 +11,12 @@ ENV SELF_TEST "$SELF_TEST"
 RUN dnf group install -y "Development Tools" && \
     sudo dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
         https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm && \
-    dnf install -y wget && \
-    wget "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/4.2.2.0/android-studio-ide-202.7486908-linux.tar.gz" && \
-         tar -xf "android-studio-ide-202.7486908-linux.tar.gz" && \
+    dnf install -y wget java java-devel && \
+    wget "https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip" && \
+    unzip "commandlinetools-linux-7302050_latest.zip" && \
+    mkdir -p /Android && cd /cmdline-tools/bin && \
+    echo y | ./sdkmanager "platform-tools" "platforms;android-30" --sdk_root="/Android"
+
 
 #    dnf install -y gradle && \
 #    cd / && \
