@@ -12,7 +12,7 @@ RUN apt install -y gradle && \
     mkdir CFAndroidSDK && cd ./CFAndroidSDK && \
     git clone https://github.com/drone/ff-android-client-sdk.git . && \
     git checkout FFM-1005 && \
-    gradle wrapper
+    gradle wrapper --gradle-version 6.7.1 --distribution-type all
 
 
 EXPOSE "$PORT"
