@@ -24,7 +24,8 @@ RUN dnf group install -y "Development Tools" && \
     git checkout FFM-1005 && \
     echo "sdk.dir=/Android" > local.properties && \
     ../gradle-7.0/bin/gradle wrapper --gradle-version 6.7.1 && \
-    ./gradlew clean
+    ./gradlew clean && \
+    ./gradlew test_wrapper:assemble
 
 
 EXPOSE "$PORT"
