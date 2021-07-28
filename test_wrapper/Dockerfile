@@ -16,14 +16,14 @@ RUN dnf group install -y "Development Tools" && \
     unzip "commandlinetools-linux-7302050_latest.zip" && \
     mkdir -p /Android && cd /cmdline-tools/bin && \
     echo y | ./sdkmanager "platform-tools" "platforms;android-30" "sources;android-30" \
-        "build-tools;30.0.3" "add-ons;addon-google_apis-google-24" "cmdline-tools;latest" --sdk_root="/Android"
-
-#    dnf install -y gradle && \
-#    cd / && \
-#    mkdir CFAndroidSDK && cd ./CFAndroidSDK && \
-#    git clone https://github.com/drone/ff-android-client-sdk.git . && \
-#    git checkout FFM-1005 && \
-#    gradle wrapper --gradle-version 6.7.1 --distribution-type all
+        "build-tools;30.0.3" "add-ons;addon-google_apis-google-24" "cmdline-tools;latest" --sdk_root="/Android" && \
+    cd / && wget "https://downloads.gradle-dn.com/distributions/gradle-7.0-bin.zip" && \
+    unzip "gradle-7.0-bin.zip" && \
+    mkdir CFAndroidSDK && cd ./CFAndroidSDK && \
+    git clone https://github.com/drone/ff-android-client-sdk.git . && \
+    git checkout FFM-1005
+#    && \
+#    ../gradle-7.0/ gradle wrapper --gradle-version 6.7.1 --distribution-type all
 
 
 EXPOSE "$PORT"
