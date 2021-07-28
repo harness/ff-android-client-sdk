@@ -14,7 +14,6 @@ RUN dnf group install -y "Development Tools" && \
     dnf install -y wget && \
     wget "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/4.2.2.0/android-studio-ide-202.7486908-linux.tar.gz" && \
          tar -xf "android-studio-ide-202.7486908-linux.tar.gz" && \
-    dnf install gradle
 
 #    dnf install -y gradle && \
 #    cd / && \
