@@ -12,8 +12,8 @@ RUN dnf group install -y "Development Tools" && \
     sudo dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
         https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm && \
     dnf install -y wget && \
-    wget https://redirector.gvt1.com/edgedl/android/studio/ide-zips/4.2.2.0/android-studio-ide-202.7486908-linux.tar.gz \
-         tar -xf android-studio-ide-202.7486908-linux.tar.gz --directory ~/AndroidSDK && \
+    wget "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/4.2.2.0/android-studio-ide-202.7486908-linux.tar.gz" && \
+         tar -xf "android-studio-ide-202.7486908-linux.tar.gz" --directory ~/AndroidSDK && \
     dnf install gradle
 
 #    dnf install -y gradle && \
