@@ -28,6 +28,6 @@ RUN dnf group install -y "Development Tools" && \
     ./gradlew clean && \
     echo "PORT=$PORT, API_KEY=$API_KEY, SELF_TEST=$SELF_TEST"
 
-CMD  cd ./CFAndroidSDK && ./gradlew test_wrapper:assemble
+EXPOSE $PORT
 
-EXPOSE "$PORT"
+CMD  cd ./CFAndroidSDK && ./gradlew test_wrapper:assemble
