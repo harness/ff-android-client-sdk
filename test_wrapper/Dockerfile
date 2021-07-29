@@ -31,4 +31,4 @@ RUN dnf group install -y "Development Tools" && \
 
 EXPOSE $PORT
 
-CMD  cd ./CFAndroidSDK && ./gradlew test_wrapper:assemble
+CMD  cd ./CFAndroidSDK && ./gradlew test_wrapper:assemble && ./gradlew test_wrapper:test
