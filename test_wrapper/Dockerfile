@@ -29,13 +29,15 @@ RUN mkdir CFAndroidSDK && cd ./CFAndroidSDK && \
     echo "sdk.dir=/Android" > local.properties && \
     echo "{\"selfTest\": $SELF_TEST, \"port\": $PORT, \"apiKey\": \"$API_KEY\"}" > "wrapper.json" && \
         echo "wrapper.json:" && cat "wrapper.json" && \
-    ../gradle-7.0/bin/gradle wrapper --gradle-version 6.7.1
+    ../gradle-7.0/bin/gradle wrapper --gradle-version 7.0 && ../gradle-7.0/bin/gradle --stop
 
 EXPOSE $PORT:$PORT
 
-CMD  cd ./CFAndroidSDK && git fetch && git pull && \
-    echo "Running" > /anchor && tail -F /anchor
- #&& \
+CMD echo "Running" > /anchor && \
+    cd ./CFAndroidSDK && git fetch && git pull && \
+    ./gradlew --stop && ./gradlew clean --stacktrace && \
+    ./gradlew test_wrapper:assemble --stacktrace && \
+    tail -F /anchor
+
     # FIXME:
-#    ./gradlew test_wrapper:assemble
-    # && ./gradlew test_wrapper:test
+    # && ./gradlew test_wrapper:test --stacktrace
