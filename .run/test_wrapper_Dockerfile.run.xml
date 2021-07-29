@@ -21,7 +21,7 @@
         </option>
         <option name="buildCliOptions" value="" />
         <option name="command" value="" />
-        <option name="containerName" value="" />
+        <option name="containerName" value="android_test_wrapper" />
         <option name="entrypoint" value="" />
         <option name="commandLineOptions" value="" />
         <option name="sourceFilePath" value="test_wrapper/Dockerfile" />
