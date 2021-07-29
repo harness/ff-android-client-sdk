@@ -24,9 +24,10 @@ RUN dnf group install -y "Development Tools" && \
     # TODO: Remove checkout after PR merge!
     git checkout FFM-1005 && \
     echo "sdk.dir=/Android" > local.properties && \
+    echo "{\"selfTest\": $SELF_TEST, \"port\": $PORT, \"apiKey\": \"$API_KEY\"}" > "wrapper.json" && \
+        cat "wrapper.json" && \
     ../gradle-7.0/bin/gradle wrapper --gradle-version 6.7.1 && \
-    ./gradlew clean && \
-    echo "PORT=$PORT, API_KEY=$API_KEY, SELF_TEST=$SELF_TEST"
+    ./gradlew clean
 
 EXPOSE $PORT
 
