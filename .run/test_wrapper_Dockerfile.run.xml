@@ -18,7 +18,7 @@
               <option name="value" value="YOUR_API_KEY" />
             </DockerEnvVarImpl>
             <DockerEnvVarImpl>
-              <option name="name" value="BRANCH" />
+              <option name="name" value="WRAPPERS_BRANCH" />
               <option name="value" value="FFM-1005" />
             </DockerEnvVarImpl>
           </list>

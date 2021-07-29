@@ -3,12 +3,12 @@ FROM fedora:34
 ARG PORT
 ARG API_KEY
 ARG SELF_TEST
-ARG BRANCH
+ARG WRAPPERS_BRANCH
 
 ENV PORT "$PORT"
 ENV API_KEY "$API_KEY"
 ENV SELF_TEST "$SELF_TEST"
-ENV BRANCH "$BRANCH"
+ENV WRAPPERS_BRANCH "$WRAPPERS_BRANCH"
 
 RUN dnf group install -y "Development Tools" && \
     sudo dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
@@ -23,7 +23,8 @@ RUN dnf group install -y "Development Tools" && \
     unzip "gradle-7.0-bin.zip" && \
     mkdir CFAndroidSDK && cd ./CFAndroidSDK && \
     git clone https://github.com/drone/ff-android-client-sdk.git . && \
-    git checkout "$BRANCH" && \
+    echo "Wrappers branch: $WRAPPERS_BRANCH" && \
+    git checkout "$WRAPPERS_BRANCH" && \
     echo "sdk.dir=/Android" > local.properties && \
     echo "{\"selfTest\": $SELF_TEST, \"port\": $PORT, \"apiKey\": \"$API_KEY\"}" > "wrapper.json" && \
         cat "wrapper.json" && \
