@@ -17,6 +17,10 @@
               <option name="name" value="API_KEY" />
               <option name="value" value="YOUR_API_KEY" />
             </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
+              <option name="name" value="BRANCH" />
+              <option name="value" value="FFM-1005" />
+            </DockerEnvVarImpl>
           </list>
         </option>
         <option name="buildCliOptions" value="" />
