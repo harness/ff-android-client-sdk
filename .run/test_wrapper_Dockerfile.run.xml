@@ -3,6 +3,22 @@
     <deployment type="dockerfile">
       <settings>
         <option name="imageTag" value="" />
+        <option name="buildArgs">
+          <list>
+            <DockerEnvVarImpl>
+              <option name="name" value="PORT" />
+              <option name="value" value="4000" />
+            </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
+              <option name="name" value="SELF_TEST" />
+              <option name="value" value="false" />
+            </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
+              <option name="name" value="API_KEY" />
+              <option name="value" value="YOUR_API_KEY" />
+            </DockerEnvVarImpl>
+          </list>
+        </option>
         <option name="buildCliOptions" value="" />
         <option name="command" value="" />
         <option name="containerName" value="" />

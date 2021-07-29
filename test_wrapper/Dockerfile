@@ -21,11 +21,13 @@ RUN dnf group install -y "Development Tools" && \
     unzip "gradle-7.0-bin.zip" && \
     mkdir CFAndroidSDK && cd ./CFAndroidSDK && \
     git clone https://github.com/drone/ff-android-client-sdk.git . && \
+    # TODO: Remove checkout after PR merge!
     git checkout FFM-1005 && \
     echo "sdk.dir=/Android" > local.properties && \
     ../gradle-7.0/bin/gradle wrapper --gradle-version 6.7.1 && \
     ./gradlew clean && \
-    ./gradlew test_wrapper:assemble
+    echo "PORT=$PORT, API_KEY=$API_KEY, SELF_TEST=$SELF_TEST"
 
+CMD  cd ./CFAndroidSDK && ./gradlew test_wrapper:assemble
 
 EXPOSE "$PORT"
