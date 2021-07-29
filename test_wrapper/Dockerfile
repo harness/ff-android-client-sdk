@@ -20,8 +20,9 @@ RUN dnf group install -y "Development Tools" && \
     echo y | ./sdkmanager "platform-tools" "platforms;android-30" "sources;android-30" \
         "build-tools;30.0.3" "add-ons;addon-google_apis-google-24" "cmdline-tools;latest" --sdk_root="/Android" && \
     cd / && wget "https://downloads.gradle-dn.com/distributions/gradle-7.0-bin.zip" && \
-    unzip "gradle-7.0-bin.zip" && \
-    mkdir CFAndroidSDK && cd ./CFAndroidSDK && \
+    unzip "gradle-7.0-bin.zip"
+
+RUN mkdir CFAndroidSDK && cd ./CFAndroidSDK && \
     git clone https://github.com/drone/ff-android-client-sdk.git . && \
     echo "Wrappers branch: $WRAPPERS_BRANCH" && \
     git checkout "$WRAPPERS_BRANCH" && \
