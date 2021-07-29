@@ -29,6 +29,6 @@ RUN dnf group install -y "Development Tools" && \
     ../gradle-7.0/bin/gradle wrapper --gradle-version 6.7.1 && \
     ./gradlew clean
 
-EXPOSE $PORT
+EXPOSE $PORT:$PORT
 
-CMD  cd ./CFAndroidSDK && ./gradlew test_wrapper:assemble && ./gradlew test_wrapper:test
+CMD  cd ./CFAndroidSDK && git fetch && git pull && ./gradlew test_wrapper:assemble && ./gradlew test_wrapper:test
