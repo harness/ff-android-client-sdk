@@ -34,6 +34,8 @@ RUN mkdir CFAndroidSDK && cd ./CFAndroidSDK && \
 EXPOSE $PORT:$PORT
 
 CMD  cd ./CFAndroidSDK && git fetch && git pull && \
-    ./gradlew test_wrapper:assemble
+    echo "Running" > /anchor && tail -F /anchor
+ #&& \
     # FIXME:
+#    ./gradlew test_wrapper:assemble
     # && ./gradlew test_wrapper:test
