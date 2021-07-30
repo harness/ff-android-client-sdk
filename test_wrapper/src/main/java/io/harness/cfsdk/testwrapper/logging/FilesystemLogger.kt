@@ -2,11 +2,23 @@ package io.harness.cfsdk.testwrapper.logging
 
 import io.harness.cfsdk.logging.CfLogging
 import net.milosvasic.logger.FilesystemLogger
+import java.io.File
 import java.lang.Exception
 
 class FilesystemLogger : CfLogging {
 
-    private val logger = FilesystemLogger()
+    private val logDir = File("Logs")
+    private val logger = FilesystemLogger(logDir)
+
+    init {
+
+        if (!logDir.exists()) {
+
+            logDir.mkdirs()
+        }
+
+        logger.setStructured(false)
+    }
 
     override fun v(tag: String, message: String) {
 
