@@ -10,6 +10,7 @@ import io.harness.cfsdk.testwrapper.capability.Termination
 import io.harness.cfsdk.testwrapper.client.WrapperClient
 import io.harness.cfsdk.testwrapper.context.ApiContextFactory
 import io.harness.cfsdk.testwrapper.context.SimpleContextFactory
+import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
@@ -26,7 +27,14 @@ data class WrapperServer(
 
     private val running = AtomicBoolean()
     private val tag = WrapperServer::class.simpleName
-    private val server: HttpServer = HttpServer.create(InetSocketAddress(port), 0)
+
+    private val server: HttpServer = HttpServer.create(
+
+        InetSocketAddress(
+
+            InetAddress.getLoopbackAddress(), port
+        ), 0
+    )
 
     private val serverContextFactories = listOf(
 
