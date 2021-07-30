@@ -29,7 +29,7 @@ RUN mkdir CFAndroidSDK && cd ./CFAndroidSDK && \
     git submodule init && git submodule update && \
     echo "sdk.dir=/Android" > local.properties && \
     echo "{\"selfTest\": $SELF_TEST, \"port\": $PORT, \"apiKey\": \"$API_KEY\", \"logger\": \"filesystem\"}" > "wrapper.json" && \
-        echo "wrapper.json:" && cat "wrapper.json" && \
+        echo "test_wrapper/wrapper.json:" && cat "test_wrapper/wrapper.json" && \
     ../gradle-7.0/bin/gradle wrapper --gradle-version 7.0 && ../gradle-7.0/bin/gradle --stop
 
 EXPOSE $PORT:$PORT
