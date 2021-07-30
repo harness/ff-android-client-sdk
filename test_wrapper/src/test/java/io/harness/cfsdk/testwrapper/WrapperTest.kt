@@ -63,8 +63,6 @@ class WrapperTest {
             val inputString = inputStream.bufferedReader().use { it.readText() }
             val config = Gson().fromJson(inputString, WrapperTestConfiguration::class.java)
 
-            CfLog.OUT.v(tag, "$config")
-
             selfTest = config.selfTest
             serverPort = config.port
             apiKey = config.apiKey
@@ -76,6 +74,8 @@ class WrapperTest {
 
                 CfLog.customMode(FilesystemLogger())
             }
+
+            CfLog.OUT.v(tag, "$config")
 
         } catch (e: NullPointerException) {
 
