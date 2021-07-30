@@ -23,7 +23,7 @@ RUN dnf group install -y "Development Tools" && \
     unzip "gradle-7.0-bin.zip"
 
 RUN mkdir CFAndroidSDK && cd ./CFAndroidSDK && \
-    git clone https://github.com/drone/ff-android-client-sdk.git . && \
+    git clone --recurse-submodules https://github.com/drone/ff-android-client-sdk.git . && \
     echo "Wrappers branch: $WRAPPERS_BRANCH" && \
     git checkout "$WRAPPERS_BRANCH" && \
     echo "sdk.dir=/Android" > local.properties && \
