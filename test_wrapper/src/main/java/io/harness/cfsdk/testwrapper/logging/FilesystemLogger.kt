@@ -1,76 +1,86 @@
 package io.harness.cfsdk.testwrapper.logging
 
 import io.harness.cfsdk.logging.CfLogging
+import net.milosvasic.logger.FilesystemLogger
+import java.lang.Exception
 
 class FilesystemLogger : CfLogging {
 
-    override fun v(tag: String?, message: String?) {
+    private val logger = FilesystemLogger()
 
-        TODO("Not yet implemented")
+    override fun v(tag: String, message: String) {
+
+        logger.v(tag, message)
     }
 
-    override fun v(tag: String?, message: String?, throwable: Throwable?) {
+    override fun v(tag: String, message: String, throwable: Throwable) {
 
-        TODO("Not yet implemented")
+        logger.w(tag, message)
+        logger.w(tag, Exception(throwable))
     }
 
-    override fun d(tag: String?, message: String?) {
+    override fun d(tag: String, message: String) {
 
-        TODO("Not yet implemented")
+        logger.d(tag, message)
     }
 
-    override fun d(tag: String?, message: String?, throwable: Throwable?) {
+    override fun d(tag: String, message: String, throwable: Throwable) {
 
-        TODO("Not yet implemented")
+        logger.e(tag, message)
+        logger.e(tag, Exception(throwable))
     }
 
-    override fun i(tag: String?, message: String?) {
+    override fun i(tag: String, message: String) {
 
-        TODO("Not yet implemented")
+        logger.i(tag, message)
     }
 
-    override fun i(tag: String?, message: String?, throwable: Throwable?) {
+    override fun i(tag: String, message: String, throwable: Throwable) {
 
-        TODO("Not yet implemented")
+        logger.e(tag, message)
+        logger.e(tag, Exception(throwable))
     }
 
-    override fun w(tag: String?, message: String?) {
+    override fun w(tag: String, message: String) {
 
-        TODO("Not yet implemented")
+        logger.w(tag, message)
     }
 
-    override fun w(tag: String?, message: String?, throwable: Throwable?) {
+    override fun w(tag: String, message: String, throwable: Throwable) {
 
-        TODO("Not yet implemented")
+        logger.w(tag, message)
+        logger.w(tag, Exception(throwable))
     }
 
-    override fun w(tag: String?, throwable: Throwable?) {
+    override fun w(tag: String, throwable: Throwable) {
 
-        TODO("Not yet implemented")
+        logger.w(tag, Exception(throwable))
     }
 
-    override fun e(tag: String?, message: String?) {
+    override fun e(tag: String, message: String) {
 
-        TODO("Not yet implemented")
+        logger.e(tag, message)
     }
 
-    override fun e(tag: String?, message: String?, throwable: Throwable?) {
+    override fun e(tag: String, message: String, throwable: Throwable) {
 
-        TODO("Not yet implemented")
+        logger.e(tag, message)
+        logger.e(tag, Exception(throwable))
     }
 
-    override fun wtf(tag: String?, message: String?) {
+    override fun wtf(tag: String, message: String) {
 
-        TODO("Not yet implemented")
+        logger.e(tag, message)
     }
 
-    override fun wtf(tag: String?, message: String?, throwable: Throwable?) {
+    override fun wtf(tag: String, message: String, throwable: Throwable) {
 
-        TODO("Not yet implemented")
+        logger.e(tag, message)
+        logger.e(tag, Exception(throwable))
     }
 
-    override fun wtf(tag: String?, throwable: Throwable?) {
+    override fun wtf(tag: String, throwable: Throwable) {
 
-        TODO("Not yet implemented")
+        logger.e(tag, Exception(throwable))
     }
 }
