@@ -32,7 +32,7 @@ data class WrapperServer(
 
         InetSocketAddress(
 
-            InetAddress.getLoopbackAddress(), port
+            InetAddress.getByName("0.0.0.0"), port
         ), 0
     )
 
