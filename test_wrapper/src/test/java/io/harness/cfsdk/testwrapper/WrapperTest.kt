@@ -7,6 +7,8 @@ import io.harness.cfsdk.CfConfiguration
 import io.harness.cfsdk.cloud.model.Target
 import io.harness.cfsdk.logging.CfLog
 import io.harness.cfsdk.testwrapper.context.api.*
+import io.harness.cfsdk.testwrapper.logging.FilesystemLogger
+import io.harness.cfsdk.testwrapper.logging.LoggerType
 import io.harness.cfsdk.utils.CfUtils
 import org.json.JSONObject
 import org.junit.Assert
@@ -41,6 +43,11 @@ class WrapperTest {
      */
     private var apiKey = "YOUR_API_KEY"
 
+    /**
+     * Will we write logs to the log ile or to the system console?
+     */
+    private var filesystemLogger = false
+
     lateinit var server: WrapperServer
     private val tag = WrapperTest::class.simpleName
 
@@ -61,6 +68,14 @@ class WrapperTest {
             selfTest = config.selfTest
             serverPort = config.port
             apiKey = config.apiKey
+
+            val loggerType = config.logger
+            filesystemLogger = loggerType == LoggerType.FILESYSTEM.type
+
+            if (filesystemLogger) {
+
+                CfLog.customMode(FilesystemLogger())
+            }
 
         } catch (e: NullPointerException) {
 
