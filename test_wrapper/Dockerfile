@@ -26,6 +26,7 @@ RUN mkdir CFAndroidSDK && cd ./CFAndroidSDK && \
     git clone --recurse-submodules https://github.com/drone/ff-android-client-sdk.git . && \
     echo "Wrappers branch: $WRAPPERS_BRANCH" && \
     git checkout "$WRAPPERS_BRANCH" && \
+    git submodule init && git submodule update && \
     echo "sdk.dir=/Android" > local.properties && \
     echo "{\"selfTest\": $SELF_TEST, \"port\": $PORT, \"apiKey\": \"$API_KEY\", \"logger\": \"filesystem\"}" > "wrapper.json" && \
         echo "wrapper.json:" && cat "wrapper.json" && \
