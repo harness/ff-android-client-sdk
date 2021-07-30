@@ -33,7 +33,7 @@ RUN mkdir CFAndroidSDK && cd ./CFAndroidSDK && \
         echo "wrapper.json:" && cat "test_wrapper/wrapper.json" && \
     ../gradle-7.0/bin/gradle wrapper --gradle-version 7.0 && ../gradle-7.0/bin/gradle --stop
 
-EXPOSE $PORT:$PORT
+EXPOSE $PORT
 
 CMD cd ./CFAndroidSDK && git fetch && git pull && \
     echo "Preparing the build" && \
