@@ -6,7 +6,7 @@ Make sure that the configuration file is defined (`wrapper.json`):
 
 ```json
 {
-  "selfTest": true,
+  "selfTest": false,
   "port": 4000,
   "apiKey": "YOUR_API_KEY"
 }
