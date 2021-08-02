@@ -18,7 +18,7 @@ Or, to run test wrapper inside the Docker container execute the following sample
 
 ```
 docker build --build-arg PORT=4000 --build-arg SELF_TEST=false --build-arg \ 
-    API_KEY=~YOUR_API_KEY --build-arg WRAPPERS_BRANCH=main -t <image_tag> . && \ 
+    API_KEY=YOUR_API_KEY --build-arg WRAPPERS_BRANCH=main -t <image_tag> . && \ 
     docker run -p 0.0.0.0:4000:4000 --name android_test_wrapper <image_tag> 
 ```
 
