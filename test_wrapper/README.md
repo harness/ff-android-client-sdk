@@ -14,4 +14,15 @@ Inside the root of the `test_wrappers` directory make sure that the configuratio
 
 ## Running test wrapper inside a container
 
-Tbd.
+To run test wrapper inside the container execute the following sample command:
+
+```
+docker build --build-arg PORT=4000 --build-arg SELF_TEST=false --build-arg \ 
+    API_KEY=~YOUR_API_KEY --build-arg WRAPPERS_BRANCH=main -t <image_tag> . && \ 
+    docker run -p 0.0.0.0:4000:4000 --name android_test_wrapper <image_tag> 
+```
+
+Where the following arguments must be provided:
+
+- `PORT` represents the port that will be used
+- `API_KEY` represents your FF API KEY.
