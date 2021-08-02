@@ -15,7 +15,7 @@
             </DockerEnvVarImpl>
             <DockerEnvVarImpl>
               <option name="name" value="API_KEY" />
-              <option name="value" value="466ace3c-5ee4-4348-903a-295a7164107a" />
+              <option name="value" value="YOUR_API_KEY" />
             </DockerEnvVarImpl>
             <DockerEnvVarImpl>
               <option name="name" value="WRAPPERS_BRANCH" />
@@ -27,6 +27,15 @@
         <option name="command" value="" />
         <option name="containerName" value="android_test_wrapper" />
         <option name="entrypoint" value="" />
+        <option name="portBindings">
+          <list>
+            <DockerPortBindingImpl>
+              <option name="containerPort" value="4000" />
+              <option name="hostIp" value="0.0.0.0" />
+              <option name="hostPort" value="4000" />
+            </DockerPortBindingImpl>
+          </list>
+        </option>
         <option name="commandLineOptions" value="" />
         <option name="sourceFilePath" value="test_wrapper/Dockerfile" />
       </settings>
