@@ -14,7 +14,7 @@ Inside the root of the `test_wrappers` directory make sure that the configuratio
 
 ## Running test wrapper inside a container
 
-To run test wrapper inside the container execute the following sample command:
+Or, to run test wrapper inside the Docker container execute the following sample command:
 
 ```
 docker build --build-arg PORT=4000 --build-arg SELF_TEST=false --build-arg \ 
@@ -26,3 +26,9 @@ Where the following arguments must be provided:
 
 - `PORT` represents the port that will be used
 - `API_KEY` represents your FF API KEY.
+
+Docker image will be created and container started.
+
+## Using test wrapper
+
+Tbd. 
