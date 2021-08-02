@@ -2,7 +2,7 @@
 
 ## Configuration
 
-Inside the root of the `test_wrappers` directory make sure that the configuration file is defined:
+Make sure that the configuration file is defined (`wrapper.json`):
 
 ```json
 {
