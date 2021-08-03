@@ -19,7 +19,7 @@
             </DockerEnvVarImpl>
             <DockerEnvVarImpl>
               <option name="name" value="WRAPPERS_BRANCH" />
-              <option name="value" value="FFM-1005" />
+              <option name="value" value="main" />
             </DockerEnvVarImpl>
           </list>
         </option>
