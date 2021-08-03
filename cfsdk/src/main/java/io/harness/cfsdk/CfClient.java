@@ -11,7 +11,6 @@ import org.json.JSONObject;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -53,14 +52,15 @@ public class CfClient implements Destroyable {
 
     protected ICloud cloud;
     protected Target target;
+    protected static CfClient instance;
     protected boolean analyticsEnabled;
+    protected NetworkInfoProviding networkInfoProvider;
 
     private AuthInfo authInfo;
     private boolean useStream;
     private final String logTag;
     private volatile boolean ready;
     private final Executor executor;
-    private static CfClient instance;
     private SSEControlling sseController;
     private CfConfiguration configuration;
     private final CloudFactory cloudFactory;
@@ -68,7 +68,6 @@ public class CfClient implements Destroyable {
     private FeatureRepository featureRepository;
     private EvaluationPolling evaluationPolling;
     private final Executor listenerUpdateExecutor;
-    private NetworkInfoProviding networkInfoProvider;
     private final Set<EventsListener> eventsListenerSet;
     private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet;
 
@@ -162,9 +161,9 @@ public class CfClient implements Destroyable {
     private void sendEvent(StatusEvent statusEvent) {
 
         listenerUpdateExecutor.execute(() -> {
-            Iterator<EventsListener> iterator = eventsListenerSet.iterator();
-            while (iterator.hasNext()) {
-                EventsListener listener = iterator.next();
+
+            for (EventsListener listener : eventsListenerSet) {
+
                 listener.onEventReceived(statusEvent);
             }
         });
@@ -243,7 +242,7 @@ public class CfClient implements Destroyable {
         });
     }
 
-    private void setupNetworkInfo(Context context) {
+    protected void setupNetworkInfo(Context context) {
 
         if (networkInfoProvider != null) {
 
@@ -301,20 +300,51 @@ public class CfClient implements Destroyable {
             final CloudCache cloudCache,
             @Nullable final AuthCallback authCallback
     ) {
+
+        setupNetworkInfo(context);
+        doInitialize(apiKey, configuration, target, cloudCache, authCallback);
+    }
+
+    public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target, AuthCallback authCallback) {
+
+        initialize(context, apiKey, configuration, target, cloudFactory.defaultCache(context), authCallback);
+    }
+
+    public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target, CloudCache cloudCache) {
+
+        initialize(context, apiKey, configuration, target, cloudCache, null);
+    }
+
+    public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target) {
+
+        initialize(context, apiKey, configuration, target, cloudFactory.defaultCache(context));
+    }
+
+    protected void doInitialize(
+
+            final String apiKey,
+            final CfConfiguration configuration,
+            final Target target,
+            final CloudCache cloudCache,
+            @Nullable final AuthCallback authCallback
+    ) {
+
         this.configuration = configuration;
+
+        if (target == null || configuration == null) {
+            if (authCallback != null) {
+
+                final String message = "Target and configuration must not be null!";
+                final IllegalArgumentException error = new IllegalArgumentException(message);
+                final AuthResult result = new AuthResult(false, error);
+                authCallback.authorizationSuccess(authInfo, result);
+            }
+            return;
+        }
+
         try {
+
             executor.execute(() -> {
-
-                if (target == null || configuration == null) {
-                    if (authCallback != null) {
-
-                        final String message = "Target and configuration must not be null!";
-                        final IllegalArgumentException error = new IllegalArgumentException(message);
-                        final AuthResult result = new AuthResult(false, error);
-                        authCallback.authorizationSuccess(authInfo, result);
-                    }
-                    return;
-                }
 
                 unregister();
                 this.target = target;
@@ -326,7 +356,6 @@ public class CfClient implements Destroyable {
                         target
                 );
 
-                setupNetworkInfo(context);
                 featureRepository = cloudFactory.getFeatureRepository(cloud, cloudCache);
                 evaluationPolling = cloudFactory.evaluationPolling(configuration.getPollingInterval(), TimeUnit.SECONDS);
 
@@ -394,19 +423,9 @@ public class CfClient implements Destroyable {
                 final AuthResult result = new AuthResult(false, e);
                 authCallback.authorizationSuccess(authInfo, result);
             }
+
+            destroy();
         }
-    }
-
-    public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target, AuthCallback authCallback) {
-        initialize(context, apiKey, configuration, target, cloudFactory.defaultCache(context), authCallback);
-    }
-
-    public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target, CloudCache cloudCache) {
-        initialize(context, apiKey, configuration, target, cloudCache, null);
-    }
-
-    public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target) {
-        initialize(context, apiKey, configuration, target, cloudFactory.defaultCache(context));
     }
 
     /**
@@ -627,6 +646,11 @@ public class CfClient implements Destroyable {
         }
         this.evaluationListenerSet.clear();
         eventsListenerSet.clear();
+
+        if (networkInfoProvider != null) {
+
+            networkInfoProvider.unregisterAll();
+        }
     }
 
     @NotNull

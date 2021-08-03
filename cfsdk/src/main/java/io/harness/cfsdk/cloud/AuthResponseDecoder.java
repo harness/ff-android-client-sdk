@@ -20,10 +20,16 @@ public class AuthResponseDecoder {
 
     public @Nullable
     AuthInfo extractInfo(String token) {
-        if (token == null) return null;
+
+        if (token == null) {
+
+            return null;
+        }
         try {
-            String[] body = token.split("[.]");
+
+            String[] body = splitToken(token);
             if (body.length > 2) {
+
                 byte[] decoded = Base64.decode(body[1], Base64.DEFAULT);
                 String decodeData = new String(decoded);
                 Gson gson = new Gson();
@@ -34,5 +40,10 @@ public class AuthResponseDecoder {
             CfLog.OUT.e(logTag, e.getMessage(), e);
         }
         return null;
+    }
+
+    protected String[] splitToken(String token) {
+
+        return token.split("[.]");
     }
 }

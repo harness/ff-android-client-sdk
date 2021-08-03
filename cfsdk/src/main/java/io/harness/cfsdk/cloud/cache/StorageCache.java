@@ -24,12 +24,14 @@ public class StorageCache implements CloudCache {
     }
 
     public StorageCache(Context appContext) {
+
         this.appContextWeakRef = new WeakReference<>(appContext);
     }
 
 
     @Override
     public Evaluation getEvaluation(String key) {
+
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(appContextWeakRef.get());
         String result = preferences.getString(key, null);
         return gson.fromJson(result, Evaluation.class);

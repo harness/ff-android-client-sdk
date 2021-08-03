@@ -58,4 +58,18 @@ public class AuthInfo {
 
         return clusterIdentifier;
     }
+
+    @Override
+    public String toString() {
+
+        return "AuthInfo{" +
+                "project='" + project + '\'' +
+                ", environment='" + environment + '\'' +
+                ", projectIdentifier='" + projectIdentifier + '\'' +
+                ", environmentIdentifier='" + environmentIdentifier + '\'' +
+                ", accountID='" + accountID + '\'' +
+                ", organization='" + organization + '\'' +
+                ", clusterIdentifier='" + clusterIdentifier + '\'' +
+                '}';
+    }
 }

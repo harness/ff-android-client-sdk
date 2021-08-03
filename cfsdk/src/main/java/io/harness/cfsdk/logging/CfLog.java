@@ -32,4 +32,14 @@ public class CfLog {
 
         OUT = new CfLogStrategyDefault();
     }
+
+    /**
+     * Set the custom logging strategy.
+     *
+     * @param logging Logging strategy to set.
+     */
+    public static void customMode(CfLogging logging) {
+
+        OUT = logging;
+    }
 }

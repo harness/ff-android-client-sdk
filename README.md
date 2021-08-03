@@ -158,6 +158,14 @@ To avoid potential memory leak, when SDK is no longer needed (when the app is cl
 CfClient.getInstance().destroy()
 ```
 
+## Cloning the SDK repository
+
+In order to clone SDK repository properly perform cloning like in the following example:
+
+```
+git clone --recurse-submodules git@github.com:drone/ff-android-client-sdk.git
+``` 
+
 ## Using SDK in unit tests
 
 To be able to use the SDK in unit tests it is required to set SDKs logging to the console output:
