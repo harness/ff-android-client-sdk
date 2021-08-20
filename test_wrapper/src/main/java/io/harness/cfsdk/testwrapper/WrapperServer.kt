@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 data class WrapperServer(
 
     private val port: Int,
-    private val apiKey: String,
+    private val sdkKey: String,
     private val target: Target,
     private val configuration: CfConfiguration
 
@@ -57,7 +57,7 @@ data class WrapperServer(
 
         (WrapperClient.getInstance() as WrapperClient).initialize(
 
-            apiKey,
+            sdkKey,
             configuration,
             target
 

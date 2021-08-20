@@ -15,7 +15,7 @@
             </DockerEnvVarImpl>
             <DockerEnvVarImpl>
               <option name="name" value="API_KEY" />
-              <option name="value" value="YOUR_API_KEY" />
+              <option name="value" value="466ace3c-5ee4-4348-903a-295a7164107a" />
             </DockerEnvVarImpl>
             <DockerEnvVarImpl>
               <option name="name" value="WRAPPERS_BRANCH" />

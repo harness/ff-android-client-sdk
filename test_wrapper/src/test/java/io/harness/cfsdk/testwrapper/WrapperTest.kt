@@ -41,7 +41,22 @@ class WrapperTest {
     /**
      * API key used to initialize the SDK.
      */
-    private var apiKey = "YOUR_API_KEY"
+    private var sdkKey = "YOUR_SDK_KEY"
+
+    /**
+     * Enable SSE streaming.
+     */
+    private var enableStreaming = true
+
+    /**
+     * SDK event URL to be used.
+     */
+    private var eventUrl = ""
+
+    /**
+     * SDK base URL to be used.
+     */
+    private var sdkBaseUrl = ""
 
     /**
      * Will we write logs to the log ile or to the system console?
@@ -63,9 +78,20 @@ class WrapperTest {
             val inputString = inputStream.bufferedReader().use { it.readText() }
             val config = Gson().fromJson(inputString, WrapperTestConfiguration::class.java)
 
+            Assert.assertNotNull(config)
+            Assert.assertNotNull(config.selfTest)
+            Assert.assertNotNull(config.port)
+            Assert.assertNotNull(config.sdkKey)
+            Assert.assertNotNull(config.enableStreaming)
+            Assert.assertNotNull(config.eventUrl)
+            Assert.assertNotNull(config.sdkBaseUrl)
+
             selfTest = config.selfTest
             serverPort = config.port
-            apiKey = config.apiKey
+            sdkKey = config.sdkKey
+            enableStreaming = config.enableStreaming
+            eventUrl = config.eventUrl
+            sdkBaseUrl = config.sdkBaseUrl
 
             val loggerType = config.logger
             filesystemLogger = loggerType == LoggerType.FILESYSTEM.type
@@ -105,7 +131,9 @@ class WrapperTest {
 
         val configuration = CfConfiguration.Builder()
             .enableAnalytics(true)
-            .enableStream(true)
+            .enableStream(enableStreaming)
+            .baseUrl(sdkBaseUrl)
+            .streamUrl(eventUrl)
             .pollingInterval(60)
             .build()
 
@@ -115,7 +143,7 @@ class WrapperTest {
         server = WrapperServer(
 
             port = serverPort,
-            apiKey = apiKey,
+            sdkKey = sdkKey,
             target = target,
             configuration = configuration
         )

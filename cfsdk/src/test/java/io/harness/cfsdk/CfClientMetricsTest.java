@@ -41,7 +41,7 @@ public class CfClientMetricsTest {
 
         final String mock = "mock";
         final MockedCfClient cfClient = new MockedCfClient(cloudFactory);
-        final String apiKey = String.valueOf(System.currentTimeMillis());
+        final String sdkKey = String.valueOf(System.currentTimeMillis());
 
         final MockedCfConfiguration cfConfiguration = new MockedCfConfiguration(
 
@@ -58,7 +58,7 @@ public class CfClientMetricsTest {
         cfClient.initialize(
 
                 context,
-                apiKey,
+                sdkKey,
                 cfConfiguration,
                 new Target().identifier("target"),
 
