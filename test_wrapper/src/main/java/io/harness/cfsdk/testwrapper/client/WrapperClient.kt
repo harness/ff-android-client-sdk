@@ -27,7 +27,7 @@ class WrapperClient(cloudFactory: CloudFactory?) : CfClient(cloudFactory) {
 
     fun initialize(
 
-        apiKey: String?,
+        sdkKey: String?,
         configuration: CfConfiguration?,
         target: Target?,
         authCallback: AuthCallback?
@@ -36,7 +36,7 @@ class WrapperClient(cloudFactory: CloudFactory?) : CfClient(cloudFactory) {
         setupNetworkInfo()
         doInitialize(
 
-            apiKey,
+            sdkKey,
             configuration,
             target,
             InMemoryCacheImpl(TmpStorage()),

@@ -14,10 +14,6 @@
               <option name="value" value="false" />
             </DockerEnvVarImpl>
             <DockerEnvVarImpl>
-              <option name="name" value="API_KEY" />
-              <option name="value" value="YOUR_API_KEY" />
-            </DockerEnvVarImpl>
-            <DockerEnvVarImpl>
               <option name="name" value="WRAPPERS_BRANCH" />
               <option name="value" value="main" />
             </DockerEnvVarImpl>
@@ -27,6 +23,26 @@
         <option name="command" value="" />
         <option name="containerName" value="android_test_wrapper" />
         <option name="entrypoint" value="" />
+        <option name="envVars">
+          <list>
+            <DockerEnvVarImpl>
+              <option name="name" value="SDK_KEY" />
+              <option name="value" value="YOUR_SDK_KEY" />
+            </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
+              <option name="name" value="ENABLE_STREAMING" />
+              <option name="value" value="yes" />
+            </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
+              <option name="name" value="EVENT_URL" />
+              <option name="value" value="https://events.ff.harness.io/api/1.0" />
+            </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
+              <option name="name" value="SDK_BASE_URL" />
+              <option name="value" value="https://config.ff.harness.io/api/1.0" />
+            </DockerEnvVarImpl>
+          </list>
+        </option>
         <option name="portBindings">
           <list>
             <DockerPortBindingImpl>

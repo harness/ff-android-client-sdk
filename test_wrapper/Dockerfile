@@ -1,12 +1,10 @@
 FROM fedora:34
 
 ARG PORT
-ARG API_KEY
 ARG SELF_TEST
 ARG WRAPPERS_BRANCH
 
 ENV PORT "$PORT"
-ENV API_KEY "$API_KEY"
 ENV SELF_TEST "$SELF_TEST"
 ENV WRAPPERS_BRANCH "$WRAPPERS_BRANCH"
 
@@ -28,14 +26,14 @@ RUN mkdir CFAndroidSDK && cd ./CFAndroidSDK && \
     git checkout "$WRAPPERS_BRANCH" && \
     git submodule init && git submodule update && \
     echo "sdk.dir=/Android" > local.properties && \
-    echo "{\"selfTest\": $SELF_TEST, \"port\": $PORT, \"apiKey\": \"$API_KEY\", \"logger\": \"filesystem\"}" \
-        > "test_wrapper/wrapper.json" && \
-        echo "wrapper.json:" && cat "test_wrapper/wrapper.json" && \
     ../gradle-7.0/bin/gradle wrapper --gradle-version 7.0 && ../gradle-7.0/bin/gradle --stop
 
 EXPOSE $PORT
 
 CMD cd ./CFAndroidSDK && git fetch && git pull && \
+    echo "{\"selfTest\": $SELF_TEST, \"port\": $PORT, \"sdkKey\": \"$SDK_KEY\", \"logger\": \"filesystem\", \"enableStreaming\": $ENABLE_STREAMING, \"eventUrl\": \"$EVENT_URL\", \"sdkBaseUrl\": \"$SDK_BASE_URL\"}" \
+        > "test_wrapper/wrapper.json" && \
+    echo "wrapper.json:" && cat "test_wrapper/wrapper.json" && \
     echo "Preparing the build" && \
     ./gradlew --stop && ./gradlew clean --stacktrace && \
     echo "Assembling the build" && \

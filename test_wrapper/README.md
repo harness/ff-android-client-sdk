@@ -6,27 +6,30 @@ Make sure that the configuration file is defined (`wrapper.json`):
 
 ```json
 {
-  "selfTest": false,
+  "selfTest": true,
   "port": 4000,
-  "apiKey": "YOUR_API_KEY"
+  "sdkKey": "YOUR_SDK_KEY",
+  "enableStreaming": true,
+  "eventUrl": "https://events.ff.harness.io/api/1.0",
+  "sdkBaseUrl": "https://config.ff.harness.io/api/1.0",
+  "logger": "default"
 }
 ```
 
 ## Running test wrapper inside a container
 
-Or, to run test wrapper inside the Docker container execute the following sample command:
+Or, to run test wrapper inside the Docker container build and run Dockerfile with following arguments:
 
-```
-docker build --build-arg PORT=4000 --build-arg SELF_TEST=false --build-arg \ 
-    API_KEY=YOUR_API_KEY --build-arg WRAPPERS_BRANCH=main -t <image_tag> . && \ 
-    docker run -p 0.0.0.0:4000:4000 --name android_test_wrapper <image_tag> 
-```
+- Build arguments:
 
-Where the following arguments must be provided:
+-- `PORT` represents the port that will be used
 
-- `PORT` represents the port that will be used
-- `API_KEY` represents your FF API KEY
-- `<image_tag>` Docker image tag name.
+- Environment variables:
+
+-- `SDK_KEY` represents your FF SDK KEY
+-- `ENABLE_STREAMING` True if we want to receive SSE events from the server
+-- `EVENT_URL` represents FF SDK SSE endpoint
+-- `SDK_BASE_URL` represents FF SDK base endpoint.
 
 Docker image will be created and container started.
 
