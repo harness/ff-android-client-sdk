@@ -302,22 +302,72 @@ public class CfClient implements Destroyable {
     ) {
 
         setupNetworkInfo(context);
-        doInitialize(apiKey, configuration, target, cloudCache, authCallback);
+        doInitialize(
+
+                apiKey,
+                configuration,
+                target,
+                cloudCache,
+                authCallback
+        );
     }
 
-    public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target, AuthCallback authCallback) {
+    public void initialize(
 
-        initialize(context, apiKey, configuration, target, cloudFactory.defaultCache(context), authCallback);
+            final Context context,
+            final String apiKey,
+            final CfConfiguration configuration,
+            final Target target,
+            final AuthCallback authCallback
+    ) {
+
+        initialize(
+
+                context,
+                apiKey,
+                configuration,
+                target,
+                cloudFactory.defaultCache(context),
+                authCallback
+        );
     }
 
-    public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target, CloudCache cloudCache) {
+    public void initialize(
 
-        initialize(context, apiKey, configuration, target, cloudCache, null);
+            final Context context,
+            final String apiKey,
+            final CfConfiguration configuration,
+            final Target target,
+            final CloudCache cloudCache
+    ) {
+
+        initialize(
+
+                context,
+                apiKey,
+                configuration,
+                target,
+                cloudCache,
+                null
+        );
     }
 
-    public void initialize(Context context, String apiKey, CfConfiguration configuration, Target target) {
+    public void initialize(
 
-        initialize(context, apiKey, configuration, target, cloudFactory.defaultCache(context));
+            final Context context,
+            final String apiKey,
+            final CfConfiguration configuration,
+            final Target target
+    ) {
+
+        initialize(
+
+                context,
+                apiKey,
+                configuration,
+                target,
+                cloudFactory.defaultCache(context)
+        );
     }
 
     protected void doInitialize(
