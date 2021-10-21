@@ -133,11 +133,21 @@ public class CfClient implements Destroyable {
     };
 
     /**
-     * Base constructor, used internally. Use {@link CfClient#getInstance()} to get instance of this class.
+     * Base constructor.
+     *
+     * @param cloudFactory Cloud factory responsible for handling API.
      */
-    protected CfClient(CloudFactory cloudFactory) {
+    public CfClient(CloudFactory cloudFactory) {
 
         this.cloudFactory = cloudFactory;
+    }
+
+    /**
+     * Base constructor.
+     */
+    public CfClient() {
+
+        cloudFactory = new CloudFactory();
     }
 
     /**
@@ -290,6 +300,7 @@ public class CfClient implements Destroyable {
      * @param target        Desired target against which we want features to be evaluated
      * @param cloudCache    Custom {@link CloudCache} implementation. If non provided, the default implementation will be used
      * @param authCallback  The callback that will be invoked when initialization is finished
+     * @throws IllegalStateException If already initialized
      */
     public void initialize(
 
@@ -299,7 +310,13 @@ public class CfClient implements Destroyable {
             final Target target,
             final CloudCache cloudCache,
             @Nullable final AuthCallback authCallback
-    ) {
+
+    ) throws IllegalStateException {
+
+        if (ready) {
+
+            throw new IllegalStateException("Already initialized");
+        }
 
         setupNetworkInfo(context);
         doInitialize(
@@ -312,6 +329,17 @@ public class CfClient implements Destroyable {
         );
     }
 
+    /**
+     * Initialize the client and sets up needed dependencies. Upon called, it is dispatched to another thread and result is returned trough
+     * provided {@link AuthCallback} instance.
+     *
+     * @param context       Context of application
+     * @param apiKey        API key used for authentication
+     * @param configuration Collection of different configuration flags, which defined the behaviour of SDK
+     * @param target        Desired target against which we want features to be evaluated
+     * @param authCallback  The callback that will be invoked when initialization is finished
+     * @throws IllegalStateException If already initialized
+     */
     public void initialize(
 
             final Context context,
@@ -319,7 +347,8 @@ public class CfClient implements Destroyable {
             final CfConfiguration configuration,
             final Target target,
             final AuthCallback authCallback
-    ) {
+
+    ) throws IllegalStateException {
 
         initialize(
 
@@ -332,6 +361,17 @@ public class CfClient implements Destroyable {
         );
     }
 
+    /**
+     * Initialize the client and sets up needed dependencies. Upon called, it is dispatched to another thread and result is returned trough
+     * provided {@link AuthCallback} instance.
+     *
+     * @param context       Context of application
+     * @param apiKey        API key used for authentication
+     * @param configuration Collection of different configuration flags, which defined the behaviour of SDK
+     * @param target        Desired target against which we want features to be evaluated
+     * @param cloudCache    Custom {@link CloudCache} implementation. If non provided, the default implementation will be used
+     * @throws IllegalStateException If already initialized
+     */
     public void initialize(
 
             final Context context,
@@ -339,7 +379,8 @@ public class CfClient implements Destroyable {
             final CfConfiguration configuration,
             final Target target,
             final CloudCache cloudCache
-    ) {
+
+    ) throws IllegalStateException {
 
         initialize(
 
@@ -352,13 +393,24 @@ public class CfClient implements Destroyable {
         );
     }
 
+    /**
+     * Initialize the client and sets up needed dependencies. Upon called, it is dispatched to another thread and result is returned trough
+     * provided {@link AuthCallback} instance.
+     *
+     * @param context       Context of application
+     * @param apiKey        API key used for authentication
+     * @param configuration Collection of different configuration flags, which defined the behaviour of SDK
+     * @param target        Desired target against which we want features to be evaluated
+     * @throws IllegalStateException If already initialized
+     */
     public void initialize(
 
             final Context context,
             final String apiKey,
             final CfConfiguration configuration,
             final Target target
-    ) {
+
+    ) throws IllegalStateException {
 
         initialize(
 
