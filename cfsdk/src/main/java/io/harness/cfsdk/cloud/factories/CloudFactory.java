@@ -6,7 +6,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 
-import io.harness.cfsdk.BuildConfig;
 import io.harness.cfsdk.cloud.AuthResponseDecoder;
 import io.harness.cfsdk.cloud.Cloud;
 import io.harness.cfsdk.cloud.FeatureService;
@@ -89,7 +88,7 @@ public class CloudFactory implements ICloudFactory {
     public ApiClient apiClient() {
 
         final ApiClient apiClient = new ApiClient();
-        apiClient.setUserAgent("android " + BuildConfig.APP_VERSION_NAME);
+        apiClient.setUserAgent("android 1.0.4");
         String hostname = "UnknownHost";
         try {
 

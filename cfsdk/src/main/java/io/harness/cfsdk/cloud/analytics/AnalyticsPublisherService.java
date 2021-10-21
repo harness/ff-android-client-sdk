@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.harness.cfsdk.BuildConfig;
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.api.DefaultApi;
 import io.harness.cfsdk.cloud.analytics.cache.Cache;
@@ -164,7 +163,7 @@ public class AnalyticsPublisherService {
             setMetricsAttributes(metricsData, TARGET_ATTRIBUTE, GLOBAL_TARGET);
             setMetricsAttributes(metricsData, SDK_TYPE, CLIENT);
             setMetricsAttributes(metricsData, SDK_LANGUAGE, "android");
-            setMetricsAttributes(metricsData, SDK_VERSION, BuildConfig.APP_VERSION_NAME);
+            setMetricsAttributes(metricsData, SDK_VERSION, "1.0.4");
 
             metrics.addMetricsDataItem(metricsData);
         }
