@@ -21,31 +21,7 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 
-/**
- * OkSse is a plugin for OkHttp library that extends its functionality to create a Server Sent Event client.
- * <p>
- * The usage of this class follows the same logic as any OkHttp request.
- * <p>
- * <p>Use {@code new OkSse()} to create a new instance with a new instance of {@link OkHttpClient} with default settings
- * <pre>   {@code
- *
- *   // The singleton HTTP client.
- *   public final OkSse okSseClient = new OkSse();
- * }</pre>
- * <p>
- * <p>Use {@code new OkSse(okHttpClient)} to create a new instance that shares the instance of {@link OkHttpClient}.
- * This would be the prefered way, since the resources of the OkHttpClient will be reused for the SSE
- * <pre>   {@code
- *
- *   // The singleton HTTP client.
- *   public final OkSse okSseClient = new OkSse(okHttpClient);
- * }</pre>
- * <p>
- * To create a new {@link ServerSentEvent} call {@link OkSse#newServerSentEvent(Request, ServerSentEvent.Listener, SSEAuthentication)}}
- * giving the desired {@link Request}. Note that must be a GET request.
- * <p>
- * OkSse will make sure to build the proper parameters needed for SSE conneciton and return the instance.
- */
+
 public class OkSse {
 
     private final OkHttpClient client;

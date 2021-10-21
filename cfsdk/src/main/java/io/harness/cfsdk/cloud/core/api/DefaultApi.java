@@ -69,14 +69,6 @@ public class DefaultApi {
      * @param _callback             Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     *                      <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
-     *                      <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
-     *                      <tr><td> 404 </td><td> The specified resource was not found </td><td>  -  </td></tr>
-     *                      <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
-     *                      </table>
      */
     public okhttp3.Call authenticateCall(
 
@@ -127,15 +119,6 @@ public class DefaultApi {
      * @param authenticationRequest (optional)
      * @return AuthenticationResponse
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
-     *
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     *                      <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
-     *                      <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
-     *                      <tr><td> 404 </td><td> The specified resource was not found </td><td>  -  </td></tr>
-     *                      <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
-     *                      </table>
      */
     public AuthenticationResponse authenticate(AuthenticationRequest authenticationRequest) throws ApiException {
 
@@ -156,15 +139,6 @@ public class DefaultApi {
      * @param authenticationRequest (optional)
      * @return ApiResponse&lt;AuthenticationResponse&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
-     *
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     *                      <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
-     *                      <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
-     *                      <tr><td> 404 </td><td> The specified resource was not found </td><td>  -  </td></tr>
-     *                      <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
-     *                      </table>
      */
     public ApiResponse<AuthenticationResponse> authenticateWithHttpInfo(AuthenticationRequest authenticationRequest) throws ApiException {
 
@@ -182,15 +156,6 @@ public class DefaultApi {
      * @param _callback             The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
-     *
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     *                      <tr><td> 401 </td><td> Unauthenticated </td><td>  -  </td></tr>
-     *                      <tr><td> 403 </td><td> Unauthorized </td><td>  -  </td></tr>
-     *                      <tr><td> 404 </td><td> The specified resource was not found </td><td>  -  </td></tr>
-     *                      <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
-     *                      </table>
      */
     public okhttp3.Call authenticateAsync(AuthenticationRequest authenticationRequest, final ApiCallback<AuthenticationResponse> _callback) throws ApiException {
 
@@ -211,11 +176,6 @@ public class DefaultApi {
      * @param _callback       Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
-     *
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     *                      </table>
      */
     public okhttp3.Call getEvaluationByIdentifierCall(
 
@@ -300,11 +260,6 @@ public class DefaultApi {
      * @param cluster         Cluster identifier.
      * @return Evaluation
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
-     *
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     *                      </table>
      */
     public Evaluation getEvaluationByIdentifier(
 
@@ -336,11 +291,6 @@ public class DefaultApi {
      * @param cluster         Cluster identifier.
      * @return ApiResponse&lt;Evaluation&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
-     *
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     *                      </table>
      */
     public ApiResponse<Evaluation> getEvaluationByIdentifierWithHttpInfo(
 
@@ -369,11 +319,6 @@ public class DefaultApi {
      * @param _callback       The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
-     *
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     *                      </table>
      */
     public okhttp3.Call getEvaluationByIdentifierAsync(
 
@@ -405,11 +350,6 @@ public class DefaultApi {
      * @param _callback       Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
-     *
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     *                      </table>
      */
     public okhttp3.Call getEvaluationsCall(
 
@@ -488,11 +428,6 @@ public class DefaultApi {
      * @param cluster         Cluster identifier.
      * @return List&lt;Evaluation&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
-     *
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     *                      </table>
      */
     public List<Evaluation> getEvaluations(
 
@@ -522,11 +457,6 @@ public class DefaultApi {
      * @param cluster         Cluster identifier.
      * @return ApiResponse&lt;List&lt;Evaluation&gt;&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
-     *
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     *                      </table>
      */
     public ApiResponse<List<Evaluation>> getEvaluationsWithHttpInfo(
 
@@ -554,11 +484,6 @@ public class DefaultApi {
      * @param _callback       The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
-     *
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
-     *                      </table>
      */
     public okhttp3.Call getEvaluationsAsync(
 
@@ -586,12 +511,6 @@ public class DefaultApi {
      * @param _callback     Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
-     *
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  * Content-Type -  <br>  * Cache-Control -  <br>  * Connection -  <br>  * Access-Control-Allow-Origin -  <br>  </td></tr>
-     *                      <tr><td> 503 </td><td> Service Unavailable </td><td>  -  </td></tr>
-     *                      </table>
      */
     public okhttp3.Call streamCall(String environmentId, final ApiCallback _callback) throws ApiException {
         Object localVarPostBody = null;
@@ -642,12 +561,6 @@ public class DefaultApi {
      *
      * @param environmentId Unique UUID for the environemnt object in the API. (required)
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
-     *
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  * Content-Type -  <br>  * Cache-Control -  <br>  * Connection -  <br>  * Access-Control-Allow-Origin -  <br>  </td></tr>
-     *                      <tr><td> 503 </td><td> Service Unavailable </td><td>  -  </td></tr>
-     *                      </table>
      */
     public void stream(String environmentId) throws ApiException {
 
@@ -660,12 +573,6 @@ public class DefaultApi {
      * @param environmentId Unique UUID for the environemnt object in the API. (required)
      * @return ApiResponse&lt;Void&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
-     *
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  * Content-Type -  <br>  * Cache-Control -  <br>  * Connection -  <br>  * Access-Control-Allow-Origin -  <br>  </td></tr>
-     *                      <tr><td> 503 </td><td> Service Unavailable </td><td>  -  </td></tr>
-     *                      </table>
      */
     public ApiResponse<Void> streamWithHttpInfo(String environmentId) throws ApiException {
 
@@ -687,12 +594,6 @@ public class DefaultApi {
      * @param _callback     The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
-     *
-     *                      <table summary="Response Details" border="1">
-     *                      <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-     *                      <tr><td> 200 </td><td> OK </td><td>  * Content-Type -  <br>  * Cache-Control -  <br>  * Connection -  <br>  * Access-Control-Allow-Origin -  <br>  </td></tr>
-     *                      <tr><td> 503 </td><td> Service Unavailable </td><td>  -  </td></tr>
-     *                      </table>
      */
     public okhttp3.Call streamAsync(String environmentId, final ApiCallback<Void> _callback) throws ApiException {
 

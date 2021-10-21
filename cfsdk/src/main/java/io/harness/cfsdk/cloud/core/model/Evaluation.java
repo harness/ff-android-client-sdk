@@ -95,6 +95,7 @@ public class Evaluation {
     /**
      * Get value
      *
+     * @param <T> Data type.
      * @return value
      **/
     @ApiModelProperty(required = true, value = "")

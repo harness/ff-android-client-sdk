@@ -170,6 +170,9 @@ public class CfConfiguration {
 
         /**
          * Sets the base API url
+         *
+         * @param baseURL Base url for the API.
+         * @return Builder instance.
          */
         public Builder baseUrl(String baseURL) {
 
@@ -179,6 +182,9 @@ public class CfConfiguration {
 
         /**
          * Sets the metrics events API url
+         *
+         * @param eventURL Base url for the metrics API.
+         * @return Builder instance.
          */
         public Builder eventUrl(String eventURL) {
 
@@ -188,6 +194,9 @@ public class CfConfiguration {
 
         /**
          * Sets the stream url to be used for realtime evaluation update
+         *
+         * @param streamURL Base url for the SSE API.
+         * @return Builder instance.
          */
         public Builder streamUrl(String streamURL) {
 
@@ -197,6 +206,9 @@ public class CfConfiguration {
 
         /**
          * Configuration to explicitly enable or disable analytics. If enabled, SDK metrics will be used.
+         *
+         * @param analyticsEnabled True == Analytics enabled.
+         * @return Builder instance.
          */
         public Builder enableAnalytics(boolean analyticsEnabled) {
 
@@ -206,6 +218,9 @@ public class CfConfiguration {
 
         /**
          * Configuration to explicitly enable or disable stream. If enabled, the stream url must be valid.
+         *
+         * @param streamEnabled True == SSE is enabled.
+         * @return Builder instance.
          */
         public Builder enableStream(boolean streamEnabled) {
 
@@ -217,6 +232,7 @@ public class CfConfiguration {
          * Polling interval to use when getting new evaluation data from server
          *
          * @param pollingInterval Polling interval.
+         * @return Builder instance.
          */
         public Builder pollingInterval(int pollingInterval) {
 
@@ -244,6 +260,11 @@ public class CfConfiguration {
             return this;
         }
 
+        /**
+         * Build the configuration instance.
+         *
+         * @return Configuration instance.
+         */
         public CfConfiguration build() {
 
             if (baseURL == null || baseURL.isEmpty()) {
