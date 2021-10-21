@@ -92,6 +92,8 @@ class MainActivity : AppCompatActivity() {
                 val client = CfClient()
                 clients.add(client)
 
+                val logPrefix = keyName + " :: " + client.hashCode()
+
                 client.initialize(
 
                     this,
@@ -130,25 +132,25 @@ class MainActivity : AppCompatActivity() {
 
                         if (registerEventsOk && registerEvaluationsOk == 4) {
 
-                            CfLog.OUT.i(logTag, "Registrations OK")
+                            CfLog.OUT.i(logTag, "$logPrefix Registrations OK")
                         }
 
                         val bVal = client.boolVariation("flag1", false)
-                        CfLog.OUT.v(logTag, "flag1: $bVal")
+                        CfLog.OUT.v(logTag, "$logPrefix flag1: $bVal")
 
                         val nVal = client.numberVariation("flag2", -1.0)
-                        CfLog.OUT.v(logTag, "flag2: $nVal")
+                        CfLog.OUT.v(logTag, "$logPrefix flag2: $nVal")
 
                         val sVal = client.stringVariation("flag3", "NO_VALUE!!!")
-                        CfLog.OUT.v(logTag, "flag3: $sVal")
+                        CfLog.OUT.v(logTag, "$logPrefix flag3: $sVal")
 
                         val jVal = client.jsonVariation("flag4", JSONObject())
-                        CfLog.OUT.v(logTag, "flag4: $jVal")
+                        CfLog.OUT.v(logTag, "$logPrefix flag4: $jVal")
 
                     } else {
 
                         val e = result.error
-                        var msg = "Initialization error"
+                        var msg = "$logPrefix Initialization error"
                         e?.let { err ->
 
                             err.message?.let { errMsg ->
