@@ -45,26 +45,38 @@ class MainActivity : AppCompatActivity() {
 
     private val flag1Listener: EvaluationListener = EvaluationListener {
 
-        val eval = CfClient.getInstance().boolVariation("flag1", false)
-        CfLog.OUT.v(logTag, "flag1 value: $eval")
+        clients.forEach { client ->
+
+            val eval = client.boolVariation("flag1", false)
+            CfLog.OUT.v(logTag, "flag1 value: $eval")
+        }
     }
 
     private val flag2Listener: EvaluationListener = EvaluationListener {
 
-        val eval = CfClient.getInstance().numberVariation("flag2", -1.0)
-        CfLog.OUT.v(logTag, "flag2 value: $eval")
+        clients.forEach { client ->
+
+            val eval = client.numberVariation("flag2", -1.0)
+            CfLog.OUT.v(logTag, "flag2 value: $eval")
+        }
     }
 
     private val flag3Listener: EvaluationListener = EvaluationListener {
 
-        val eval = CfClient.getInstance().stringVariation("flag3", "NO_VALUE!!!")
-        CfLog.OUT.v(logTag, "flag3 value: $eval")
+        clients.forEach { client ->
+
+            val eval = client.stringVariation("flag3", "NO_VALUE!!!")
+            CfLog.OUT.v(logTag, "flag3 value: $eval")
+        }
     }
 
     private val flag4Listener: EvaluationListener = EvaluationListener {
 
-        val eval = CfClient.getInstance().jsonVariation("flag4", JSONObject())
-        CfLog.OUT.v(logTag, "flag4 value: $eval")
+        clients.forEach { client ->
+
+            val eval = client.jsonVariation("flag4", JSONObject())
+            CfLog.OUT.v(logTag, "flag4 value: $eval")
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,8 +117,7 @@ class MainActivity : AppCompatActivity() {
 
                     if (result.isSuccess) {
 
-                        val registerEventsOk =
-                            CfClient.getInstance().registerEventsListener(eventsListener)
+                        val registerEventsOk = client.registerEventsListener(eventsListener)
 
                         var registerEvaluationsOk = 0
 
