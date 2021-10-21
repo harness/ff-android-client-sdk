@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity() {
             .enableStream(true)
             .build()
 
-        keys.forEach { keyName, apiKey ->
+        keys.forEach { (keyName, apiKey) ->
 
             executor.execute {
 

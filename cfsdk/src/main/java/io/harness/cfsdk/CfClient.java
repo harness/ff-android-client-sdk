@@ -20,6 +20,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.harness.cfsdk.cloud.ICloud;
 import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
@@ -59,8 +60,8 @@ public class CfClient implements Destroyable {
     private AuthInfo authInfo;
     private boolean useStream;
     private final String logTag;
-    private volatile boolean ready;
     private final Executor executor;
+    private final AtomicBoolean ready;
     private SSEControlling sseController;
     private CfConfiguration configuration;
     private final CloudFactory cloudFactory;
@@ -73,6 +74,7 @@ public class CfClient implements Destroyable {
 
     {
 
+        ready = new AtomicBoolean();
         logTag = CfClient.class.getSimpleName();
         executor = Executors.newSingleThreadExecutor();
         evaluationListenerSet = new ConcurrentHashMap<>();
@@ -82,7 +84,7 @@ public class CfClient implements Destroyable {
 
     private final EventsListener eventsListener = statusEvent -> {
 
-        if (!ready) {
+        if (!ready.get()) {
 
             return;
         }
@@ -197,12 +199,12 @@ public class CfClient implements Destroyable {
         CfLog.OUT.v(logTag, "Reschedule");
         executor.execute(() -> {
             try {
-                if (!ready) {
+                if (!ready.get()) {
 
                     boolean success = cloud.initialize();
                     if (success) {
 
-                        ready = true;
+                        ready.set(true);
                         this.authInfo = cloud.getAuthInfo();
 
                         if (analyticsEnabled) {
@@ -218,7 +220,8 @@ public class CfClient implements Destroyable {
                         }
                     }
                 }
-                if (!ready) {
+
+                if (!ready.get()) {
 
                     return;
                 }
@@ -313,7 +316,7 @@ public class CfClient implements Destroyable {
 
     ) throws IllegalStateException {
 
-        if (ready) {
+        if (ready.get()) {
 
             throw new IllegalStateException("Already initialized");
         }
@@ -473,7 +476,7 @@ public class CfClient implements Destroyable {
                     final String environmentID = authInfo.getEnvironment();
                     final String cluster = authInfo.getCluster();
 
-                    ready = true;
+                    ready.set(true);
 
                     if (networkInfoProvider.isNetworkAvailable()) {
 
@@ -592,7 +595,7 @@ public class CfClient implements Destroyable {
     ) {
 
         final Evaluation result = new Evaluation();
-        if (ready) {
+        if (ready.get()) {
 
             final String cluster = authInfo.getCluster();
             final String identifier = authInfo.getEnvironmentIdentifier();
@@ -782,9 +785,16 @@ public class CfClient implements Destroyable {
 
     private void unregister() {
 
-        ready = false;
+        ready.set(false);
         stopSSE();
-        if (evaluationPolling != null) evaluationPolling.stop();
-        if (featureRepository != null) featureRepository.clear();
+        if (evaluationPolling != null) {
+
+            evaluationPolling.stop();
+        }
+        if (featureRepository != null) {
+
+            featureRepository.clear();
+        }
+        target = null;
     }
 }
