@@ -60,7 +60,7 @@ public class OkSse {
     /**
      * Creates a new OkSse using the shared {@link OkHttpClient}
      *
-     * @param client
+     * @param client Client instance.
      */
     public OkSse(OkHttpClient client) {
         this.client = client;
@@ -79,8 +79,9 @@ public class OkSse {
      * Create a new instance of {@link ServerSentEvent} that will handle the connection and communication with
      * the SSE Server.
      *
-     * @param request  the OkHttp {@link Request} with the valid information to create the connection with the server.
-     * @param listener the {@link io.harness.cfsdk.cloud.oksse.ServerSentEvent.Listener} to attach to this SSE.
+     * @param request        the OkHttp {@link Request} with the valid information to create the connection with the server.
+     * @param listener       the {@link io.harness.cfsdk.cloud.oksse.ServerSentEvent.Listener} to attach to this SSE.
+     * @param authentication Auth. parameters.
      * @return a new instance of {@link ServerSentEvent} that will automatically start the connection.
      */
     public ServerSentEvent newServerSentEvent(

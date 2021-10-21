@@ -1,10 +1,12 @@
 package io.harness.cfsdk.cloud.oksse;
 
 public class SSEAuthentication {
-    private String authToken;
-    private String apiToken;
+
+    private final String authToken;
+    private final String apiToken;
 
     public SSEAuthentication(String authToken, String apiToken) {
+
         this.authToken = authToken;
         this.apiToken = apiToken;
     }

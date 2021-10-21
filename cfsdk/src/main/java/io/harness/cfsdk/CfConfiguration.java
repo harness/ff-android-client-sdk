@@ -215,6 +215,8 @@ public class CfConfiguration {
 
         /**
          * Polling interval to use when getting new evaluation data from server
+         *
+         * @param pollingInterval Polling interval.
          */
         public Builder pollingInterval(int pollingInterval) {
 

@@ -99,6 +99,7 @@ public class Evaluation {
      **/
     @ApiModelProperty(required = true, value = "")
     public <T> T getValue() {
+
         return (T) value;
     }
 
