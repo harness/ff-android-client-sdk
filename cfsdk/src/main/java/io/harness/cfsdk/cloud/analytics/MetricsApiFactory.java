@@ -38,7 +38,7 @@ public class MetricsApiFactory {
             ApiClient apiClient = metricsAPI.getApiClient();
             apiClient.setBasePath(config.getEventURL());
             apiClient.addDefaultHeader("Authorization", "Bearer " + authToken);
-            apiClient.setUserAgent("android 1.0.4");
+            apiClient.setUserAgent("android 1.0.5-SNAPSHOT");
             String hostname = "UnknownHost";
             try {
 
