@@ -74,11 +74,11 @@ publishing {
             pom {
                 name = PUBLISH_ARTIFACT_ID
                 description = 'This is the official Android SDK for Harness Feature Flags Service'
-                url = 'https://github.com/drone/ff-android-client-sdk'
+                url = 'https://github.com/harness/ff-android-client-sdk'
                 licenses {
                     license {
                         name = 'Apache-2.0 License'
-                        url = 'https://github.com/drone/ff-android-client-sdk/blob/main/LICENSE'
+                        url = 'https://github.com/harness/ff-android-client-sdk/blob/main/LICENSE'
                     }
                 }
                 developers {
@@ -99,9 +99,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:https://github.com/drone/ff-android-client-sdk.git'
-                    developerConnection = 'scm:git:ssh://github.com/drone/ff-android-client-sdk.git'
-                    url = 'https://github.com/drone/ff-android-client-sdk/tree/main'
+                    connection = 'scm:git:https://github.com/harness/ff-android-client-sdk.git'
+                    developerConnection = 'scm:git:ssh://github.com/harness/ff-android-client-sdk.git'
+                    url = 'https://github.com/harness/ff-android-client-sdk/tree/main'
                 }
                 withXml {
                     def dependenciesNode = asNode().appendNode('dependencies')
