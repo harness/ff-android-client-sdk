@@ -1,5 +1,6 @@
 package io.harness.cfsdk.cloud;
 
+import io.harness.cfsdk.BuildConfig;
 import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
 import io.harness.cfsdk.cloud.core.client.ApiException;
@@ -39,19 +40,21 @@ public class Cloud implements ICloud {
             Target target
     ) {
 
-        this.cloudFactory = cloudFactory;
         this.key = key;
-        this.authResponseDecoder = cloudFactory.getAuthResponseDecoder();
-        this.streamUrl = sseUrl;
-        this.tokenProvider = cloudFactory.tokenProvider();
-        apiClient = cloudFactory.apiClient();
         this.target = target;
-        apiClient.setDebugging(false);
+        this.streamUrl = sseUrl;
+        this.cloudFactory = cloudFactory;
+        this.tokenProvider = cloudFactory.tokenProvider();
+        this.authResponseDecoder = cloudFactory.getAuthResponseDecoder();
+
+        apiClient = cloudFactory.apiClient();
         apiClient.setBasePath(baseUrl);
+        apiClient.setDebugging(BuildConfig.DEBUG);
     }
 
     @Override
     public ApiResponse getEvaluations(String target, String cluster) {
+
         try {
 
             return new ApiResponse(
@@ -60,9 +63,10 @@ public class Cloud implements ICloud {
                     "",
                     defaultApi.getEvaluations(this.authInfo.getEnvironment(), target, cluster)
             );
+
         } catch (ApiException e) {
 
-            CfLog.OUT.e(logTag, "API, " + e.getMessage(), e);
+            CfLog.OUT.e(logTag, "API, Error: " + e.getMessage(), e);
         }
         return null;
     }

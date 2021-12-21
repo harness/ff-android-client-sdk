@@ -194,8 +194,6 @@ public class DefaultApi {
                 .replaceAll("\\{" + "feature" + "\\}", localVarApiClient.escapeString(feature))
                 .replaceAll("\\{" + "target" + "\\}", localVarApiClient.escapeString(target));
 
-        localVarPath += "?cluster=" + cluster;
-
         List<Pair> localVarQueryParams = new ArrayList<>(localVarApiClient.parameterToPair("cluster", cluster));
         List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
@@ -367,18 +365,24 @@ public class DefaultApi {
                 .replaceAll("\\{" + "environmentUUID" + "\\}", localVarApiClient.escapeString(environmentUUID.toString()))
                 .replaceAll("\\{" + "target" + "\\}", localVarApiClient.escapeString(target));
 
-        localVarPath += "?cluster=" + cluster;
+        List<Pair> localVarQueryParams = new ArrayList<>(
 
-        List<Pair> localVarQueryParams = new ArrayList<>(localVarApiClient.parameterToPair("cluster", cluster));
+                localVarApiClient.parameterToPair("cluster", cluster)
+        );
+
         List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
         Map<String, String> localVarCookieParams = new HashMap<String, String>();
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
         final String[] localVarAccepts = {
                 "application/json"
         };
         final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
+
         if (localVarAccept != null) {
+
             localVarHeaderParams.put("Accept", localVarAccept);
         }
 
@@ -404,19 +408,22 @@ public class DefaultApi {
 
         // verify the required parameter 'environmentUUID' is set
         if (environmentUUID == null) {
-            throw new ApiException("Missing the required parameter 'environmentUUID' when calling getEvaluations(Async)");
+
+            throw new ApiException("Missing the required parameter 'environmentUUID' when " +
+                    "calling getEvaluations(Async)");
         }
 
         // verify the required parameter 'target' is set
         if (target == null) {
-            throw new ApiException("Missing the required parameter 'target' when calling getEvaluations(Async)");
+
+            throw new ApiException("Missing the required parameter 'target' when " +
+                    "calling getEvaluations(Async)");
         }
 
-        okhttp3.Call localVarCall = getEvaluationsCall(
+        return getEvaluationsCall(
 
                 environmentUUID, target, cluster, _callback
         );
-        return localVarCall;
 
     }
 
@@ -441,11 +448,13 @@ public class DefaultApi {
 
                 environmentUUID, target, cluster
         );
+
         CfLog.OUT.v(
 
                 logTag,
                 String.format("API, getEvaluations: %s", response.getStatusCode())
         );
+
         return response.getData();
     }
 
@@ -470,8 +479,10 @@ public class DefaultApi {
 
                 environmentUUID, target, cluster, null
         );
+
         Type localVarReturnType = new TypeToken<List<Evaluation>>() {
         }.getType();
+
         return localVarApiClient.execute(localVarCall, localVarReturnType);
     }
 

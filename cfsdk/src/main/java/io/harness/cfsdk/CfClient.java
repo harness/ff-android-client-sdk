@@ -692,12 +692,19 @@ public class CfClient implements Destroyable {
 
         try {
 
-            Evaluation e = getEvaluationById(evaluationId, target.getIdentifier(), defaultValue);
+            final Evaluation e = getEvaluationById(
+
+                    evaluationId,
+                    target.getIdentifier(),
+                    defaultValue
+            );
+
             if (e.getValue() == null) {
 
                 Map<String, Object> resultMap = new HashMap<>();
                 resultMap.put(evaluationId, null);
                 return new JSONObject(resultMap);
+
             } else {
 
                 return new JSONObject((String) e.getValue());

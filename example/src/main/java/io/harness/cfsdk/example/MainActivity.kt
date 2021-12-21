@@ -5,18 +5,18 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import io.harness.cfsdk.CfClient
 import io.harness.cfsdk.CfConfiguration
-import io.harness.cfsdk.cloud.core.model.Evaluation
 import io.harness.cfsdk.cloud.events.EvaluationListener
 import io.harness.cfsdk.cloud.model.Target
 import io.harness.cfsdk.cloud.oksse.EventsListener
-import io.harness.cfsdk.cloud.oksse.model.StatusEvent
 import io.harness.cfsdk.logging.CfLog
 import org.json.JSONObject
+import java.util.*
 import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
 
     private val clients = mutableListOf<CfClient>()
+    private val timers = mutableMapOf<String, Timer>()
     private val logTag = MainActivity::class.simpleName
 
     companion object {
@@ -25,22 +25,12 @@ class MainActivity : AppCompatActivity() {
         private val executor = Executors.newSingleThreadExecutor()
 
         private const val FREEMIUM_API_KEY = "5ca0380d-3209-4322-ae0f-903c58c24457"
-        private const val NON_FREEMIUM_API_KEY = "e3019700-b95f-4665-8499-ca184074199c"
+        private const val NON_FREEMIUM_API_KEY = "d122149a-fadd-471d-ab31-7938a2b90ba2"
     }
 
     private var eventsListener = EventsListener { event ->
 
         CfLog.OUT.v(logTag, "Event: ${event.eventType}")
-
-        if (event.eventType == StatusEvent.EVENT_TYPE.EVALUATION_CHANGE) {
-
-            val evaluation: Evaluation = event.extractPayload()
-            CfLog.OUT.v(logTag, "Evaluation changed: $evaluation")
-
-        } else if (event.eventType == StatusEvent.EVENT_TYPE.EVALUATION_RELOAD) {
-
-            CfLog.OUT.v(logTag, "Evaluation reload")
-        }
     }
 
     private val flag1Listener: EvaluationListener = EvaluationListener {
@@ -87,7 +77,8 @@ class MainActivity : AppCompatActivity() {
         keys["Freemium"] = FREEMIUM_API_KEY
         keys["Non-Freemium"] = NON_FREEMIUM_API_KEY
 
-        val target = Target().identifier("Harness").name("Harness")
+        val uuid = UUID.randomUUID().toString()
+        val target = Target().identifier(uuid).name(uuid)
 
         val remoteConfiguration = CfConfiguration.builder()
             .enableAnalytics(true)
@@ -114,6 +105,8 @@ class MainActivity : AppCompatActivity() {
                     target
 
                 ) { _, result ->
+
+                    readEvaluations(client, "$logPrefix PRE :: ")
 
                     if (result.isSuccess) {
 
@@ -146,17 +139,36 @@ class MainActivity : AppCompatActivity() {
                             CfLog.OUT.i(logTag, "$logPrefix Registrations OK")
                         }
 
-                        val bVal = client.boolVariation("flag1", false)
-                        CfLog.OUT.v(logTag, "$logPrefix flag1: $bVal")
+                        try {
 
-                        val nVal = client.numberVariation("flag2", -1.0)
-                        CfLog.OUT.v(logTag, "$logPrefix flag2: $nVal")
+                            val timer = Timer()
+                            timers[keyName] = timer
 
-                        val sVal = client.stringVariation("flag3", "NO_VALUE!!!")
-                        CfLog.OUT.v(logTag, "$logPrefix flag3: $sVal")
+                            timer.schedule(
 
-                        val jVal = client.jsonVariation("flag4", JSONObject())
-                        CfLog.OUT.v(logTag, "$logPrefix flag4: $jVal")
+                                object : TimerTask() {
+
+                                    override fun run() {
+
+                                        readEvaluations(client, logPrefix)
+                                    }
+                                },
+                                0,
+                                10 * 1000
+                            )
+
+                        } catch (e: IllegalStateException) {
+
+                            CfLog.OUT.e(logTag, "Error", e)
+
+                        } catch (e: IllegalArgumentException) {
+
+                            CfLog.OUT.e(logTag, "Error", e)
+
+                        } catch (e: NullPointerException) {
+
+                            CfLog.OUT.e(logTag, "Error", e)
+                        }
 
                     } else {
 
@@ -180,8 +192,31 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun readEvaluations(client: CfClient, logPrefix: String) {
+
+        val bVal = client.boolVariation("flag1", false)
+        CfLog.OUT.v(logTag, "$logPrefix flag1: $bVal")
+
+        val nVal = client.numberVariation("flag2", -1.0)
+        CfLog.OUT.v(logTag, "$logPrefix flag2: $nVal")
+
+        val sVal = client.stringVariation("flag3", "NO_VALUE!!!")
+        CfLog.OUT.v(logTag, "$logPrefix flag3: $sVal")
+
+        val jVal = client.jsonVariation("flag4", JSONObject())
+        CfLog.OUT.v(logTag, "$logPrefix flag4: $jVal")
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+
+        timers.values.forEach {
+
+            it.cancel()
+            it.purge()
+        }
+
+        timers.clear()
 
         clients.forEach { client ->
 

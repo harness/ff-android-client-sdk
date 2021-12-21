@@ -7,11 +7,18 @@ import io.harness.cfsdk.cloud.ApiResponse;
 import io.harness.cfsdk.cloud.FeatureService;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.logging.CfLog;
 
 public class FeatureRepositoryImpl implements FeatureRepository {
 
-    private final FeatureService featureService;
+    private final String tag;
     private final CloudCache cloudCache;
+    private final FeatureService featureService;
+
+    {
+
+        tag = FeatureRepositoryImpl.class.getSimpleName();
+    }
 
     public FeatureRepositoryImpl(FeatureService featureService, CloudCache cloudCache) {
 
@@ -58,8 +65,10 @@ public class FeatureRepositoryImpl implements FeatureRepository {
 
             return this.cloudCache.getAllEvaluations(environment + "_" + target);
         }
-        ApiResponse apiResponse = this.featureService.getEvaluations(target, cluster);
+
+        final ApiResponse apiResponse = this.featureService.getEvaluations(target, cluster);
         if (apiResponse != null && apiResponse.isSuccess()) {
+
             List<Evaluation> evaluationList = apiResponse.body();
             for (Evaluation evaluation : evaluationList) {
 
@@ -68,8 +77,21 @@ public class FeatureRepositoryImpl implements FeatureRepository {
                         buildKey(environment, target, evaluation.getFlag()), evaluation
                 );
             }
+
+            CfLog.OUT.v(tag, "Got all evaluations: " + evaluationList.size());
             return evaluationList;
         }
+
+        if (apiResponse != null && !apiResponse.isSuccess()) {
+
+            CfLog.OUT.e(
+
+                    tag,
+                    "Get all evaluations API error code: " + apiResponse.getCode()
+            );
+        }
+
+        CfLog.OUT.w(tag, "Got no evaluations");
         return Collections.emptyList();
 
     }
