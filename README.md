@@ -163,7 +163,7 @@ CfClient.getInstance().destroy()
 In order to clone SDK repository properly perform cloning like in the following example:
 
 ```
-git clone --recurse-submodules git@github.com:drone/ff-android-client-sdk.git
+git clone --recurse-submodules git@github.com:harness/ff-android-client-sdk.git
 ``` 
 
 ## Using SDK in unit tests
