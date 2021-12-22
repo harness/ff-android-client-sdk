@@ -707,6 +707,11 @@ public class CfClient implements Destroyable {
 
             } else {
 
+                if (e.getValue() instanceof JSONObject) {
+
+                    return e.getValue();
+                }
+
                 return new JSONObject((String) e.getValue());
             }
         } catch (JSONException e) {
