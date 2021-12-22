@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         private val keys = mutableMapOf<String, String>()
         private val executor = Executors.newSingleThreadExecutor()
 
-        private const val FREEMIUM_API_KEY = "5ca0380d-3209-4322-ae0f-903c58c24457"
+        private const val FREEMIUM_API_KEY = "a6efdb72-4c01-45e0-8285-1dcbd63f72e7"
         private const val NON_FREEMIUM_API_KEY = "d122149a-fadd-471d-ab31-7938a2b90ba2"
     }
 
