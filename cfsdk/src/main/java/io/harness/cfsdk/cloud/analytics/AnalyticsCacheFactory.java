@@ -1,7 +1,7 @@
 package io.harness.cfsdk.cloud.analytics;
 
-import io.harness.cfsdk.cloud.analytics.cache.Cache;
-import io.harness.cfsdk.cloud.analytics.cache.GuavaCache;
+import io.harness.cfsdk.cloud.analytics.cache.AnalyticsCache;
+import io.harness.cfsdk.cloud.analytics.cache.DefaultAnalyticsCache;
 import io.harness.cfsdk.logging.CfLog;
 
 public class AnalyticsCacheFactory {
@@ -15,12 +15,12 @@ public class AnalyticsCacheFactory {
         LOG_TAG = AnalyticsCacheFactory.class.getSimpleName();
     }
 
-    public static Cache create(String cacheName) {
+    public static AnalyticsCache create(String cacheName) {
 
         if (cacheName.equals(DEFAULT_CACHE)) {
 
             CfLog.OUT.d(LOG_TAG, "Using default cache");
-            return new GuavaCache();
+            return new DefaultAnalyticsCache();
         }
         return null;
     }

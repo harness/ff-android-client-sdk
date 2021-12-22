@@ -2,7 +2,6 @@ package io.harness.cfsdk.testwrapper.logging
 
 import io.harness.cfsdk.logging.CfLogging
 import net.milosvasic.logger.FilesystemLogger
-import java.lang.Exception
 
 class FilesystemLogger : CfLogging {
 

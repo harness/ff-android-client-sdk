@@ -105,8 +105,7 @@ public class CfClient implements Destroyable {
 
                             environmentID,
                             target.getIdentifier(),
-                            cluster,
-                            false
+                            cluster
                     );
                     evaluationPolling.start(this::reschedule);
                 }
@@ -119,8 +118,8 @@ public class CfClient implements Destroyable {
 
                         authInfo.getEnvironmentIdentifier(),
                         target.getIdentifier(),
-                        evaluation.getFlag(), cluster,
-                        false
+                        evaluation.getFlag(),
+                        cluster
                 );
                 statusEvent = new StatusEvent(statusEvent.getEventType(), e);
                 notifyListeners(e);
@@ -233,9 +232,9 @@ public class CfClient implements Destroyable {
 
                         environmentID,
                         target.getIdentifier(),
-                        cluster,
-                        false
+                        cluster
                 );
+
                 sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
 
                 if (useStream) {
@@ -461,7 +460,7 @@ public class CfClient implements Destroyable {
                         target
                 );
 
-                featureRepository = cloudFactory.getFeatureRepository(cloud, cloudCache);
+                featureRepository = cloudFactory.getFeatureRepository(cloud, cloudCache, networkInfoProvider);
                 evaluationPolling = cloudFactory.evaluationPolling(configuration.getPollingInterval(), TimeUnit.SECONDS);
 
                 this.useStream = configuration.getStreamEnabled();
@@ -481,12 +480,14 @@ public class CfClient implements Destroyable {
                     if (networkInfoProvider.isNetworkAvailable()) {
 
                         List<Evaluation> evaluations = featureRepository.getAllEvaluations(
+
                                 this.authInfo.getEnvironmentIdentifier(),
                                 target.getIdentifier(),
-                                cluster,
-                                false
+                                cluster
                         );
+
                         sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
+
                         if (useStream) {
 
                             startSSE();
@@ -602,7 +603,7 @@ public class CfClient implements Destroyable {
 
             final Evaluation evaluation = featureRepository.getEvaluation(
 
-                    identifier, target, evaluationId, cluster, true
+                    identifier, target, evaluationId, cluster
             );
 
             if (evaluation == null) {

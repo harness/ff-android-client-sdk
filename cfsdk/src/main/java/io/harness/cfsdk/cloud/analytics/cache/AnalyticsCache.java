@@ -9,7 +9,7 @@ import io.harness.cfsdk.cloud.analytics.model.Analytics;
 /**
  * An interface for different cache providers for our analytics service.
  */
-public interface Cache {
+public interface AnalyticsCache {
 
     @Nullable
     Integer get(Analytics a);

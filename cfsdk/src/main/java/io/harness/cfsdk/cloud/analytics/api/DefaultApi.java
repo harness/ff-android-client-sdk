@@ -68,8 +68,6 @@ public class DefaultApi {
         String localVarPath = "/metrics/{environment}"
                 .replaceAll("\\{" + "environment" + "\\}", localVarApiClient.escapeString(environment.toString()));
 
-        localVarPath += "?cluster=" + cluster;
-
         CfLog.OUT.v(logTag, "API, url: " + localVarPath);
 
         List<Pair> localVarQueryParams = new ArrayList<>(localVarApiClient.parameterToPair("cluster", cluster));
@@ -78,6 +76,7 @@ public class DefaultApi {
         Map<String, String> localVarCookieParams = new HashMap<String, String>();
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
         final String[] localVarAccepts = {
+
                 "application/json"
         };
         final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
@@ -144,11 +143,19 @@ public class DefaultApi {
     ) throws ApiException {
 
         final ApiResponse<Void> response = postMetricsWithHttpInfo(environment, cluster, metrics);
-        CfLog.OUT.v(
 
-                logTag,
-                String.format("API, postMetrics: %s", response.getStatusCode())
-        );
+        if (response != null) {
+
+            CfLog.OUT.v(
+
+                    logTag,
+                    String.format("Metrics API, response code: %s", response.getStatusCode())
+            );
+
+        } else {
+
+            CfLog.OUT.e(logTag, "Metrics API, got null response");
+        }
     }
 
     /**

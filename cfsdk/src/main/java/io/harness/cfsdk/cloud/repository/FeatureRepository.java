@@ -11,16 +11,14 @@ public interface FeatureRepository {
             String environment,
             String target,
             String evaluationId,
-            String cluster,
-            boolean useCache
+            String cluster
     );
 
     List<Evaluation> getAllEvaluations(
 
             String environment,
             String target,
-            String cluster,
-            boolean useCache
+            String cluster
     );
 
     void remove(String environment, String target, String evaluationId);

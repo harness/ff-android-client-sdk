@@ -5,7 +5,7 @@ import java.util.Set;
 
 import io.harness.cfsdk.cloud.analytics.AnalyticsEventHandler;
 import io.harness.cfsdk.cloud.analytics.AnalyticsPublisherService;
-import io.harness.cfsdk.cloud.analytics.cache.Cache;
+import io.harness.cfsdk.cloud.analytics.cache.AnalyticsCache;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
 
 public class MockedAnalyticsHandler extends AnalyticsEventHandler {
@@ -19,7 +19,7 @@ public class MockedAnalyticsHandler extends AnalyticsEventHandler {
 
     public MockedAnalyticsHandler(
 
-            Cache analyticsCache,
+            AnalyticsCache analyticsCache,
             AnalyticsPublisherService analyticsPublisherService
     ) {
 

@@ -69,13 +69,17 @@ public class NetworkInfoProvider extends NetworkInfoProviding {
     @Override
     public boolean isNetworkAvailable() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
             if (connectivityManager != null) {
+
                 NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
                 lastState = capabilities != null && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
                 return lastState;
             }
         } else {
+
             if (connectivityManager != null) {
+
                 NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
                 lastState = networkInfo != null && networkInfo.isConnected();
                 return lastState;

@@ -2,7 +2,6 @@ package io.harness.cfsdk.testwrapper.context
 
 import com.sun.net.httpserver.HttpExchange
 import java.io.ByteArrayInputStream
-import java.lang.Exception
 
 abstract class CommonContextFactory : ContextFactory {
 

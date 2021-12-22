@@ -10,7 +10,7 @@ import java.util.Timer;
 import java.util.concurrent.Executors;
 
 import io.harness.cfsdk.CfConfiguration;
-import io.harness.cfsdk.cloud.analytics.cache.Cache;
+import io.harness.cfsdk.cloud.analytics.cache.AnalyticsCache;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
 import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.EventType;
@@ -25,7 +25,7 @@ import io.harness.cfsdk.logging.CfLog;
  */
 public class AnalyticsManager implements Destroyable {
 
-    protected final Cache analyticsCache;
+    protected final AnalyticsCache analyticsCache;
 
     private final Timer timer;
     private final String logTag;

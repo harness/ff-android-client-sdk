@@ -51,9 +51,14 @@ public class CloudFactory implements ICloudFactory {
     }
 
     @Override
-    public FeatureRepository getFeatureRepository(FeatureService featureService, CloudCache cloudCache) {
+    public FeatureRepository getFeatureRepository(
 
-        return new FeatureRepositoryImpl(featureService, cloudCache);
+            FeatureService featureService,
+            CloudCache cloudCache,
+            NetworkInfoProviding networkInfoProvider
+    ) {
+
+        return new FeatureRepositoryImpl(featureService, cloudCache, networkInfoProvider);
     }
 
     @Override

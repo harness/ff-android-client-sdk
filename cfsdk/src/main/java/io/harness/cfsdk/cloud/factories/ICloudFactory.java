@@ -24,7 +24,12 @@ public interface ICloudFactory {
 
     ICloud cloud(String sseUrl, String baseUrl, String key, Target target);
 
-    FeatureRepository getFeatureRepository(FeatureService featureService, CloudCache cloudCache);
+    FeatureRepository getFeatureRepository(
+
+            FeatureService featureService,
+            CloudCache cloudCache,
+            NetworkInfoProviding networkInfoProvider
+    );
 
     SSEControlling sseController(
 

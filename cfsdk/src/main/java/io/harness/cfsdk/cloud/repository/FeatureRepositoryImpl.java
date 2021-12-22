@@ -7,6 +7,7 @@ import io.harness.cfsdk.cloud.ApiResponse;
 import io.harness.cfsdk.cloud.FeatureService;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
 import io.harness.cfsdk.logging.CfLog;
 
 public class FeatureRepositoryImpl implements FeatureRepository {
@@ -14,16 +15,23 @@ public class FeatureRepositoryImpl implements FeatureRepository {
     private final String tag;
     private final CloudCache cloudCache;
     private final FeatureService featureService;
+    private final NetworkInfoProviding networkInfoProvider;
 
     {
 
         tag = FeatureRepositoryImpl.class.getSimpleName();
     }
 
-    public FeatureRepositoryImpl(FeatureService featureService, CloudCache cloudCache) {
+    public FeatureRepositoryImpl(
 
-        this.featureService = featureService;
+            final FeatureService featureService,
+            final CloudCache cloudCache,
+            final NetworkInfoProviding networkInfoProvider
+    ) {
+
         this.cloudCache = cloudCache;
+        this.featureService = featureService;
+        this.networkInfoProvider = networkInfoProvider;
     }
 
     @Override
@@ -32,36 +40,33 @@ public class FeatureRepositoryImpl implements FeatureRepository {
             String environment,
             String target,
             String evaluationId,
-            String cluster,
-            boolean useCache
+            String cluster
     ) {
-        if (useCache) {
-
-            return cloudCache.getEvaluation(buildKey(environment, target, evaluationId));
-        } else {
+        if (networkInfoProvider.isNetworkAvailable()) {
 
             ApiResponse apiResponse = this.featureService.getEvaluationForId(
 
                     evaluationId, target, cluster
             );
+
             if (apiResponse != null && apiResponse.isSuccess()) {
 
                 final String key = buildKey(environment, target, evaluationId);
                 cloudCache.saveEvaluation(key, apiResponse.body());
                 return apiResponse.body();
             }
-
-            return null;
         }
+
+        return cloudCache.getEvaluation(buildKey(environment, target, evaluationId));
     }
 
     @Override
     public List<Evaluation> getAllEvaluations(
 
-            String environment, String target, String cluster, boolean fromCache
+            String environment, String target, String cluster
     ) {
 
-        if (fromCache) {
+        if (!networkInfoProvider.isNetworkAvailable()) {
 
             return this.cloudCache.getAllEvaluations(environment + "_" + target);
         }
@@ -82,13 +87,26 @@ public class FeatureRepositoryImpl implements FeatureRepository {
             return evaluationList;
         }
 
-        if (apiResponse != null && !apiResponse.isSuccess()) {
+        if (apiResponse == null || !apiResponse.isSuccess()) {
 
-            CfLog.OUT.e(
+            if (apiResponse!=null) {
 
-                    tag,
-                    "Get all evaluations API error code: " + apiResponse.getCode()
-            );
+                CfLog.OUT.e(
+
+                        tag,
+                        "Get all evaluations, API error code: " + apiResponse.getCode()
+                );
+
+            } else {
+
+                CfLog.OUT.e(
+
+                        tag,
+                        "Get all evaluations, got null API response"
+                );
+            }
+
+            return this.cloudCache.getAllEvaluations(environment + "_" + target);
         }
 
         CfLog.OUT.w(tag, "Got no evaluations");
@@ -98,16 +116,19 @@ public class FeatureRepositoryImpl implements FeatureRepository {
 
     @Override
     public void remove(String environment, String target, String evaluationId) {
+
         this.cloudCache.removeEvaluation(buildKey(environment, target, evaluationId));
     }
 
 
     @Override
     public void clear() {
+
         cloudCache.clear();
     }
 
     private String buildKey(String environment, String target, String featureId) {
+
         return environment + "_" + target + "_" + featureId;
     }
 

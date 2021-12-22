@@ -15,5 +15,4 @@ public interface CloudCache {
     void removeEvaluation(String key);
 
     void clear();
-
 }

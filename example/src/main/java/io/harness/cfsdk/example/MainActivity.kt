@@ -24,6 +24,9 @@ class MainActivity : AppCompatActivity() {
         private val keys = mutableMapOf<String, String>()
         private val executor = Executors.newSingleThreadExecutor()
 
+        private const val KEY_UAT = "UAT"
+
+        private const val UAT_KEY = "1400c0e9-32a6-4be9-bf94-fcbf49692215"
         private const val FREEMIUM_API_KEY = "a6efdb72-4c01-45e0-8285-1dcbd63f72e7"
         private const val NON_FREEMIUM_API_KEY = "d122149a-fadd-471d-ab31-7938a2b90ba2"
     }
@@ -74,19 +77,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        keys["Freemium"] = FREEMIUM_API_KEY
-        keys["Non-Freemium"] = NON_FREEMIUM_API_KEY
+        keys[KEY_UAT] = UAT_KEY
+//        keys["Freemium"] = FREEMIUM_API_KEY
+//        keys["Non-Freemium"] = NON_FREEMIUM_API_KEY
 
         val uuid = UUID.randomUUID().toString()
         val target = Target().identifier(uuid).name(uuid)
-
-        val remoteConfiguration = CfConfiguration.builder()
-            .enableAnalytics(true)
-            //            .baseUrl("https://config.feature-flags.uat.harness.io/api/1.0")
-            //            .eventUrl("https://event.feature-flags.uat.harness.io/api/1.0")
-            //            .streamUrl("https://config.feature-flags.uat.harness.io/api/1.0/stream")
-            .enableStream(true)
-            .build()
 
         keys.forEach { (keyName, apiKey) ->
 
@@ -97,11 +93,28 @@ class MainActivity : AppCompatActivity() {
 
                 val logPrefix = keyName + " :: " + client.hashCode()
 
+                val builder = CfConfiguration.builder()
+                    .enableAnalytics(true)
+
+                if (keyName == KEY_UAT) {
+
+                    CfLog.OUT.v(logTag,"Setting up the UAT url(s)")
+
+                    builder
+                        .baseUrl("https://config.feature-flags.uat.harness.io/api/1.0")
+                        .eventUrl("https://event.feature-flags.uat.harness.io/api/1.0")
+                        .streamUrl("https://config.feature-flags.uat.harness.io/api/1.0/stream")
+                }
+
+                val config = builder
+                    .enableStream(true)
+                    .build()
+
                 client.initialize(
 
                     this,
                     apiKey,
-                    remoteConfiguration,
+                    config,
                     target
 
                 ) { _, result ->
@@ -154,7 +167,7 @@ class MainActivity : AppCompatActivity() {
                                     }
                                 },
                                 0,
-                                10 * 1000
+                                30 * 1000
                             )
 
                         } catch (e: IllegalStateException) {

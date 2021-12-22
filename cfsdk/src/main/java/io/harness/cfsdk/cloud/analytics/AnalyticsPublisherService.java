@@ -2,14 +2,13 @@ package io.harness.cfsdk.cloud.analytics;
 
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.api.DefaultApi;
-import io.harness.cfsdk.cloud.analytics.cache.Cache;
+import io.harness.cfsdk.cloud.analytics.cache.AnalyticsCache;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
 import io.harness.cfsdk.cloud.analytics.model.KeyValue;
 import io.harness.cfsdk.cloud.analytics.model.Metrics;
@@ -45,7 +44,7 @@ public class AnalyticsPublisherService {
 
     private final String logTag;
     private final String cluster;
-    private final Cache analyticsCache;
+    private final AnalyticsCache analyticsCache;
     private final String environmentID;
     private final DefaultApi metricsAPI;
     private final CfConfiguration config;
@@ -61,13 +60,13 @@ public class AnalyticsPublisherService {
             final CfConfiguration config,
             final String environmentID,
             final String cluster,
-            final Cache analyticsCache
+            final AnalyticsCache analyticsCache
     ) {
 
         this.config = config;
         this.cluster = cluster;
-        this.analyticsCache = analyticsCache;
         this.environmentID = environmentID;
+        this.analyticsCache = analyticsCache;
 
         metricsAPI = MetricsApiFactory.create(authToken, config);
     }
@@ -78,24 +77,37 @@ public class AnalyticsPublisherService {
     public void sendDataAndResetCache() {
 
         CfLog.OUT.d(logTag, "Reading from queue and building cache");
+
         final Map<Analytics, Integer> all = analyticsCache.getAll();
+
         if (all.isEmpty()) {
 
             CfLog.OUT.d(logTag, "Cache is empty");
+
         } else {
+
+            CfLog.OUT.d(logTag, "Cache contains the metrics data");
+
             try {
 
                 final Metrics metrics = prepareSummaryMetricsBody(all);
                 if (metrics.getMetricsData() != null && !metrics.getMetricsData().isEmpty()) {
 
                     long startTime = System.currentTimeMillis();
+
                     CfLog.OUT.v(logTag, "Sending metrics");
+
                     metricsAPI.postMetrics(environmentID, cluster, metrics);
+
                     long endTime = System.currentTimeMillis();
+
                     if ((endTime - startTime) > config.getMetricsServiceAcceptableDuration()) {
+
                         CfLog.OUT.w(logTag, "Metrics service API duration=" + (endTime - startTime));
                     }
+
                     CfLog.OUT.v(logTag, "Successfully sent analytics data to the server");
+
                 } else {
 
                     CfLog.OUT.v(logTag, "No analytics data to send the server");
@@ -103,11 +115,10 @@ public class AnalyticsPublisherService {
 
                 analyticsCache.resetCache();
                 CfLog.OUT.v(logTag, "Cache is cleared");
+
             } catch (ApiException e) {
 
-                // Clear the set because the cache is only invalidated when there is no
-                // exception, so the targets will reappear in the next iteration
-                CfLog.OUT.e(logTag, e.getMessage(), e);
+                CfLog.OUT.e(logTag, "Error sending metrics", e);
             }
         }
     }
@@ -120,10 +131,8 @@ public class AnalyticsPublisherService {
         final Metrics metrics = new Metrics();
         final Map<SummaryMetrics, Integer> summaryMetricsData = new HashMap<>();
 
-        final Iterator<Analytics> iterator = data.keySet().iterator();
-        while (iterator.hasNext()) {
+        for (Analytics analytics : data.keySet()) {
 
-            final Analytics analytics = iterator.next();
             final int count = data.get(analytics);
 
             final SummaryMetrics summaryMetrics = prepareSummaryMetricsKey(analytics);

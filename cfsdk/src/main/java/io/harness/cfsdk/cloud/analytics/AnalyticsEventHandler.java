@@ -2,7 +2,7 @@ package io.harness.cfsdk.cloud.analytics;
 
 import com.lmax.disruptor.EventHandler;
 
-import io.harness.cfsdk.cloud.analytics.cache.Cache;
+import io.harness.cfsdk.cloud.analytics.cache.AnalyticsCache;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
 import io.harness.cfsdk.cloud.model.EventType;
 import io.harness.cfsdk.logging.CfLog;
@@ -10,7 +10,7 @@ import io.harness.cfsdk.logging.CfLog;
 public class AnalyticsEventHandler implements EventHandler<Analytics> {
 
     private final String logTag;
-    private final Cache analyticsCache;
+    private final AnalyticsCache analyticsCache;
     private final AnalyticsPublisherService analyticsPublisherService;
 
     {
@@ -20,7 +20,7 @@ public class AnalyticsEventHandler implements EventHandler<Analytics> {
 
     public AnalyticsEventHandler(
 
-            Cache analyticsCache,
+            AnalyticsCache analyticsCache,
             AnalyticsPublisherService analyticsPublisherService
     ) {
 
