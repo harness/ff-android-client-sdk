@@ -84,8 +84,11 @@ public class CfClient implements Destroyable {
 
     private final EventsListener eventsListener = statusEvent -> {
 
+        CfLog.OUT.v(logTag, "SSE event received: " + statusEvent.getEventType());
+
         if (!ready.get()) {
 
+            CfLog.OUT.w(logTag, "SSE event ignored, client is not ready");
             return;
         }
 
@@ -121,8 +124,10 @@ public class CfClient implements Destroyable {
                         evaluation.getFlag(),
                         cluster
                 );
+
                 statusEvent = new StatusEvent(statusEvent.getEventType(), e);
                 notifyListeners(e);
+
                 break;
             case EVALUATION_REMOVE:
 
@@ -181,7 +186,9 @@ public class CfClient implements Destroyable {
     }
 
     private void notifyListeners(Evaluation evaluation) {
+
         if (evaluationListenerSet.containsKey(evaluation.getFlag())) {
+
             final Set<EvaluationListener> callbacks = evaluationListenerSet.get(evaluation.getFlag());
             if (callbacks != null) {
 
@@ -276,7 +283,9 @@ public class CfClient implements Destroyable {
 
     private synchronized void startSSE() {
 
-        SSEConfig config = cloud.getConfig();
+        CfLog.OUT.v(logTag, "Start SSE");
+
+        final SSEConfig config = cloud.getConfig();
         if (config.isValid()) {
 
             sseController.start(config, eventsListener);
@@ -285,8 +294,11 @@ public class CfClient implements Destroyable {
 
     private synchronized void stopSSE() {
 
+        CfLog.OUT.v(logTag, "Stop SSE");
+
         this.useStream = false;
         if (sseController != null) {
+
             sseController.stop();
         }
     }
@@ -799,7 +811,9 @@ public class CfClient implements Destroyable {
     private void unregister() {
 
         ready.set(false);
+
         stopSSE();
+
         if (evaluationPolling != null) {
 
             evaluationPolling.stop();
