@@ -12,8 +12,7 @@ import io.harness.cfsdk.cloud.FeatureService;
 import io.harness.cfsdk.cloud.ICloud;
 import io.harness.cfsdk.cloud.TokenProvider;
 import io.harness.cfsdk.cloud.cache.CloudCache;
-import io.harness.cfsdk.cloud.cache.InMemoryCacheImpl;
-import io.harness.cfsdk.cloud.cache.StorageCache;
+import io.harness.cfsdk.cloud.cache.DefaultCache;
 import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
 import io.harness.cfsdk.cloud.model.AuthInfo;
@@ -80,7 +79,7 @@ public class CloudFactory implements ICloudFactory {
     @Override
     public CloudCache defaultCache(Context context) {
 
-        return new InMemoryCacheImpl(new StorageCache(context));
+        return new DefaultCache(context);
     }
 
     @Override

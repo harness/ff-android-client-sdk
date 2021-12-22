@@ -6,13 +6,15 @@ import io.harness.cfsdk.cloud.core.model.Evaluation;
 
 public interface CloudCache {
 
-    Evaluation getEvaluation(String key);
+    Evaluation getEvaluation(String env, String key);
 
-    void saveEvaluation(String key, Evaluation evaluation);
+    void saveEvaluation(String env, String key, Evaluation evaluation);
 
-    List<Evaluation> getAllEvaluations(String key);
+    void removeEvaluation(String env, String key);
 
-    void removeEvaluation(String key);
+    List<Evaluation> getAllEvaluations(String env);
+
+    void saveAllEvaluations(String env, List<Evaluation> evaluations);
 
     void clear();
 }

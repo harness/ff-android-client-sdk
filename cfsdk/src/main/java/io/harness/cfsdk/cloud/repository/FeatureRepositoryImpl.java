@@ -37,10 +37,10 @@ public class FeatureRepositoryImpl implements FeatureRepository {
     @Override
     public Evaluation getEvaluation(
 
-            String environment,
-            String target,
-            String evaluationId,
-            String cluster
+            final String environment,
+            final String target,
+            final String evaluationId,
+            final String cluster
     ) {
         if (networkInfoProvider.isNetworkAvailable()) {
 
@@ -51,13 +51,13 @@ public class FeatureRepositoryImpl implements FeatureRepository {
 
             if (apiResponse != null && apiResponse.isSuccess()) {
 
-                final String key = buildKey(environment, target, evaluationId);
-                cloudCache.saveEvaluation(key, apiResponse.body());
+                final String env = buildKey(environment, target);
+                cloudCache.saveEvaluation(env, evaluationId, apiResponse.body());
                 return apiResponse.body();
             }
         }
 
-        return cloudCache.getEvaluation(buildKey(environment, target, evaluationId));
+        return cloudCache.getEvaluation(buildKey(environment, target), evaluationId);
     }
 
     @Override
@@ -66,22 +66,18 @@ public class FeatureRepositoryImpl implements FeatureRepository {
             String environment, String target, String cluster
     ) {
 
+        final String envKey = environment + "_" + target;
+
         if (!networkInfoProvider.isNetworkAvailable()) {
 
-            return this.cloudCache.getAllEvaluations(environment + "_" + target);
+            return this.cloudCache.getAllEvaluations(envKey);
         }
 
         final ApiResponse apiResponse = this.featureService.getEvaluations(target, cluster);
         if (apiResponse != null && apiResponse.isSuccess()) {
 
-            List<Evaluation> evaluationList = apiResponse.body();
-            for (Evaluation evaluation : evaluationList) {
-
-                cloudCache.saveEvaluation(
-
-                        buildKey(environment, target, evaluation.getFlag()), evaluation
-                );
-            }
+            final List<Evaluation> evaluationList = apiResponse.body();
+            cloudCache.saveAllEvaluations(envKey, evaluationList);
 
             CfLog.OUT.v(tag, "Got all evaluations: " + evaluationList.size());
             return evaluationList;
@@ -117,7 +113,7 @@ public class FeatureRepositoryImpl implements FeatureRepository {
     @Override
     public void remove(String environment, String target, String evaluationId) {
 
-        this.cloudCache.removeEvaluation(buildKey(environment, target, evaluationId));
+        this.cloudCache.removeEvaluation(buildKey(environment, target), evaluationId);
     }
 
 
@@ -127,9 +123,9 @@ public class FeatureRepositoryImpl implements FeatureRepository {
         cloudCache.clear();
     }
 
-    private String buildKey(String environment, String target, String featureId) {
+    private String buildKey(String environment, String target) {
 
-        return environment + "_" + target + "_" + featureId;
+        return environment + "_" + target;
     }
 
 }

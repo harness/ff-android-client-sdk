@@ -1,37 +1,66 @@
 package io.harness.cfsdk.testwrapper.client
 
+import android.content.Context
 import io.harness.cfsdk.cloud.cache.CloudCache
 import io.harness.cfsdk.cloud.core.model.Evaluation
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 class TmpStorage : CloudCache {
 
-    private val map = ConcurrentHashMap<String, Evaluation>()
+    private var key_all: String? = null
+    private var evaluations = mutableMapOf<String, HashMap<String, Evaluation>>()
 
-    override fun getEvaluation(key: String?): Evaluation? {
+    fun TmpCache(appContext: Context) {
 
-        return map[key]
+        key_all = "all_evaluations"
+        evaluations = mutableMapOf()
     }
 
-    override fun saveEvaluation(key: String, evaluation: Evaluation) {
+    override fun getEvaluation(env: String, key: String): Evaluation? {
 
-        map[key] = evaluation
+        val items = evaluations[env]
+        return items?.get(key)
     }
 
-    override fun getAllEvaluations(key: String?): List<Evaluation> {
+    override fun saveEvaluation(env: String, key: String, evaluation: Evaluation) {
 
-        val list = mutableListOf<Evaluation>()
-        list.addAll(map.values)
-        return list
+        var items = evaluations[env]
+        if (items == null) {
+
+            items = HashMap()
+            evaluations[env] = items
+        }
+        items[key] = evaluation
     }
 
-    override fun removeEvaluation(key: String) {
+    override fun getAllEvaluations(env: String): List<Evaluation> {
 
-        map.remove(key)
+        val items = evaluations[env]
+        return if (items != null) {
+
+            LinkedList(items.values)
+
+        } else LinkedList()
+    }
+
+    override fun saveAllEvaluations(env: String, newEvaluations: List<Evaluation>) {
+
+        val items = HashMap<String, Evaluation>()
+        for (item in newEvaluations) {
+            items[item.identifier] = item
+        }
+        evaluations[env] = items
+    }
+
+    override fun removeEvaluation(env: String, key: String) {
+
+        val items = evaluations[env]
+        items?.remove(key)
     }
 
     override fun clear() {
 
-        map.clear()
+        evaluations.clear()
     }
 }

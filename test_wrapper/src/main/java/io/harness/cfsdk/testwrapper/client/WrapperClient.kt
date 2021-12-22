@@ -2,7 +2,6 @@ package io.harness.cfsdk.testwrapper.client
 
 import io.harness.cfsdk.CfClient
 import io.harness.cfsdk.CfConfiguration
-import io.harness.cfsdk.cloud.cache.InMemoryCacheImpl
 import io.harness.cfsdk.cloud.events.AuthCallback
 import io.harness.cfsdk.cloud.factories.CloudFactory
 import io.harness.cfsdk.cloud.model.Target
@@ -39,7 +38,7 @@ class WrapperClient(cloudFactory: CloudFactory?) : CfClient(cloudFactory) {
             sdkKey,
             configuration,
             target,
-            InMemoryCacheImpl(TmpStorage()),
+            TmpStorage(),
             authCallback
         )
     }
