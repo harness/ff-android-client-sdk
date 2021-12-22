@@ -54,6 +54,7 @@ public class StorageCache implements CloudCache {
     @SuppressLint("ApplySharedPref")
     @Override
     public void removeEvaluation(String key) {
+
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(appContextWeakRef.get());
         preferences.edit().remove(key).commit();
     }
