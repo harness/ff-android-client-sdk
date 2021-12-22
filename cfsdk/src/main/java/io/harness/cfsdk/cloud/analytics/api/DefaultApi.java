@@ -13,6 +13,7 @@ import io.harness.cfsdk.cloud.core.client.ApiResponse;
 import io.harness.cfsdk.cloud.core.client.Configuration;
 import io.harness.cfsdk.cloud.core.client.Pair;
 import io.harness.cfsdk.logging.CfLog;
+import okhttp3.Call;
 
 public class DefaultApi {
 
@@ -68,8 +69,6 @@ public class DefaultApi {
         String localVarPath = "/metrics/{environment}"
                 .replaceAll("\\{" + "environment" + "\\}", localVarApiClient.escapeString(environment.toString()));
 
-        CfLog.OUT.v(logTag, "API, url: " + localVarPath);
-
         List<Pair> localVarQueryParams = new ArrayList<>(localVarApiClient.parameterToPair("cluster", cluster));
         List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
@@ -92,7 +91,7 @@ public class DefaultApi {
 
         String[] localVarAuthNames = new String[]{"BearerAuth"};
 
-        return localVarApiClient.buildCall(
+        final Call call = localVarApiClient.buildCall(
 
                 localVarPath,
                 "POST",
@@ -105,6 +104,10 @@ public class DefaultApi {
                 localVarAuthNames,
                 _callback
         );
+
+        CfLog.OUT.v(logTag, "Metrics API, url: " + call.request().url().url());
+
+        return call;
     }
 
     @SuppressWarnings("rawtypes")

@@ -45,6 +45,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val otherFlagListener: EvaluationListener = EvaluationListener {
+
+        clients.forEach { client ->
+
+            val eval = client.boolVariation("harnessappdemoenablecimodule", false)
+            CfLog.OUT.v(logTag, "harnessappdemoenablecimodule value: $eval")
+        }
+    }
+
     private val flag2Listener: EvaluationListener = EvaluationListener {
 
         clients.forEach { client ->
@@ -78,8 +87,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         keys[KEY_UAT] = UAT_KEY
-//        keys["Freemium"] = FREEMIUM_API_KEY
-//        keys["Non-Freemium"] = NON_FREEMIUM_API_KEY
+        keys["Freemium"] = FREEMIUM_API_KEY
+        keys["Non-Freemium"] = NON_FREEMIUM_API_KEY
 
         val uuid = UUID.randomUUID().toString()
         val target = Target().identifier(uuid).name(uuid)
@@ -98,7 +107,7 @@ class MainActivity : AppCompatActivity() {
 
                 if (keyName == KEY_UAT) {
 
-                    CfLog.OUT.v(logTag,"Setting up the UAT url(s)")
+                    CfLog.OUT.v(logTag, "Setting up the UAT url(s)")
 
                     builder
                         .baseUrl("https://config.feature-flags.uat.harness.io/api/1.0")
@@ -128,6 +137,17 @@ class MainActivity : AppCompatActivity() {
                         var registerEvaluationsOk = 0
 
                         if (client.registerEvaluationListener("flag1", flag1Listener)) {
+
+                            registerEvaluationsOk++
+                        }
+
+                        if (
+                            client.registerEvaluationListener(
+
+                                "harnessappdemoenablecimodule",
+                                otherFlagListener
+                            )
+                        ) {
 
                             registerEvaluationsOk++
                         }
@@ -207,7 +227,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun readEvaluations(client: CfClient, logPrefix: String) {
 
-        val bVal = client.boolVariation("flag1", false)
+        var bVal = client.boolVariation("flag1", false)
         CfLog.OUT.v(logTag, "$logPrefix flag1: $bVal")
 
         val nVal = client.numberVariation("flag2", -1.0)
@@ -218,6 +238,9 @@ class MainActivity : AppCompatActivity() {
 
         val jVal = client.jsonVariation("flag4", JSONObject())
         CfLog.OUT.v(logTag, "$logPrefix flag4: $jVal")
+
+        bVal = client.boolVariation("harnessappdemoenablecimodule", false)
+        CfLog.OUT.v(logTag, "$logPrefix harnessappdemoenablecimodule: $bVal")
     }
 
     override fun onDestroy() {
