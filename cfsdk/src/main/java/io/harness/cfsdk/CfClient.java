@@ -627,6 +627,8 @@ public class CfClient implements Destroyable {
 
         if (result == null) {
 
+            CfLog.OUT.w(logTag, "Result is null, creating the default one");
+
             result = new Evaluation()
                     .value(defaultValue)
                     .flag(evaluationId);
