@@ -1,6 +1,5 @@
 package io.harness.cfsdk.cloud;
 
-import io.harness.cfsdk.BuildConfig;
 import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
 import io.harness.cfsdk.cloud.core.client.ApiException;
@@ -49,7 +48,7 @@ public class Cloud implements ICloud {
 
         apiClient = cloudFactory.apiClient();
         apiClient.setBasePath(baseUrl);
-        apiClient.setDebugging(BuildConfig.DEBUG);
+        apiClient.setDebugging(false);
     }
 
     @Override
