@@ -73,9 +73,6 @@ The Public API exposes a few methods that you can utilize:
 
 * `public void destroy()`
 
-These methods must not be executed on the application main thread since it 
-could trigger the network operations.
-
 <br><br>
 
 
@@ -100,6 +97,9 @@ val numberEvaluation: Double = CfClient.getInstance().numberVariation("demo_numb
 //get String evaluation
 val stringEvaluation: String = CfClient.getInstance().stringVariation("demo_string_evaluation", "demo_value")  
 ```
+
+Note: These methods must not be executed on the application's main thread since they
+could trigger the network operations.
 
 ## _Register for events_
 This method provides a way to register a listener for different events that might be triggered by SDK, indicating specific change in SDK itself.
