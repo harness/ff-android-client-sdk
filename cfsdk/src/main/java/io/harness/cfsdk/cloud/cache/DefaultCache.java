@@ -7,7 +7,6 @@ import androidx.annotation.Nullable;
 
 import com.orhanobut.hawk.Hawk;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +19,7 @@ public class DefaultCache implements CloudCache {
 
     private final String key_all;
     private final Executor executor;
-    private final ConcurrentHashMap<String, HashMap<String, Evaluation>> evaluations;
+    private final ConcurrentHashMap<String, ConcurrentHashMap<String, Evaluation>> evaluations;
 
     public DefaultCache(final Context appContext) {
 
@@ -35,7 +34,7 @@ public class DefaultCache implements CloudCache {
     @Nullable
     public Evaluation getEvaluation(final String env, final String key) {
 
-        final HashMap<String, Evaluation> items = evaluations.get(env);
+        final ConcurrentHashMap<String, Evaluation> items = evaluations.get(env);
         if (items != null) {
 
             return items.get(key);
@@ -48,10 +47,10 @@ public class DefaultCache implements CloudCache {
 
         final Runnable action = () -> {
 
-            HashMap<String, Evaluation> items = evaluations.get(env);
+            ConcurrentHashMap<String, Evaluation> items = evaluations.get(env);
             if (items == null) {
 
-                items = new HashMap<>();
+                items = new ConcurrentHashMap<>();
                 evaluations.put(env, items);
             }
             items.put(key, evaluation);
@@ -66,7 +65,7 @@ public class DefaultCache implements CloudCache {
     @NonNull
     public List<Evaluation> getAllEvaluations(final String env) {
 
-        final HashMap<String, Evaluation> items = evaluations.get(env);
+        final ConcurrentHashMap<String, Evaluation> items = evaluations.get(env);
         if (items != null) {
 
             return new LinkedList<>(items.values());
@@ -79,7 +78,7 @@ public class DefaultCache implements CloudCache {
 
         final Runnable action = () -> {
 
-            final HashMap<String, Evaluation> items = new HashMap<>();
+            final ConcurrentHashMap<String, Evaluation> items = new ConcurrentHashMap<>();
             for (final Evaluation item : newEvaluations) {
 
                 items.put(item.getIdentifier(), item);
@@ -98,7 +97,7 @@ public class DefaultCache implements CloudCache {
 
         final Runnable action = () -> {
 
-            final HashMap<String, Evaluation> items = evaluations.get(env);
+            final ConcurrentHashMap<String, Evaluation> items = evaluations.get(env);
             if (items != null) {
 
                 items.remove(key);
