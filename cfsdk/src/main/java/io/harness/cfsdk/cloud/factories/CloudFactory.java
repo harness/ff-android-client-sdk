@@ -92,7 +92,7 @@ public class CloudFactory implements ICloudFactory {
     public ApiClient apiClient() {
 
         final ApiClient apiClient = new ApiClient();
-        apiClient.setUserAgent("android 1.0.6");
+        apiClient.setUserAgent("android 1.0.7-SNAPSHOT");
         String hostname = "UnknownHost";
         try {
 
