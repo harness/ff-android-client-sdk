@@ -625,6 +625,13 @@ public class CfClient implements Destroyable {
                     .flag(evaluationId);
         }
 
+        if (ready.get() && result == null) {
+
+            result = new Evaluation()
+                    .value(defaultValue)
+                    .flag(evaluationId);
+        }
+
         if (canPushToMetrics(result)) {
 
             final Variation variation = new Variation();
