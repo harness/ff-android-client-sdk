@@ -18,7 +18,7 @@ buildscript {
 ```
 
 In app module's `build.gradle` file add dependency for Harness's SDK
-`implementation 'io.harness:ff-android-client-sdk:1.0.5'`
+`implementation 'io.harness:ff-android-client-sdk:1.0.6'`
 
 After this step, the SDK elements, primarily `CfClient` should be accessible in main application.
 
