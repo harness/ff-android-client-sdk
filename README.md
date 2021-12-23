@@ -72,6 +72,10 @@ The Public API exposes a few methods that you can utilize:
 * `public void unregisterEventsListener(EventsListener observer)`
 
 * `public void destroy()`
+
+These methods must not be executed on the application main thread since it 
+could trigger the network operations.
+
 <br><br>
 
 

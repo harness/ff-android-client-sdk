@@ -10,20 +10,25 @@ import com.orhanobut.hawk.Hawk;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 
 public class DefaultCache implements CloudCache {
 
     private final String key_all;
-    private final HashMap<String, HashMap<String, Evaluation>> evaluations;
+    private final Executor executor;
+    private final ConcurrentHashMap<String, HashMap<String, Evaluation>> evaluations;
 
     public DefaultCache(final Context appContext) {
 
         Hawk.init(appContext).build();
 
         key_all = "all_evaluations";
-        evaluations = Hawk.get(key_all, new HashMap<>());
+        executor = Executors.newSingleThreadExecutor();
+        evaluations = new ConcurrentHashMap<>(Hawk.get(key_all, new ConcurrentHashMap<>()));
     }
 
     @Override
@@ -41,15 +46,20 @@ public class DefaultCache implements CloudCache {
     @Override
     public void saveEvaluation(final String env, final String key, final Evaluation evaluation) {
 
-        HashMap<String, Evaluation> items = evaluations.get(env);
-        if (items == null) {
+        final Runnable action = () -> {
 
-            items = new HashMap<>();
-            evaluations.put(env, items);
-        }
-        items.put(key, evaluation);
+            HashMap<String, Evaluation> items = evaluations.get(env);
+            if (items == null) {
 
-        Hawk.put(key_all, evaluations);
+                items = new HashMap<>();
+                evaluations.put(env, items);
+            }
+            items.put(key, evaluation);
+
+            Hawk.put(key_all, evaluations);
+        };
+
+        executor.execute(action);
     }
 
     @Override
@@ -67,33 +77,48 @@ public class DefaultCache implements CloudCache {
     @Override
     public void saveAllEvaluations(final String env, final List<Evaluation> newEvaluations) {
 
-        final HashMap<String, Evaluation> items = new HashMap<>();
-        for (final Evaluation item : newEvaluations) {
+        final Runnable action = () -> {
 
-            items.put(item.getIdentifier(), item);
-        }
+            final HashMap<String, Evaluation> items = new HashMap<>();
+            for (final Evaluation item : newEvaluations) {
 
-        evaluations.put(env, items);
+                items.put(item.getIdentifier(), item);
+            }
 
-        Hawk.put(key_all, evaluations);
+            evaluations.put(env, items);
+
+            Hawk.put(key_all, evaluations);
+        };
+
+        executor.execute(action);
     }
 
     @Override
     public void removeEvaluation(final String env, final String key) {
 
-        final HashMap<String, Evaluation> items = evaluations.get(env);
-        if (items != null) {
+        final Runnable action = () -> {
 
-            items.remove(key);
-        }
+            final HashMap<String, Evaluation> items = evaluations.get(env);
+            if (items != null) {
 
-        Hawk.put(key_all, evaluations);
+                items.remove(key);
+            }
+
+            Hawk.put(key_all, evaluations);
+        };
+
+        executor.execute(action);
     }
 
     @Override
     public void clear() {
 
-        evaluations.clear();
-        Hawk.put(key_all, evaluations);
+        final Runnable action = () -> {
+
+            evaluations.clear();
+            Hawk.put(key_all, evaluations);
+        };
+
+        executor.execute(action);
     }
 }
