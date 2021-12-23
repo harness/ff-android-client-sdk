@@ -607,28 +607,18 @@ public class CfClient implements Destroyable {
             T defaultValue
     ) {
 
-        final Evaluation result = new Evaluation();
+        Evaluation result = new Evaluation();
+
         if (ready.get()) {
 
             final String cluster = authInfo.getCluster();
             final String identifier = authInfo.getEnvironmentIdentifier();
 
-            final Evaluation evaluation = featureRepository.getEvaluation(
+            result = featureRepository.getEvaluation(
 
                     identifier, target, evaluationId, cluster
             );
 
-            if (evaluation == null) {
-
-                result.value(defaultValue)
-                        .flag(evaluationId);
-            } else {
-
-                result.flag(evaluation.getFlag())
-                        .value(evaluation.getValue())
-                        .kind(evaluation.getKind())
-                        .identifier(evaluation.getIdentifier());
-            }
         } else {
 
             result.value(defaultValue)
@@ -770,17 +760,21 @@ public class CfClient implements Destroyable {
     public void destroy() {
 
         unregister();
+
+        eventsListenerSet.clear();
+        evaluationListenerSet.clear();
+
         if (analyticsManager != null) {
 
             analyticsManager.destroy();
         }
-        this.evaluationListenerSet.clear();
-        eventsListenerSet.clear();
 
         if (networkInfoProvider != null) {
 
             networkInfoProvider.unregisterAll();
         }
+
+        instance = null;
     }
 
     @NotNull
