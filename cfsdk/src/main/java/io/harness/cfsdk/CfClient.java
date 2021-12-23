@@ -625,7 +625,7 @@ public class CfClient implements Destroyable {
                     .flag(evaluationId);
         }
 
-        if (ready.get() && result == null) {
+        if (result == null) {
 
             result = new Evaluation()
                     .value(defaultValue)
