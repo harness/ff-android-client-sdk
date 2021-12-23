@@ -31,6 +31,7 @@ public class SSEController implements SSEControlling {
                     .build();
 
             OkSse okSse = new OkSse();
+
             serverSentEvent = okSse.newServerSentEvent(
 
                     request,
@@ -42,12 +43,11 @@ public class SSEController implements SSEControlling {
 
     @Override
     public synchronized void stop() {
+
         if (serverSentEvent == null) {
 
             return;
         }
         serverSentEvent.close();
-//        if (sseStatusListener != null) sseStatusListener.onClose(serverSentEvent);
-//        serverSentEvent = null;
     }
 }
