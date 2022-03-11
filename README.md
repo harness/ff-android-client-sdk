@@ -89,7 +89,7 @@ val evaluation: Boolean = CfClient.getInstance().boolVariation("demo_evaluation"
 ### <u>_numberVariation(String evaluationId, double defaultValue)_</u>
 ```Kotlin
 //get number evaluation
-val numberEvaluation: Double = CfClient.getInstance().numberVariation("demo_number_evaluation", 0)  
+val numberEvaluation: Double = CfClient.getInstance().numberVariation("demo_number_evaluation", 0.0)  
 ```
 
 ### <u>_stringVariation(String evaluationId, String defaultValue)_</u>
