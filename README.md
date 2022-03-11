@@ -110,27 +110,37 @@ public void initialize(
 
 <br><br>
 
-
 ## Fetch evaluation's value
 It is possible to fetch a value for a given evaluation. Evaluation is performed based on different type. In case there is no evaluation with provided id, the default value is returned.
 
 Use appropriate method to fetch the desired Evaluation of a certain type.
 
 ### <u>_boolVariation(String evaluationId, boolean defaultValue)_</u>
+
 ```Kotlin
-//get boolean evaluation
+// Get boolean evaluation:
 val evaluation: Boolean = CfClient.getInstance().boolVariation("demo_evaluation", false)  
 ```
+
 ### <u>_numberVariation(String evaluationId, double defaultValue)_</u>
+
 ```Kotlin
-//get number evaluation
+// Get number evaluation:
 val numberEvaluation: Double = CfClient.getInstance().numberVariation("demo_number_evaluation", 0.0)  
 ```
 
 ### <u>_stringVariation(String evaluationId, String defaultValue)_</u>
+
 ```Kotlin
-//get String evaluation
+// Get String evaluation:
 val stringEvaluation: String = CfClient.getInstance().stringVariation("demo_string_evaluation", "demo_value")  
+```
+
+### <u>_jsonVariation(String evaluationId, JSONObject defaultValue)_</u>
+
+```Kotlin
+// Get JSON evaluation:
+val jsonEvaluation: String = CfClient.getInstance().jsonVariation("demo_string_evaluation", JSONObject("{}"))  
 ```
 
 Note: These methods must not be executed on the application's main thread since they
