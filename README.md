@@ -57,8 +57,9 @@ CfClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration, tar
 ### **_Public API Methods_** ###
 The Public API exposes a few methods that you can utilize:
 
-* ```
-public void initialize(
+* `initialize(...)`
+
+```public void initialize(
 
             final Context context,
             final String apiKey,
@@ -66,11 +67,9 @@ public void initialize(
             final Target target,
             final AuthCallback authCallback
 
-) throws IllegalStateException
-  ```
+) throws IllegalStateException```
 
-* ```
-public void initialize(
+```public void initialize(
 
         final Context context,
         final String apiKey,
@@ -78,10 +77,9 @@ public void initialize(
         final Target target,
         final CloudCache cloudCache
 
-) throws IllegalStateException
-  ```
+) throws IllegalStateException```
 
-* ```
+```
 public void initialize(
 
         final Context context,
@@ -89,8 +87,7 @@ public void initialize(
         final CfConfiguration configuration,
         final Target target
 
-) throws IllegalStateException
-  ```
+) throws IllegalStateException```
 
 * `public boolean boolVariation(String evaluationId, boolean defaultValue)`
 
