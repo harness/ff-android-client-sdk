@@ -1,11 +1,43 @@
-Harness CF Android SDK
+Harness Feature Flag Android SDK
 ========================
-## Overview
 
--------------------------
-[Harness](https://www.harness.io/) is a feature management platform that helps teams to build better software and to test features quicker.
+## Table of Contents
+**[Intro](#Intro)**<br>
+**[Requirements](#Requirements)**<br>
+**[Quickstart](#Quickstart)**<br>
+**[Further Reading](docs/further_reading.md)**<br>
+**[Build Instructions](docs/build.md)**<br>
 
--------------------------
+
+## Intro
+
+Harness Feature Flags (FF) is a feature management solution that enables users to change the software’s functionality, without deploying new code. FF uses feature flags to hide code or behaviours without having to ship new versions of the software. A feature flag is like a powerful if statement.
+* For more information, see https://harness.io/products/feature-flags/
+* To read more, see https://ngdocs.harness.io/category/vjolt35atg-feature-flags
+* To sign up, https://app.harness.io/auth/#/signup/
+
+![FeatureFlags](https://github.com/harness/ff-python-server-sdk/raw/main/docs/images/ff-gui.png)
+
+## Requirements
+
+[Java 11](https://www.oracle.com/java/technologies/downloads/#java11)<br>
+[Gradle 7](https://docs.gradle.org/current/userguide/installation.html)<br>
+[Android SDK](https://developer.android.com/studio#downloads)<br>
+<br>
+
+### Git Submodule Init
+We need to init a submodule that contains some shared logging code
+```bash
+git submodule init 
+git submodule update
+```
+
+## Quickstart
+The Feature Flag SDK provides a client that connects to the feature flag service, and fetches the value
+of featue flags.   The following section provides an example of how to install the SDK and initalize it from
+an application.
+This quickstart assumes you have followed the instructions to [setup a Feature Flag project and have created a flag called `simpleboolflag` and created a server API Key](https://ngdocs.harness.io/article/1j7pdkqh7j-create-a-feature-flag#step_1_create_a_project).
+
 
 ## Setup
 
@@ -186,3 +218,7 @@ CfLog.runtimeModeOn()
 ``` 
 
 Standard Android logging is the default logging strategy so turning on runtime mode is not required. 
+
+-------------------------
+[Harness](https://www.harness.io/) is a feature management platform that helps teams to build better software and to test features quicker.
+-------------------------
