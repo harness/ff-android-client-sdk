@@ -59,7 +59,8 @@ The Public API exposes a few methods that you can utilize:
 
 * `initialize(...)`
 
-```public void initialize(
+```
+public void initialize(
 
             final Context context,
             final String apiKey,
@@ -67,9 +68,11 @@ The Public API exposes a few methods that you can utilize:
             final Target target,
             final AuthCallback authCallback
 
-) throws IllegalStateException```
+) throws IllegalStateException
+```
 
-```public void initialize(
+```
+public void initialize(
 
         final Context context,
         final String apiKey,
@@ -77,7 +80,8 @@ The Public API exposes a few methods that you can utilize:
         final Target target,
         final CloudCache cloudCache
 
-) throws IllegalStateException```
+) throws IllegalStateException
+```
 
 ```
 public void initialize(
@@ -87,7 +91,8 @@ public void initialize(
         final CfConfiguration configuration,
         final Target target
 
-) throws IllegalStateException```
+) throws IllegalStateException
+```
 
 * `public boolean boolVariation(String evaluationId, boolean defaultValue)`
 
