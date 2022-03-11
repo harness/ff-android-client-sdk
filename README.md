@@ -111,6 +111,7 @@ private var eventsListener = EventsListener { event ->
 }
 
 val registerEventsOk = CfClient.getInstance().registerEventsListener(eventsListener)
+val unregisterEventsOk = CfClient.getInstance().unregisterEventsListener(eventsListener)
 ```
 
 ## _Unregister from events_
