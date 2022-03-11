@@ -105,13 +105,12 @@ could trigger the network operations.
 This method provides a way to register a listener for different events that might be triggered by SDK, indicating specific change in SDK itself.
 
 ```Kotlin
-private final EventsListener eventsListener = statusEvent -> {
-    if (statusEvent.getEventType() == EVALUATION_CHANGE) {
-        Evaluation evaluation = statusEvent.extractPayload();
-    }
+private var eventsListener = EventsListener { event ->
+
+    CfLog.OUT.v(tag, "Event: ${event.eventType}")
 }
 
-val success = CfClient.getInstance().registerEventsListener(eventsListener)
+val registerEventsOk = CfClient.getInstance().registerEventsListener(eventsListener)
 ```
 
 ## _Unregister from events_
