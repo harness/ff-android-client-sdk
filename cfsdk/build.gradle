@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 31
 
     defaultConfig {
 
@@ -11,7 +11,7 @@ android {
         def appVersionName = "\"1.0.8-SNAPSHOT\""
 
         minSdkVersion 19
-        targetSdkVersion 29
+        targetSdkVersion 31
         versionCode appVersionCode
         versionName appVersionName
 
