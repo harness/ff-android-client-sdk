@@ -46,26 +46,13 @@ public class MockedFeatureRepository implements FeatureRepository {
     }
 
     @Override
-    public Evaluation getEvaluation(
-
-            String environment,
-            String target,
-            String evaluationId,
-            String cluster,
-            boolean useCache
-    ) {
+    public Evaluation getEvaluation(String environment, String target, String evaluationId, String cluster) {
 
         return mocks.get(evaluationId);
     }
 
     @Override
-    public List<Evaluation> getAllEvaluations(
-
-            String environment,
-            String target,
-            String cluster,
-            boolean useCache
-    ) {
+    public List<Evaluation> getAllEvaluations(String environment, String target, String cluster) {
 
         return new LinkedList<>(mocks.values());
     }

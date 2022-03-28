@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
 
         private const val KEY_UAT = "UAT"
 
-        private const val UAT_KEY = "1400c0e9-32a6-4be9-bf94-fcbf49692215"
+        private const val UAT_KEY = "de651804-a535-42b6-98aa-44e67b5b1d41"
         private const val FREEMIUM_API_KEY = "a6efdb72-4c01-45e0-8285-1dcbd63f72e7"
         private const val NON_FREEMIUM_API_KEY = "d122149a-fadd-471d-ab31-7938a2b90ba2"
     }
@@ -87,8 +87,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         keys[KEY_UAT] = UAT_KEY
-        keys["Freemium"] = FREEMIUM_API_KEY
-        keys["Non-Freemium"] = NON_FREEMIUM_API_KEY
+//        keys["Freemium"] = FREEMIUM_API_KEY
+//        keys["Non-Freemium"] = NON_FREEMIUM_API_KEY
 
         val uuid = UUID.randomUUID().toString()
         val target = Target().identifier(uuid).name(uuid)
@@ -187,7 +187,7 @@ class MainActivity : AppCompatActivity() {
                                     }
                                 },
                                 0,
-                                30 * 1000
+                                10000
                             )
 
                         } catch (e: IllegalStateException) {
