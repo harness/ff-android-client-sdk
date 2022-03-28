@@ -1,5 +1,3 @@
 rootProject.name = "CFAndroidSDK"
 include ':cfsdk'
 include ':example'
-include ':test_wrapper'
-include ':Logger:Logger'
