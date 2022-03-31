@@ -229,18 +229,18 @@ class MainActivity : AppCompatActivity() {
 
         var bVal = client.boolVariation("flag1", false)
         CfLog.OUT.v(logTag, "$logPrefix flag1: $bVal")
-//
-//        val nVal = client.numberVariation("flag2", -1.0)
-//        CfLog.OUT.v(logTag, "$logPrefix flag2: $nVal")
-//
-//        val sVal = client.stringVariation("flag3", "NO_VALUE!!!")
-//        CfLog.OUT.v(logTag, "$logPrefix flag3: $sVal")
-//
-//        val jVal = client.jsonVariation("flag4", JSONObject())
-//        CfLog.OUT.v(logTag, "$logPrefix flag4: $jVal")
-//
-//        bVal = client.boolVariation("harnessappdemoenablecimodule", false)
-//        CfLog.OUT.v(logTag, "$logPrefix harnessappdemoenablecimodule: $bVal")
+
+        val nVal = client.numberVariation("flag2", -1.0)
+        CfLog.OUT.v(logTag, "$logPrefix flag2: $nVal")
+
+        val sVal = client.stringVariation("flag3", "NO_VALUE!!!")
+        CfLog.OUT.v(logTag, "$logPrefix flag3: $sVal")
+
+        val jVal = client.jsonVariation("flag4", JSONObject())
+        CfLog.OUT.v(logTag, "$logPrefix flag4: $jVal")
+
+        bVal = client.boolVariation("harnessappdemoenablecimodule", false)
+        CfLog.OUT.v(logTag, "$logPrefix harnessappdemoenablecimodule: $bVal")
     }
 
     override fun onDestroy() {
