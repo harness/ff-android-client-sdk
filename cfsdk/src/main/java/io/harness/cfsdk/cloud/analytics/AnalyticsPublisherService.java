@@ -92,7 +92,8 @@ public class AnalyticsPublisherService {
 
                 } else {
 
-                    all.put(analytics, count + 1);
+                    count++;
+                    all.put(analytics, count);
                 }
 
                 CfLog.OUT.v(
