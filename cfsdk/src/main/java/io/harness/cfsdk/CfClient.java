@@ -640,6 +640,7 @@ public class CfClient implements Destroyable {
             variation.setName(evaluationId);
             variation.setValue(String.valueOf(result));
             variation.setIdentifier(result.getIdentifier());
+
             analyticsManager.pushToQueue(this.target, evaluationId, variation);
         }
 

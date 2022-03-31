@@ -1,6 +1,5 @@
 package io.harness.cfsdk;
 
-import io.harness.cfsdk.cloud.analytics.AnalyticsCacheFactory;
 
 /**
  * Main configuration class used to tune the behaviour of {@link CfClient}. It uses builder pattern.
@@ -39,7 +38,6 @@ public class CfConfiguration {
         analyticsEnabled = true;
         frequency = MIN_FREQUENCY; // unit: second
         metricsServiceAcceptableDuration = 10000;
-        analyticsCacheType = AnalyticsCacheFactory.DEFAULT_CACHE;
     }
 
     static {
