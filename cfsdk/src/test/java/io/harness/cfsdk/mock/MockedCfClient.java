@@ -39,24 +39,6 @@ public class MockedCfClient extends CfClient {
         return analyticsManager;
     }
 
-    public void addCallback(MockedAnalyticsHandlerCallback callback) throws IllegalStateException {
-
-        if (analyticsManager == null) {
-
-            throw new IllegalStateException("Analytics manager not yet instantiated");
-        }
-        analyticsManager.addCallback(callback);
-    }
-
-    public void removeCallback(MockedAnalyticsHandlerCallback callback) throws IllegalStateException {
-
-        if (analyticsManager == null) {
-
-            throw new IllegalStateException("Analytics manager not yet instantiated");
-        }
-        analyticsManager.removeCallback(callback);
-    }
-
     @Override
     protected boolean canPushToMetrics(Evaluation result) {
 
