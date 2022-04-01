@@ -85,9 +85,7 @@ public class AnalyticsPublisherService {
 
         final Map<Analytics, Integer> all = new HashMap<>();
 
-        while (!queue.isEmpty()) {
-
-            final Analytics analytics = queue.poll();
+        for (Analytics analytics : queue) {
 
             if (analytics != null) {
 
@@ -160,12 +158,42 @@ public class AnalyticsPublisherService {
                     CfLog.OUT.v(logTag, "No analytics data to send the server");
                 }
 
-                CfLog.OUT.v(logTag, "Cache is cleared");
+                boolean queueCleared = true;
+                for (final Analytics analytics : all.keySet()) {
+
+                    while (queue.contains(analytics)) {
+
+                        if (queue.remove(analytics)) {
+
+                            CfLog.OUT.v(
+
+                                    logTag,
+                                    "Metrics item was removed from the queue: "
+                                            + analytics.getEvaluationId()
+                            );
+
+                        } else {
+
+                            CfLog.OUT.e(
+
+                                    logTag,
+                                    "Metrics item was not removed from the queue: "
+                                            + analytics.getEvaluationId()
+                            );
+
+                            queueCleared = false;
+                        }
+                    }
+                }
+
+                if (queueCleared) {
+
+                    CfLog.OUT.v(logTag, "Queue is cleared, size=" + queue.size());
+                }
+
                 callback.onAnalyticsSent(true);
 
             } catch (ApiException e) {
-
-                // FIXME: Re-populate queue
 
                 CfLog.OUT.e(logTag, "Error sending metrics", e);
                 callback.onAnalyticsSent(false);

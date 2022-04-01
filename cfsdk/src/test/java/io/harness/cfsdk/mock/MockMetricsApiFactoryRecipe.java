@@ -18,11 +18,21 @@ public class MockMetricsApiFactoryRecipe implements MetricsApiFactoryRecipe {
     @Override
     public MetricsApi create(String authToken, CfConfiguration config) {
 
-        return (environment, cluster, metrics) -> {
+        return new MetricsApi() {
 
-            if (!resultSuccess) {
+            @Override
+            public void postMetrics(
 
-                throw new ApiException("Mocked metrics API failure");
+                    final String environment,
+                    final String cluster,
+                    final Metrics metrics
+
+            ) throws ApiException {
+
+                if (!resultSuccess) {
+
+                    throw new ApiException("Mocked metrics API failure");
+                }
             }
         };
     }

@@ -58,18 +58,18 @@ public class AnalyticsManagerTest {
         }
 
         Assert.assertTrue(queue.isEmpty());
-        Assert.assertEquals(sendingCount + 1, manager.getSuccessCount());
+        Assert.assertTrue(manager.getSuccessCount() >= sendingCount + 1);
 
         manager.destroy();
 
         Assert.assertTrue(queue.isEmpty());
-        Assert.assertEquals(sendingCount + 2, manager.getSuccessCount());
+        Assert.assertTrue(manager.getSuccessCount() >= sendingCount + 2);
     }
 
     @Test
     public void testFaultyPath() {
 
-        final MetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(false);
+        MetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(false);
         MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
 
         final ManagerWrapper wrapper = getWrapped();
@@ -81,20 +81,25 @@ public class AnalyticsManagerTest {
 
         try {
 
-            Thread.sleep(sendingCount * publishingIntervalInMillis);
+            Thread.sleep((sendingCount + 1) * publishingIntervalInMillis);
 
         } catch (InterruptedException e) {
 
             Assert.fail(e.getMessage());
         }
 
-        Assert.assertFalse(queue.isEmpty());
-        Assert.assertEquals(sendingCount + 1, manager.getFailureCount());
+        Assert.assertEquals(count * count, queue.size());
+        Assert.assertEquals(1, manager.getSuccessCount());
+        Assert.assertTrue(manager.getFailureCount() >= sendingCount);
+
+//        successFactory = new MockMetricsApiFactoryRecipe(true);
+//        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
 
         manager.destroy();
 
-        Assert.assertTrue(queue.isEmpty());
-        Assert.assertEquals(sendingCount + 2, manager.getFailureCount());
+        Assert.assertEquals(count * count, queue.size());
+        Assert.assertEquals(1, manager.getSuccessCount());
+        Assert.assertTrue(manager.getFailureCount() >= sendingCount + 1);
     }
 
     private ManagerWrapper getWrapped() {
