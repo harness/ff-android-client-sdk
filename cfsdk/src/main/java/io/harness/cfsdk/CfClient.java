@@ -769,15 +769,15 @@ public class CfClient implements Destroyable {
     @Override
     public void destroy() {
 
-        unregister();
-
-        eventsListenerSet.clear();
-        evaluationListenerSet.clear();
-
         if (analyticsManager != null) {
 
             analyticsManager.destroy();
         }
+
+        unregister();
+
+        eventsListenerSet.clear();
+        evaluationListenerSet.clear();
 
         if (networkInfoProvider != null) {
 
@@ -822,10 +822,12 @@ public class CfClient implements Destroyable {
 
             evaluationPolling.stop();
         }
+
         if (featureRepository != null) {
 
             featureRepository.clear();
         }
+
         target = null;
     }
 }
