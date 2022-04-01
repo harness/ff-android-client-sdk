@@ -32,6 +32,7 @@ public class AnalyticsManagerTest {
         CfLog.OUT.v(logTag, "Testing: " + AnalyticsManager.class.getSimpleName());
 
         final int count = 10;
+        final int sendingCount = 5;
         final String test = "Test";
         final String token = UUID.randomUUID().toString();
 
@@ -40,7 +41,7 @@ public class AnalyticsManagerTest {
         target.name(test);
 
         final int metricsCapacity = 100;
-        final int publishingIntervalInMillis = 500;
+        final int publishingIntervalInMillis = 100;
         final int publishingAcceptableDurationInMillis = 500;
 
         final CfConfiguration.Builder builder = CfConfiguration.builder()
@@ -111,9 +112,22 @@ public class AnalyticsManagerTest {
 
         Assert.assertEquals(count * count, queue.size());
 
+        try {
+
+            Thread.sleep(sendingCount * publishingIntervalInMillis);
+
+        } catch (InterruptedException e) {
+
+            Assert.fail(e.getMessage());
+        }
+
+        Assert.assertTrue(queue.isEmpty());
+        Assert.assertEquals(sendingCount, manager.getSuccessCount());
+
         manager.destroy();
 
         Assert.assertTrue(queue.isEmpty());
+        Assert.assertEquals(sendingCount + 1, manager.getSuccessCount());
     }
 
     private String getFlag(int iteration) {

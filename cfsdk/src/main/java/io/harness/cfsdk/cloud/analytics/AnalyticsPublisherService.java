@@ -71,8 +71,15 @@ public class AnalyticsPublisherService {
 
     /**
      * This method sends the metrics data to the analytics server and resets the cache
+     *
+     * @param queue Queue that contains data to be sent.
+     * @param callback Sending results callback.
      */
-    public void sendDataAndResetQueue(final BlockingQueue<Analytics> queue) {
+    public void sendDataAndResetQueue(
+
+            final BlockingQueue<Analytics> queue,
+            final AnalyticsPublisherServiceCallback callback
+    ) {
 
         CfLog.OUT.d(logTag, "Reading from queue and building cache");
 
@@ -98,14 +105,14 @@ public class AnalyticsPublisherService {
 
                 CfLog.OUT.v(
 
-                    logTag,
-                    String.format(
+                        logTag,
+                        String.format(
 
-                            Locale.getDefault(),
-                            "Preparing metrics: metric='%s', count=%d",
-                            analytics.getEvaluationId(),
-                            count
-                    )
+                                Locale.getDefault(),
+                                "Preparing metrics: metric='%s', count=%d",
+                                analytics.getEvaluationId(),
+                                count
+                        )
                 );
             }
         }
@@ -113,6 +120,7 @@ public class AnalyticsPublisherService {
         if (all.isEmpty()) {
 
             CfLog.OUT.d(logTag, "Cache is empty");
+            callback.onAnalyticsSent(true);
 
         } else {
 
@@ -153,10 +161,14 @@ public class AnalyticsPublisherService {
                 }
 
                 CfLog.OUT.v(logTag, "Cache is cleared");
+                callback.onAnalyticsSent(true);
 
             } catch (ApiException e) {
 
+                // FIXME: Re-populate queue
+
                 CfLog.OUT.e(logTag, "Error sending metrics", e);
+                callback.onAnalyticsSent(false);
             }
         }
     }

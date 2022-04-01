@@ -50,7 +50,7 @@ public class AnalyticsManager implements Destroyable {
                     @Override
                     public void run() {
 
-                        analyticsPublisherService.sendDataAndResetQueue(queue);
+                        analyticsPublisherService.sendDataAndResetQueue(queue, getSendingCallback());
                     }
                 },
 
@@ -75,7 +75,7 @@ public class AnalyticsManager implements Destroyable {
 
         if (queue.remainingCapacity() == 0) {
 
-            analyticsPublisherService.sendDataAndResetQueue(queue);
+            analyticsPublisherService.sendDataAndResetQueue(queue, getSendingCallback());
         }
 
         CfLog.OUT.v(logTag, "pushToQueue: Variation=" + variation);
@@ -101,8 +101,23 @@ public class AnalyticsManager implements Destroyable {
 
         CfLog.OUT.v(logTag, "destroying");
 
-        analyticsPublisherService.sendDataAndResetQueue(queue);
+        analyticsPublisherService.sendDataAndResetQueue(queue, getSendingCallback());
         timer.cancel();
         timer.purge();
+    }
+
+    protected AnalyticsPublisherServiceCallback getSendingCallback() {
+
+        return success -> {
+
+            if (success) {
+
+                CfLog.OUT.v(logTag, "Metrics sending success");
+
+            } else {
+
+                CfLog.OUT.w(logTag, "Metrics sending failure");
+            }
+        };
     }
 }
