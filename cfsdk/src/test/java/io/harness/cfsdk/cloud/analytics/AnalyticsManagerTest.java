@@ -48,14 +48,7 @@ public class AnalyticsManagerTest {
 
         populate(target, queue, manager);
 
-        try {
-
-            Thread.sleep(sendingCount * publishingIntervalInMillis);
-
-        } catch (InterruptedException e) {
-
-            Assert.fail(e.getMessage());
-        }
+        waitForPublishing();
 
         Assert.assertTrue(queue.isEmpty());
         Assert.assertTrue(manager.getSuccessCount() >= sendingCount + 1);
@@ -69,8 +62,8 @@ public class AnalyticsManagerTest {
     @Test
     public void testFaultyPath() {
 
-        MetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(false);
-        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
+        final MetricsApiFactoryRecipe factory = new MockMetricsApiFactoryRecipe(false);
+        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(factory);
 
         final ManagerWrapper wrapper = getWrapped();
         final Target target = wrapper.target;
@@ -79,27 +72,22 @@ public class AnalyticsManagerTest {
 
         populate(target, queue, manager);
 
-        try {
+        waitForPublishing();
 
-            Thread.sleep((sendingCount + 1) * publishingIntervalInMillis);
-
-        } catch (InterruptedException e) {
-
-            Assert.fail(e.getMessage());
-        }
+        final int failed = manager.getFailureCount();
 
         Assert.assertEquals(count * count, queue.size());
         Assert.assertEquals(1, manager.getSuccessCount());
-        Assert.assertTrue(manager.getFailureCount() >= sendingCount);
+        Assert.assertTrue(failed >= sendingCount);
 
-//        successFactory = new MockMetricsApiFactoryRecipe(true);
-//        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
+        MockMetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(true);
+        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
 
         manager.destroy();
 
-        Assert.assertEquals(count * count, queue.size());
-        Assert.assertEquals(1, manager.getSuccessCount());
-        Assert.assertTrue(manager.getFailureCount() >= sendingCount + 1);
+        Assert.assertTrue(queue.isEmpty());
+        Assert.assertTrue(manager.getSuccessCount() >= 2);
+        Assert.assertEquals(failed, manager.getFailureCount());
     }
 
     private ManagerWrapper getWrapped() {
@@ -216,6 +204,18 @@ public class AnalyticsManagerTest {
             this.manager = manager;
             this.queue = queue;
             this.target = target;
+        }
+    }
+
+    private void waitForPublishing() {
+
+        try {
+
+            Thread.sleep((sendingCount + 1) * publishingIntervalInMillis);
+
+        } catch (InterruptedException e) {
+
+            Assert.fail(e.getMessage());
         }
     }
 }

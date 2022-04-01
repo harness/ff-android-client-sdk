@@ -30,7 +30,7 @@ public class MetricsApiFactory {
 
     public static void setDefaultMetricsApiFactoryRecipe(
 
-            MetricsApiFactoryRecipe metricsApiRecipe
+            final MetricsApiFactoryRecipe metricsApiRecipe
     ) {
 
         recipe = metricsApiRecipe;

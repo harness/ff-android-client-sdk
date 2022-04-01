@@ -45,8 +45,8 @@ public class AnalyticsPublisherService {
 
     private final String logTag;
     private final String cluster;
+    private final String authToken;
     private final String environmentID;
-    private final MetricsApi metricsAPI;
     private final CfConfiguration config;
 
     {
@@ -64,9 +64,8 @@ public class AnalyticsPublisherService {
 
         this.config = config;
         this.cluster = cluster;
+        this.authToken = authToken;
         this.environmentID = environmentID;
-
-        metricsAPI = MetricsApiFactory.create(authToken, config);
     }
 
     /**
@@ -142,6 +141,7 @@ public class AnalyticsPublisherService {
 
                     CfLog.OUT.v(logTag, "Sending metrics");
 
+                    final MetricsApi metricsAPI = MetricsApiFactory.create(authToken, config);
                     metricsAPI.postMetrics(environmentID, cluster, metrics);
 
                     long endTime = System.currentTimeMillis();
