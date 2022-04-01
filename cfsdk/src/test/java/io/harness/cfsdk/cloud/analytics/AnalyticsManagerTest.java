@@ -1,7 +1,6 @@
 package io.harness.cfsdk.cloud.analytics;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.UUID;
@@ -20,6 +19,7 @@ import io.harness.cfsdk.mock.MockedCfConfiguration;
 public class AnalyticsManagerTest {
 
     private final String logTag;
+    private final int publishingIntervalInMillis = 100;
 
     {
 
@@ -27,7 +27,54 @@ public class AnalyticsManagerTest {
     }
 
     @Test
-    public void testAnalyticsManager() {
+    public void testHappyPath() {
+
+        final int count = 10;
+        final int sendingCount = 5;
+
+        final ManagerWrapper wrapper = getWrapped();
+
+        final Target target = wrapper.target;
+        final BlockingQueue<Analytics> queue = wrapper.queue;
+        final MockedAnalyticsManager manager = wrapper.manager;
+
+        for (int x = 0; x < count; x++) {
+            for (int y = 0; y < count; y++) {
+
+                final String flag = getFlag(x);
+                final boolean value = x % 2 == 0;
+                final Evaluation result = new Evaluation().value(value).flag(flag);
+
+                final Variation variation = new Variation();
+                variation.setName(flag);
+                variation.setValue(String.valueOf(result));
+                variation.setIdentifier(result.getIdentifier());
+
+                manager.pushToQueue(target, flag, variation);
+            }
+        }
+
+        Assert.assertEquals(count * count, queue.size());
+
+        try {
+
+            Thread.sleep(sendingCount * publishingIntervalInMillis);
+
+        } catch (InterruptedException e) {
+
+            Assert.fail(e.getMessage());
+        }
+
+        Assert.assertTrue(queue.isEmpty());
+        Assert.assertEquals(sendingCount + 1, manager.getSuccessCount());
+
+        manager.destroy();
+
+        Assert.assertTrue(queue.isEmpty());
+        Assert.assertEquals(sendingCount + 2, manager.getSuccessCount());
+    }
+
+    private ManagerWrapper getWrapped() {
 
         CfLog.testModeOn();
 
@@ -37,8 +84,6 @@ public class AnalyticsManagerTest {
 
         CfLog.OUT.v(logTag, "Testing: " + AnalyticsManager.class.getSimpleName());
 
-        final int count = 10;
-        final int sendingCount = 5;
         final String test = "Test";
         final String token = UUID.randomUUID().toString();
 
@@ -46,10 +91,8 @@ public class AnalyticsManagerTest {
         target.identifier(test);
         target.name(test);
 
-        final int metricsCapacity = 100;
-        final int publishingIntervalInMillis = 100;
-        final int publishingAcceptableDurationInMillis = 500;
-
+        int metricsCapacity = 100;
+        int publishingAcceptableDurationInMillis = 500;
         final CfConfiguration.Builder builder = CfConfiguration.builder()
                 .enableAnalytics(true)
                 .enableStream(false)
@@ -100,44 +143,30 @@ public class AnalyticsManagerTest {
                 queue.remainingCapacity()
         );
 
-        for (int x = 0; x < count; x++) {
-            for (int y = 0; y < count; y++) {
-
-                final String flag = getFlag(x);
-                final boolean value = x % 2 == 0;
-                final Evaluation result = new Evaluation().value(value).flag(flag);
-
-                final Variation variation = new Variation();
-                variation.setName(flag);
-                variation.setValue(String.valueOf(result));
-                variation.setIdentifier(result.getIdentifier());
-
-                manager.pushToQueue(target, flag, variation);
-            }
-        }
-
-        Assert.assertEquals(count * count, queue.size());
-
-        try {
-
-            Thread.sleep(sendingCount * publishingIntervalInMillis);
-
-        } catch (InterruptedException e) {
-
-            Assert.fail(e.getMessage());
-        }
-
-        Assert.assertTrue(queue.isEmpty());
-        Assert.assertEquals(sendingCount + 1, manager.getSuccessCount());
-
-        manager.destroy();
-
-        Assert.assertTrue(queue.isEmpty());
-        Assert.assertEquals(sendingCount + 2, manager.getSuccessCount());
+        return new ManagerWrapper(manager, queue, target);
     }
 
     private String getFlag(int iteration) {
 
         return "Test_Flag_" + iteration;
+    }
+
+    private static class ManagerWrapper {
+
+        MockedAnalyticsManager manager;
+        BlockingQueue<Analytics> queue;
+        Target target;
+
+        public ManagerWrapper(
+
+                final MockedAnalyticsManager manager,
+                final BlockingQueue<Analytics> queue,
+                final Target target
+        ) {
+
+            this.manager = manager;
+            this.queue = queue;
+            this.target = target;
+        }
     }
 }
