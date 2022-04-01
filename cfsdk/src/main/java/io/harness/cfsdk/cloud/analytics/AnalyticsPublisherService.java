@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
 import io.harness.cfsdk.CfConfiguration;
-import io.harness.cfsdk.cloud.analytics.api.DefaultApi;
+import io.harness.cfsdk.cloud.analytics.api.MetricsApi;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
 import io.harness.cfsdk.cloud.analytics.model.KeyValue;
 import io.harness.cfsdk.cloud.analytics.model.Metrics;
@@ -46,7 +46,7 @@ public class AnalyticsPublisherService {
     private final String logTag;
     private final String cluster;
     private final String environmentID;
-    private final DefaultApi metricsAPI;
+    private final MetricsApi metricsAPI;
     private final CfConfiguration config;
 
     {
@@ -72,7 +72,7 @@ public class AnalyticsPublisherService {
     /**
      * This method sends the metrics data to the analytics server and resets the cache
      *
-     * @param queue Queue that contains data to be sent.
+     * @param queue    Queue that contains data to be sent.
      * @param callback Sending results callback.
      */
     public void sendDataAndResetQueue(

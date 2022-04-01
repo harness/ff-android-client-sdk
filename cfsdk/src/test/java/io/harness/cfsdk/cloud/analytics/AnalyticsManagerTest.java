@@ -1,6 +1,7 @@
 package io.harness.cfsdk.cloud.analytics;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.UUID;
@@ -12,6 +13,7 @@ import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.logging.CfLog;
+import io.harness.cfsdk.mock.MockMetricsApiFactoryRecipe;
 import io.harness.cfsdk.mock.MockedAnalyticsManager;
 import io.harness.cfsdk.mock.MockedCfConfiguration;
 
@@ -28,6 +30,10 @@ public class AnalyticsManagerTest {
     public void testAnalyticsManager() {
 
         CfLog.testModeOn();
+
+        final MetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(true);
+
+        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
 
         CfLog.OUT.v(logTag, "Testing: " + AnalyticsManager.class.getSimpleName());
 
@@ -122,12 +128,12 @@ public class AnalyticsManagerTest {
         }
 
         Assert.assertTrue(queue.isEmpty());
-        Assert.assertEquals(sendingCount, manager.getSuccessCount());
+        Assert.assertEquals(sendingCount + 1, manager.getSuccessCount());
 
         manager.destroy();
 
         Assert.assertTrue(queue.isEmpty());
-        Assert.assertEquals(sendingCount + 1, manager.getSuccessCount());
+        Assert.assertEquals(sendingCount + 2, manager.getSuccessCount());
     }
 
     private String getFlag(int iteration) {
