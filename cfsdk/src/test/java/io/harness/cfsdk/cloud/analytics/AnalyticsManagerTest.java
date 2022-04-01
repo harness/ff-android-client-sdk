@@ -3,7 +3,6 @@ package io.harness.cfsdk.cloud.analytics;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Map;
 import java.util.UUID;
 
 import io.harness.cfsdk.CfConfiguration;
@@ -12,6 +11,7 @@ import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.mock.MockedAnalyticsManager;
+import io.harness.cfsdk.mock.MockedCfConfiguration;
 
 public class AnalyticsManagerTest {
 
@@ -38,20 +38,42 @@ public class AnalyticsManagerTest {
         target.name(test);
 
         final int metricsCapacity = 100;
+        final int publishingIntervalInMillis = 500;
         final int publishingAcceptableDurationInMillis = 500;
 
-        final CfConfiguration configuration = CfConfiguration
-                .builder()
+        final CfConfiguration.Builder builder = CfConfiguration.builder()
                 .enableAnalytics(true)
                 .enableStream(false)
+                .metricsPublishingIntervalInMillis(publishingIntervalInMillis)
                 .metricsPublishingAcceptableDurationInMillis(publishingAcceptableDurationInMillis)
-                .metricsCapacity(metricsCapacity)
-                .build();
+                .metricsCapacity(metricsCapacity);
+
+        final CfConfiguration defaults = builder.build();
+
+        final MockedCfConfiguration configuration = new MockedCfConfiguration(builder);
+
+        Assert.assertEquals(
+
+                CfConfiguration.MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS * 1000L,
+                defaults.getMetricsPublishingIntervalInMillis()
+        );
 
         Assert.assertEquals(
 
                 publishingAcceptableDurationInMillis,
-                configuration.getMetricsPublishingIntervalInSeconds()
+                defaults.getMetricsServiceAcceptableDurationInMillis()
+        );
+
+        Assert.assertEquals(
+
+                publishingIntervalInMillis,
+                configuration.getMetricsPublishingIntervalInMillis()
+        );
+
+        Assert.assertEquals(
+
+                publishingAcceptableDurationInMillis,
+                configuration.getMetricsServiceAcceptableDurationInMillis()
         );
 
         Assert.assertEquals(

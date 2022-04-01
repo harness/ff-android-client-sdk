@@ -41,7 +41,7 @@ public class AnalyticsManager implements Destroyable {
                 authToken, config, environmentID, cluster
         );
 
-        final long frequency = config.getMetricsPublishingIntervalInSeconds() * 1000L;
+        final long frequency = config.getMetricsPublishingIntervalInMillis();
 
         timer.schedule(
 

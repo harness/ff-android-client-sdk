@@ -140,7 +140,7 @@ public class AnalyticsPublisherService {
 
                     long endTime = System.currentTimeMillis();
 
-                    if ((endTime - startTime) > config.getMetricsServiceAcceptableDuration()) {
+                    if ((endTime - startTime) > config.getMetricsServiceAcceptableDurationInMillis()) {
 
                         CfLog.OUT.w(logTag, "Metrics service API duration=" + (endTime - startTime));
                     }

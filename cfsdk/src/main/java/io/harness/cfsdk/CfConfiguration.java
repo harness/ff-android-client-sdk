@@ -8,38 +8,41 @@ public class CfConfiguration {
 
     public static final int DEFAULT_METRICS_CAPACITY;
     public static final int MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS;
-    public static final int DEFAULT_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS;
+    public static final int DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS;
 
-    private static final String BASE_URL;
-    private static final String EVENT_URL;
-    private static final String STREAM_URL;
+    protected static final String BASE_URL;
+    protected static final String EVENT_URL;
+    protected static final String STREAM_URL;
 
-    private int metricsCapacity;
-    private final int metricsPublishingIntervalInSeconds;
-    private final int pollingInterval;
+    protected final String baseURL;
+    protected final String eventURL;
+    protected final String streamURL;
 
-    private final String baseURL;
-    private final String eventURL;
-    private final String streamURL;
+    protected boolean analyticsEnabled;
+    protected final boolean streamEnabled;
 
-    private boolean analyticsEnabled;
-    private final boolean streamEnabled;
-
-    private long metricsServiceAcceptableDuration;
+    protected int metricsCapacity;
+    protected final int pollingInterval;
+    protected long metricsPublishingIntervalInMillis;
+    protected long metricsServiceAcceptableDurationInMillis;
 
     static {
 
         DEFAULT_METRICS_CAPACITY = 1024;
         MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS = 60;
-        DEFAULT_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS = 10;
+        DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS = 10;
     }
 
     {
 
         analyticsEnabled = true;
-        metricsServiceAcceptableDuration = 10000;
         metricsCapacity = DEFAULT_METRICS_CAPACITY;
-        metricsPublishingIntervalInSeconds = MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS;
+
+        metricsPublishingIntervalInMillis =
+                MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS * 1000L;
+
+        metricsServiceAcceptableDurationInMillis =
+                DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS * 1000L;
     }
 
     static {
@@ -81,7 +84,7 @@ public class CfConfiguration {
         this.pollingInterval = pollingInterval;
     }
 
-    CfConfiguration(
+    protected CfConfiguration(
 
             String baseURL,
             String streamURL,
@@ -130,6 +133,7 @@ public class CfConfiguration {
     }
 
     public boolean getStreamEnabled() {
+
         return streamEnabled;
     }
 
@@ -161,17 +165,17 @@ public class CfConfiguration {
         private int metricsCapacity;
         private boolean streamEnabled;
         private boolean analyticsEnabled;
-        private int metricsPublishingIntervalInSeconds;
+        private long metricsPublishingIntervalInMillis;
         private long metricsPublishingAcceptableDurationInMillis;
 
         {
 
             analyticsEnabled = true;
             metricsCapacity = DEFAULT_METRICS_CAPACITY;
-            metricsPublishingIntervalInSeconds = MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS;
+            metricsPublishingIntervalInMillis = MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS * 1000L;
 
             metricsPublishingAcceptableDurationInMillis =
-                    DEFAULT_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS * 1000L;
+                    DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS * 1000L;
         }
 
         /**
@@ -266,6 +270,16 @@ public class CfConfiguration {
             return this;
         }
 
+        /**
+         * @param intervalInMillis Metrics publishing interval in millis.
+         * @return This builder.
+         */
+        public Builder metricsPublishingIntervalInMillis(long intervalInMillis) {
+
+            metricsPublishingIntervalInMillis = intervalInMillis;
+            return this;
+        }
+
         public int getMetricsCapacity() {
 
             return metricsCapacity;
@@ -275,6 +289,41 @@ public class CfConfiguration {
 
             this.metricsCapacity = metricsCapacity;
             return this;
+        }
+
+        public String getBaseURL() {
+
+            return baseURL;
+        }
+
+        public String getEventURL() {
+
+            return eventURL;
+        }
+
+        public String getStreamURL() {
+
+            return streamURL;
+        }
+
+        public int getPollingInterval() {
+
+            return pollingInterval;
+        }
+
+        public boolean isStreamEnabled() {
+
+            return streamEnabled;
+        }
+
+        public boolean isAnalyticsEnabled() {
+
+            return analyticsEnabled;
+        }
+
+        public long getMetricsPublishingIntervalInMillis() {
+
+            return metricsPublishingIntervalInMillis;
         }
 
         /**
@@ -305,18 +354,19 @@ public class CfConfiguration {
             );
 
             cfConfiguration.setMetricsCapacity(metricsCapacity);
-            cfConfiguration.setMetricsServiceAcceptableDuration(metricsPublishingAcceptableDurationInMillis);
+            cfConfiguration.setMetricsPublishingIntervalInMillis(metricsPublishingIntervalInMillis);
+            cfConfiguration.setMetricsServiceAcceptableDurationInMillis(metricsPublishingAcceptableDurationInMillis);
 
             return cfConfiguration;
         }
     }
 
-    public int getMetricsPublishingIntervalInSeconds() {
+    public long getMetricsPublishingIntervalInMillis() {
 
         return Math.max(
 
-                metricsPublishingIntervalInSeconds,
-                MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS
+                metricsPublishingIntervalInMillis,
+                MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS * 1000L
         );
     }
 
@@ -330,13 +380,18 @@ public class CfConfiguration {
         return metricsCapacity;
     }
 
-    public long getMetricsServiceAcceptableDuration() {
+    public void setMetricsPublishingIntervalInMillis(long intervalInMillis) {
 
-        return metricsServiceAcceptableDuration;
+        metricsPublishingIntervalInMillis = intervalInMillis;
     }
 
-    public void setMetricsServiceAcceptableDuration(long metricsServiceAcceptableDuration) {
+    public long getMetricsServiceAcceptableDurationInMillis() {
 
-        this.metricsServiceAcceptableDuration = metricsServiceAcceptableDuration;
+        return metricsServiceAcceptableDurationInMillis;
+    }
+
+    public void setMetricsServiceAcceptableDurationInMillis(long durationInMillis) {
+
+        this.metricsServiceAcceptableDurationInMillis = durationInMillis;
     }
 }
