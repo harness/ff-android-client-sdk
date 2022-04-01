@@ -1,6 +1,7 @@
 package io.harness.cfsdk.cloud.analytics;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.UUID;
@@ -19,6 +20,8 @@ import io.harness.cfsdk.mock.MockedCfConfiguration;
 public class AnalyticsManagerTest {
 
     private final String logTag;
+    private final int count = 10;
+    private final int sendingCount = 5;
     private final int publishingIntervalInMillis = 100;
 
     {
@@ -26,35 +29,24 @@ public class AnalyticsManagerTest {
         logTag = AnalyticsManagerTest.class.getSimpleName();
     }
 
+    @Before
+    public void prepare() {
+
+        CfLog.testModeOn();
+    }
+
     @Test
     public void testHappyPath() {
 
-        final int count = 10;
-        final int sendingCount = 5;
+        final MetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(true);
+        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
 
         final ManagerWrapper wrapper = getWrapped();
-
         final Target target = wrapper.target;
         final BlockingQueue<Analytics> queue = wrapper.queue;
         final MockedAnalyticsManager manager = wrapper.manager;
 
-        for (int x = 0; x < count; x++) {
-            for (int y = 0; y < count; y++) {
-
-                final String flag = getFlag(x);
-                final boolean value = x % 2 == 0;
-                final Evaluation result = new Evaluation().value(value).flag(flag);
-
-                final Variation variation = new Variation();
-                variation.setName(flag);
-                variation.setValue(String.valueOf(result));
-                variation.setIdentifier(result.getIdentifier());
-
-                manager.pushToQueue(target, flag, variation);
-            }
-        }
-
-        Assert.assertEquals(count * count, queue.size());
+        populate(target, queue, manager);
 
         try {
 
@@ -74,13 +66,21 @@ public class AnalyticsManagerTest {
         Assert.assertEquals(sendingCount + 2, manager.getSuccessCount());
     }
 
-    private ManagerWrapper getWrapped() {
+    @Test
+    public void testFaultyPath() {
 
-        CfLog.testModeOn();
-
-        final MetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(true);
-
+        final MetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(false);
         MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
+
+        final ManagerWrapper wrapper = getWrapped();
+        final Target target = wrapper.target;
+        final BlockingQueue<Analytics> queue = wrapper.queue;
+        final MockedAnalyticsManager manager = wrapper.manager;
+
+        populate(target, queue, manager);
+    }
+
+    private ManagerWrapper getWrapped() {
 
         CfLog.OUT.v(logTag, "Testing: " + AnalyticsManager.class.getSimpleName());
 
@@ -93,6 +93,7 @@ public class AnalyticsManagerTest {
 
         int metricsCapacity = 100;
         int publishingAcceptableDurationInMillis = 500;
+
         final CfConfiguration.Builder builder = CfConfiguration.builder()
                 .enableAnalytics(true)
                 .enableStream(false)
@@ -144,6 +145,32 @@ public class AnalyticsManagerTest {
         );
 
         return new ManagerWrapper(manager, queue, target);
+    }
+
+    private void populate(
+
+            final Target target,
+            final BlockingQueue<Analytics> queue,
+            final MockedAnalyticsManager manager
+    ) {
+
+        for (int x = 0; x < count; x++) {
+            for (int y = 0; y < count; y++) {
+
+                final String flag = getFlag(x);
+                final boolean value = x % 2 == 0;
+                final Evaluation result = new Evaluation().value(value).flag(flag);
+
+                final Variation variation = new Variation();
+                variation.setName(flag);
+                variation.setValue(String.valueOf(result));
+                variation.setIdentifier(result.getIdentifier());
+
+                manager.pushToQueue(target, flag, variation);
+            }
+        }
+
+        Assert.assertEquals(count * count, queue.size());
     }
 
     private String getFlag(int iteration) {
