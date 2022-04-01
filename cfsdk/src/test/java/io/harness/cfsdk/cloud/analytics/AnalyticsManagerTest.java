@@ -38,15 +38,17 @@ public class AnalyticsManagerTest {
     @Test
     public void testHappyPath() {
 
-        final MetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(true);
-        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
-
         final ManagerWrapper wrapper = getWrapped();
         final Target target = wrapper.target;
         final BlockingQueue<Analytics> queue = wrapper.queue;
         final MockedAnalyticsManager manager = wrapper.manager;
 
         populate(target, queue, manager);
+
+        final MetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(true);
+        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
+
+        manager.resetCounters();
 
         waitForPublishing();
 
@@ -72,12 +74,15 @@ public class AnalyticsManagerTest {
 
         populate(target, queue, manager);
 
+        manager.resetCounters();
+
+        Assert.assertEquals(count * count, queue.size());
+
         waitForPublishing();
 
         final int failed = manager.getFailureCount();
 
         Assert.assertEquals(count * count, queue.size());
-        Assert.assertEquals(1, manager.getSuccessCount());
         Assert.assertTrue(failed >= sendingCount);
 
         MockMetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(true);
@@ -86,7 +91,7 @@ public class AnalyticsManagerTest {
         manager.destroy();
 
         Assert.assertTrue(queue.isEmpty());
-        Assert.assertTrue(manager.getSuccessCount() >= 2);
+        Assert.assertTrue(manager.getSuccessCount() >= 1);
         Assert.assertEquals(failed, manager.getFailureCount());
     }
 
@@ -164,6 +169,9 @@ public class AnalyticsManagerTest {
             final MockedAnalyticsManager manager
     ) {
 
+        final MetricsApiFactoryRecipe factory = new MockMetricsApiFactoryRecipe(false);
+        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(factory);
+
         for (int x = 0; x < count; x++) {
             for (int y = 0; y < count; y++) {
 
@@ -212,6 +220,18 @@ public class AnalyticsManagerTest {
         try {
 
             Thread.sleep((sendingCount + 1) * publishingIntervalInMillis);
+
+        } catch (InterruptedException e) {
+
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    private void waitForPopulating() {
+
+        try {
+
+            Thread.sleep(publishingIntervalInMillis);
 
         } catch (InterruptedException e) {
 

@@ -51,6 +51,12 @@ public class MockedAnalyticsManager extends AnalyticsManager {
         };
     }
 
+    public void resetCounters() {
+
+        successCount.set(0);
+        failureCount.set(0);
+    }
+
     public int getSuccessCount() {
 
         return successCount.get();
