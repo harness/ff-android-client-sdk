@@ -78,6 +78,23 @@ public class AnalyticsManagerTest {
         final MockedAnalyticsManager manager = wrapper.manager;
 
         populate(target, queue, manager);
+
+        try {
+
+            Thread.sleep(sendingCount * publishingIntervalInMillis);
+
+        } catch (InterruptedException e) {
+
+            Assert.fail(e.getMessage());
+        }
+
+        Assert.assertFalse(queue.isEmpty());
+        Assert.assertEquals(sendingCount + 1, manager.getFailureCount());
+
+        manager.destroy();
+
+        Assert.assertTrue(queue.isEmpty());
+        Assert.assertEquals(sendingCount + 2, manager.getFailureCount());
     }
 
     private ManagerWrapper getWrapped() {
