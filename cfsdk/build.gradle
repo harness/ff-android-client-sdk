@@ -9,8 +9,8 @@ android {
 
     defaultConfig {
 
-        def appVersionCode = 8
-        def appVersionName = "\"1.0.8-SNAPSHOT\""
+        def appVersionCode = 9
+        def appVersionName = "\"1.0.8\""
 
         minSdkVersion 19
         targetSdkVersion 31
