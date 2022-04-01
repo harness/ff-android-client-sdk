@@ -4,8 +4,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
 
 import io.harness.cfsdk.CfConfiguration;
+import io.harness.cfsdk.cloud.analytics.model.Analytics;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.Target;
@@ -82,31 +84,36 @@ public class AnalyticsManagerTest {
                 configuration.getMetricsCapacity()
         );
 
-        MockedAnalyticsManager manager = new MockedAnalyticsManager(test, token, configuration);
+        final MockedAnalyticsManager manager = new MockedAnalyticsManager(test, token, configuration);
+        final BlockingQueue<Analytics> queue = manager.getQueue();
 
         Assert.assertEquals(
 
                 metricsCapacity,
-                manager.getQueue().remainingCapacity()
+                queue.remainingCapacity()
         );
 
         for (int x = 0; x < count; x++) {
+            for (int y = 0; y < count; y++) {
 
-            final String flag = getFlag(x);
-            final boolean value = x % 2 == 0;
-            final Evaluation result = new Evaluation().value(value).flag(flag);
+                final String flag = getFlag(x);
+                final boolean value = x % 2 == 0;
+                final Evaluation result = new Evaluation().value(value).flag(flag);
 
-            final Variation variation = new Variation();
-            variation.setName(flag);
-            variation.setValue(String.valueOf(result));
-            variation.setIdentifier(result.getIdentifier());
+                final Variation variation = new Variation();
+                variation.setName(flag);
+                variation.setValue(String.valueOf(result));
+                variation.setIdentifier(result.getIdentifier());
 
-            manager.pushToQueue(target, flag, variation);
+                manager.pushToQueue(target, flag, variation);
+            }
         }
 
-        // TODO: Assert queue
+        Assert.assertEquals(count * count, queue.size());
 
         manager.destroy();
+
+        Assert.assertTrue(queue.isEmpty());
     }
 
     private String getFlag(int iteration) {
