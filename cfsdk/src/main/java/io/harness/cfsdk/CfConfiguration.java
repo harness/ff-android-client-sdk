@@ -6,14 +6,16 @@ package io.harness.cfsdk;
  */
 public class CfConfiguration {
 
-    public static final int MIN_FREQUENCY;
+    public static final int DEFAULT_METRICS_CAPACITY;
+    public static final int MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS;
+    public static final int DEFAULT_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS;
 
     private static final String BASE_URL;
     private static final String EVENT_URL;
     private static final String STREAM_URL;
 
-    private final int frequency;
-    private final int bufferSize;
+    private int metricsCapacity;
+    private final int metricsPublishingIntervalInSeconds;
     private final int pollingInterval;
 
     private final String baseURL;
@@ -23,21 +25,21 @@ public class CfConfiguration {
     private boolean analyticsEnabled;
     private final boolean streamEnabled;
 
-    private String analyticsCacheType;
-
     private long metricsServiceAcceptableDuration;
 
     static {
 
-        MIN_FREQUENCY = 60;
+        DEFAULT_METRICS_CAPACITY = 1024;
+        MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS = 60;
+        DEFAULT_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS = 10;
     }
 
     {
 
-        bufferSize = 1024;
         analyticsEnabled = true;
-        frequency = MIN_FREQUENCY; // unit: second
         metricsServiceAcceptableDuration = 10000;
+        metricsCapacity = DEFAULT_METRICS_CAPACITY;
+        metricsPublishingIntervalInSeconds = MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS;
     }
 
     static {
@@ -156,14 +158,20 @@ public class CfConfiguration {
         private String eventURL;
         private String streamURL;
         private int pollingInterval;
+        private int metricsCapacity;
         private boolean streamEnabled;
         private boolean analyticsEnabled;
-        private long metricsServiceAcceptableDuration;
+        private int metricsPublishingIntervalInSeconds;
+        private long metricsPublishingAcceptableDurationInMillis;
 
         {
 
             analyticsEnabled = true;
-            metricsServiceAcceptableDuration = 10000;
+            metricsCapacity = DEFAULT_METRICS_CAPACITY;
+            metricsPublishingIntervalInSeconds = MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS;
+
+            metricsPublishingAcceptableDurationInMillis =
+                    DEFAULT_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS * 1000L;
         }
 
         /**
@@ -239,22 +247,33 @@ public class CfConfiguration {
         }
 
         /**
-         * Metrics service acceptable duration.
+         * Metrics service publishing acceptable duration.
          *
-         * @return Duration in milliseconds.
+         * @return Acceptable duration in milliseconds.
          */
-        public long getMetricsServiceAcceptableDuration() {
+        public long getMetricsPublishingAcceptableDurationInMillis() {
 
-            return metricsServiceAcceptableDuration;
+            return metricsPublishingAcceptableDurationInMillis;
         }
 
         /**
-         * @param metricsServiceAcceptableDuration Metrics service acceptable duration.
+         * @param durationInMillis Metrics service publishing acceptable duration.
          * @return This builder.
          */
-        public Builder setMetricsServiceAcceptableDuration(long metricsServiceAcceptableDuration) {
+        public Builder metricsPublishingAcceptableDurationInMillis(long durationInMillis) {
 
-            this.metricsServiceAcceptableDuration = metricsServiceAcceptableDuration;
+            this.metricsPublishingAcceptableDurationInMillis = durationInMillis;
+            return this;
+        }
+
+        public int getMetricsCapacity() {
+
+            return metricsCapacity;
+        }
+
+        public Builder metricsCapacity(int metricsCapacity) {
+
+            this.metricsCapacity = metricsCapacity;
             return this;
         }
 
@@ -269,10 +288,12 @@ public class CfConfiguration {
 
                 baseURL = BASE_URL;
             }
+
             if (eventURL == null || eventURL.isEmpty()) {
 
                 eventURL = EVENT_URL;
             }
+
             if (streamEnabled && (streamURL == null || streamURL.isEmpty())) {
 
                 streamURL = STREAM_URL;
@@ -283,33 +304,30 @@ public class CfConfiguration {
                     baseURL, streamURL, eventURL, streamEnabled, analyticsEnabled, pollingInterval
             );
 
-            cfConfiguration.setMetricsServiceAcceptableDuration(metricsServiceAcceptableDuration);
+            cfConfiguration.setMetricsCapacity(metricsCapacity);
+            cfConfiguration.setMetricsServiceAcceptableDuration(metricsPublishingAcceptableDurationInMillis);
+
             return cfConfiguration;
         }
     }
 
-    public int getFrequency() {
+    public int getMetricsPublishingIntervalInSeconds() {
 
-        return Math.max(frequency, MIN_FREQUENCY);
+        return Math.max(
+
+                metricsPublishingIntervalInSeconds,
+                MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS
+        );
     }
 
-    /*
-     BufferSize must be a power of 2 for LMAX to work. This function vaidates
-     that. Source: https://stackoverflow.com/a/600306/1493480
-    */
-    public int getBufferSize() {
+    public void setMetricsCapacity(final int capacity) {
 
-        return bufferSize;
+        metricsCapacity = capacity;
     }
 
-    public String getAnalyticsCacheType() {
+    public int getMetricsCapacity() {
 
-        return analyticsCacheType;
-    }
-
-    public void setAnalyticsCacheType(String analyticsCacheType) {
-
-        this.analyticsCacheType = analyticsCacheType;
+        return metricsCapacity;
     }
 
     public long getMetricsServiceAcceptableDuration() {

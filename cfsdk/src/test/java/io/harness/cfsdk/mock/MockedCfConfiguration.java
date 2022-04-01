@@ -24,7 +24,7 @@ public class MockedCfConfiguration extends CfConfiguration {
     }
 
     @Override
-    public int getFrequency() {
+    public int getMetricsPublishingIntervalInSeconds() {
 
         return MOCKED_MIN_FREQUENCY;
     }

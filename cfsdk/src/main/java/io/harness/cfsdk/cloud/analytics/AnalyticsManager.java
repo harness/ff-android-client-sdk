@@ -14,9 +14,10 @@ import io.harness.cfsdk.logging.CfLog;
 
 public class AnalyticsManager implements Destroyable {
 
+    protected final BlockingQueue<Analytics> queue;
+
     private final Timer timer;
     private final String logTag;
-    private final BlockingQueue<Analytics> queue;
     private final AnalyticsPublisherService analyticsPublisherService;
 
     {
@@ -33,14 +34,14 @@ public class AnalyticsManager implements Destroyable {
             final CfConfiguration config
     ) {
 
-        queue = new LinkedBlockingQueue<>(config.getBufferSize());
+        queue = new LinkedBlockingQueue<>(config.getMetricsCapacity());
 
         analyticsPublisherService = new AnalyticsPublisherService(
 
                 authToken, config, environmentID, cluster
         );
 
-        final long frequency = config.getFrequency() * 1000L;
+        final long frequency = config.getMetricsPublishingIntervalInSeconds() * 1000L;
 
         timer.schedule(
 
