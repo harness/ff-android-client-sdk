@@ -92,7 +92,6 @@ public class AnalyticsManagerTest {
 
         Assert.assertTrue(queue.isEmpty());
         Assert.assertTrue(manager.getSuccessCount() >= 1);
-        Assert.assertEquals(failed, manager.getFailureCount());
     }
 
     private ManagerWrapper getWrapped() {
