@@ -5,12 +5,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.harness.cfsdk.CfConfiguration;
-import io.harness.cfsdk.cloud.analytics.model.Analytics;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.Target;
@@ -43,10 +41,9 @@ public class AnalyticsManagerTest {
 
         final ManagerWrapper wrapper = getWrapped(successLatch);
         final Target target = wrapper.target;
-        final BlockingQueue<Analytics> queue = wrapper.queue;
         final MockedAnalyticsManager manager = wrapper.manager;
 
-        populate(target, queue, manager);
+        populate(target, manager);
 
         final MetricsApiFactoryRecipe successFactory =
                 new MockMetricsApiFactoryRecipe(sendingLatch, true);
@@ -67,14 +64,14 @@ public class AnalyticsManagerTest {
         Assert.assertEquals(0, manager.getFailureCount());
 
         waitFor();
-        Assert.assertTrue(queue.isEmpty());
+        Assert.assertTrue(manager.getQueue().isEmpty());
 
         manager.destroy();
 
         Assert.assertTrue(manager.getSuccessCount() > 1);
         Assert.assertEquals(0, manager.getFailureCount());
 
-        Assert.assertTrue(queue.isEmpty());
+        Assert.assertTrue(manager.getQueue().isEmpty());
     }
 
     @Test
@@ -85,12 +82,11 @@ public class AnalyticsManagerTest {
 
         final ManagerWrapper wrapper = getWrapped(successLatch);
         final Target target = wrapper.target;
-        final BlockingQueue<Analytics> queue = wrapper.queue;
         final MockedAnalyticsManager manager = wrapper.manager;
 
-        populate(target, queue, manager);
+        populate(target, manager);
 
-        final MetricsApiFactoryRecipe factory = new MockMetricsApiFactoryRecipe(sendingLatch,false);
+        final MetricsApiFactoryRecipe factory = new MockMetricsApiFactoryRecipe(sendingLatch, false);
         MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(factory);
 
         try {
@@ -103,10 +99,10 @@ public class AnalyticsManagerTest {
             Assert.fail(e.getMessage());
         }
 
-        Assert.assertEquals(count * count, queue.size());
+        Assert.assertEquals(count * count, manager.getQueue().size());
 
         sendingLatch = new CountDownLatch(1);
-        MockMetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(sendingLatch,true);
+        MockMetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(sendingLatch, true);
         MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
 
         manager.destroy();
@@ -124,7 +120,7 @@ public class AnalyticsManagerTest {
         Assert.assertTrue(manager.getSuccessCount() >= 1);
 
         waitFor();
-        Assert.assertTrue(queue.isEmpty());
+        Assert.assertTrue(manager.queue.isEmpty());
     }
 
     private ManagerWrapper getWrapped(final CountDownLatch latch) {
@@ -186,21 +182,18 @@ public class AnalyticsManagerTest {
         final MockedAnalyticsManager manager =
                 new MockedAnalyticsManager(test, token, configuration, latch);
 
-        final BlockingQueue<Analytics> queue = manager.getQueue();
-
         Assert.assertEquals(
 
                 metricsCapacity,
-                queue.remainingCapacity()
+                manager.getQueue().remainingCapacity()
         );
 
-        return new ManagerWrapper(manager, queue, target);
+        return new ManagerWrapper(manager, target);
     }
 
     private void populate(
 
             final Target target,
-            final BlockingQueue<Analytics> queue,
             final MockedAnalyticsManager manager
     ) {
 
@@ -222,11 +215,11 @@ public class AnalyticsManagerTest {
                 variation.setValue(String.valueOf(result));
                 variation.setIdentifier(result.getIdentifier());
 
-                manager.pushToQueue(target, flag, variation);
+                Assert.assertTrue(manager.pushToQueue(target, flag, variation));
             }
         }
 
-        Assert.assertEquals(count * count, queue.size());
+        Assert.assertEquals(count * count, manager.getQueue().size());
     }
 
     private String getFlag(int iteration) {
@@ -237,18 +230,15 @@ public class AnalyticsManagerTest {
     private static class ManagerWrapper {
 
         MockedAnalyticsManager manager;
-        BlockingQueue<Analytics> queue;
         Target target;
 
         public ManagerWrapper(
 
                 final MockedAnalyticsManager manager,
-                final BlockingQueue<Analytics> queue,
                 final Target target
         ) {
 
             this.manager = manager;
-            this.queue = queue;
             this.target = target;
         }
     }

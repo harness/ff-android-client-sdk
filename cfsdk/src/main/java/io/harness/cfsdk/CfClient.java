@@ -641,7 +641,10 @@ public class CfClient implements Destroyable {
             variation.setValue(String.valueOf(result));
             variation.setIdentifier(result.getIdentifier());
 
-            analyticsManager.pushToQueue(this.target, evaluationId, variation);
+            if (!analyticsManager.pushToQueue(this.target, evaluationId, variation)) {
+
+                CfLog.OUT.e(logTag, "Error adding into the metrics queue");
+            }
         }
 
         return result;

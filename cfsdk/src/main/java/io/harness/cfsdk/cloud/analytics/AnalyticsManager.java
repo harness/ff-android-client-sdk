@@ -66,7 +66,7 @@ public class AnalyticsManager implements Destroyable {
         CfLog.OUT.v(logTag, msg);
     }
 
-    public void pushToQueue(
+    public boolean pushToQueue(
 
             final Target target,
             final String evaluationId,
@@ -89,11 +89,14 @@ public class AnalyticsManager implements Destroyable {
         try {
 
             queue.put(analytics);
+            return queue.contains(analytics);
 
         } catch (final InterruptedException e) {
 
-            CfLog.OUT.e(logTag, "Error adding into the metrics queue", e);
+            CfLog.OUT.e(logTag, "Error", e);
         }
+
+        return false;
     }
 
     @Override
