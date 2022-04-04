@@ -1,6 +1,7 @@
 package io.harness.cfsdk.mock;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.harness.cfsdk.CfConfiguration;
@@ -11,6 +12,11 @@ import io.harness.cfsdk.logging.CfLog;
 
 public class MockedAnalyticsManager extends AnalyticsManager {
 
+    private CountDownLatch latch;
+    private int successCountValue;
+    private int failureCountValue;
+
+    private final String logTag;
     private final AtomicInteger successCount;
     private final AtomicInteger failureCount;
 
@@ -18,13 +24,26 @@ public class MockedAnalyticsManager extends AnalyticsManager {
 
         successCount = new AtomicInteger();
         failureCount = new AtomicInteger();
+        logTag = MockedAnalyticsManager.class.getSimpleName();
     }
 
     public MockedAnalyticsManager(
 
-            String environmentID,
-            String authToken,
-            CfConfiguration config
+            final String environmentID,
+            final String authToken,
+            final CfConfiguration config,
+            final CountDownLatch latch
+    ) {
+
+        super(environmentID, "", authToken, config);
+        this.latch = latch;
+    }
+
+    public MockedAnalyticsManager(
+
+            final String environmentID,
+            final String authToken,
+            final CfConfiguration config
     ) {
 
         super(environmentID, "", authToken, config);
@@ -40,30 +59,31 @@ public class MockedAnalyticsManager extends AnalyticsManager {
 
         return success -> {
 
+            CfLog.OUT.v(logTag, "Sending result: " + success);
+
             if (success) {
 
-                successCount.incrementAndGet();
+                successCountValue = successCount.incrementAndGet();
 
             } else {
 
-                failureCount.incrementAndGet();
+                failureCountValue = failureCount.incrementAndGet();
+            }
+
+            if (latch != null) {
+
+                latch.countDown();
             }
         };
     }
 
-    public void resetCounters() {
-
-        successCount.set(0);
-        failureCount.set(0);
-    }
-
     public int getSuccessCount() {
 
-        return successCount.get();
+        return successCountValue;
     }
 
     public int getFailureCount() {
 
-        return failureCount.get();
+        return failureCountValue;
     }
 }

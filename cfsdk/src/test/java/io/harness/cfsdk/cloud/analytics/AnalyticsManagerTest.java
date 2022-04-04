@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
@@ -21,8 +23,6 @@ public class AnalyticsManagerTest {
 
     private final String logTag;
     private final int count = 10;
-    private final int sendingCount = 5;
-    private final int publishingIntervalInMillis = 100;
 
     {
 
@@ -38,63 +38,96 @@ public class AnalyticsManagerTest {
     @Test
     public void testHappyPath() {
 
-        final ManagerWrapper wrapper = getWrapped();
+        final CountDownLatch sendingLatch = new CountDownLatch(1);
+        final CountDownLatch successLatch = new CountDownLatch(1);
+
+        final ManagerWrapper wrapper = getWrapped(successLatch);
         final Target target = wrapper.target;
         final BlockingQueue<Analytics> queue = wrapper.queue;
         final MockedAnalyticsManager manager = wrapper.manager;
 
         populate(target, queue, manager);
 
-        final MetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(true);
+        final MetricsApiFactoryRecipe successFactory =
+                new MockMetricsApiFactoryRecipe(sendingLatch, true);
+
         MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
 
-        manager.resetCounters();
+        try {
 
-        waitForPublishing();
+            Assert.assertTrue(sendingLatch.await(1, TimeUnit.SECONDS));
+            Assert.assertTrue(successLatch.await(1, TimeUnit.SECONDS));
 
+        } catch (InterruptedException e) {
+
+            Assert.fail(e.getMessage());
+        }
+
+        Assert.assertEquals(1, manager.getSuccessCount());
+        Assert.assertEquals(0, manager.getFailureCount());
+
+        waitFor();
         Assert.assertTrue(queue.isEmpty());
-        Assert.assertTrue(manager.getSuccessCount() >= sendingCount + 1);
 
         manager.destroy();
 
+        Assert.assertTrue(manager.getSuccessCount() > 1);
+        Assert.assertEquals(0, manager.getFailureCount());
+
         Assert.assertTrue(queue.isEmpty());
-        Assert.assertTrue(manager.getSuccessCount() >= sendingCount + 2);
     }
 
     @Test
     public void testFaultyPath() {
 
-        final MetricsApiFactoryRecipe factory = new MockMetricsApiFactoryRecipe(false);
-        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(factory);
+        CountDownLatch sendingLatch = new CountDownLatch(1);
+        final CountDownLatch successLatch = new CountDownLatch(1);
 
-        final ManagerWrapper wrapper = getWrapped();
+        final ManagerWrapper wrapper = getWrapped(successLatch);
         final Target target = wrapper.target;
         final BlockingQueue<Analytics> queue = wrapper.queue;
         final MockedAnalyticsManager manager = wrapper.manager;
 
         populate(target, queue, manager);
 
-        manager.resetCounters();
+        final MetricsApiFactoryRecipe factory = new MockMetricsApiFactoryRecipe(sendingLatch,false);
+        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(factory);
+
+        try {
+
+            Assert.assertTrue(sendingLatch.await(1, TimeUnit.SECONDS));
+            Assert.assertTrue(successLatch.await(1, TimeUnit.SECONDS));
+
+        } catch (InterruptedException e) {
+
+            Assert.fail(e.getMessage());
+        }
 
         Assert.assertEquals(count * count, queue.size());
 
-        waitForPublishing();
-
-        final int failed = manager.getFailureCount();
-
-        Assert.assertEquals(count * count, queue.size());
-        Assert.assertTrue(failed >= sendingCount);
-
-        MockMetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(true);
+        sendingLatch = new CountDownLatch(1);
+        MockMetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(sendingLatch,true);
         MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
 
         manager.destroy();
 
-        Assert.assertTrue(queue.isEmpty());
+        try {
+
+            Assert.assertTrue(sendingLatch.await(1, TimeUnit.SECONDS));
+
+        } catch (InterruptedException e) {
+
+            Assert.fail(e.getMessage());
+        }
+
+        Assert.assertEquals(1, manager.getFailureCount());
         Assert.assertTrue(manager.getSuccessCount() >= 1);
+
+        waitFor();
+        Assert.assertTrue(queue.isEmpty());
     }
 
-    private ManagerWrapper getWrapped() {
+    private ManagerWrapper getWrapped(final CountDownLatch latch) {
 
         CfLog.OUT.v(logTag, "Testing: " + AnalyticsManager.class.getSimpleName());
 
@@ -108,6 +141,7 @@ public class AnalyticsManagerTest {
         int metricsCapacity = 100;
         int publishingAcceptableDurationInMillis = 500;
 
+        int publishingIntervalInMillis = 100;
         final CfConfiguration.Builder builder = CfConfiguration.builder()
                 .enableAnalytics(true)
                 .enableStream(false)
@@ -149,7 +183,9 @@ public class AnalyticsManagerTest {
                 configuration.getMetricsCapacity()
         );
 
-        final MockedAnalyticsManager manager = new MockedAnalyticsManager(test, token, configuration);
+        final MockedAnalyticsManager manager =
+                new MockedAnalyticsManager(test, token, configuration, latch);
+
         final BlockingQueue<Analytics> queue = manager.getQueue();
 
         Assert.assertEquals(
@@ -168,8 +204,11 @@ public class AnalyticsManagerTest {
             final MockedAnalyticsManager manager
     ) {
 
-        final MetricsApiFactoryRecipe factory = new MockMetricsApiFactoryRecipe(false);
-        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(factory);
+        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(
+
+                (authToken, config) -> (environment, cluster, metrics) ->
+                        CfLog.OUT.v(logTag, "Ignore this metrics posting")
+        );
 
         for (int x = 0; x < count; x++) {
             for (int y = 0; y < count; y++) {
@@ -214,23 +253,11 @@ public class AnalyticsManagerTest {
         }
     }
 
-    private void waitForPublishing() {
+    private void waitFor() {
 
         try {
 
-            Thread.sleep((sendingCount + 1) * publishingIntervalInMillis);
-
-        } catch (InterruptedException e) {
-
-            Assert.fail(e.getMessage());
-        }
-    }
-
-    private void waitForPopulating() {
-
-        try {
-
-            Thread.sleep(publishingIntervalInMillis);
+            Thread.sleep(100);
 
         } catch (InterruptedException e) {
 
