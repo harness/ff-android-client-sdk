@@ -219,6 +219,10 @@ public class AnalyticsManagerTest {
             }
         }
 
+        while (manager.queue.size() < count * count) {
+
+            Thread.yield();
+        }
         Assert.assertEquals(count * count, manager.getQueue().size());
     }
 
