@@ -32,6 +32,12 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    afterEvaluate {
+
+        generateReleaseBuildConfig.enabled = false
+        generateDebugBuildConfig.enabled = false
+    }
 }
 
 apply from: "${rootProject.projectDir}/cfsdk/publish-mavencentral.gradle"
