@@ -143,8 +143,18 @@ public class AnalyticsManagerTest {
         final MetricsApiFactoryRecipe factory = new MockMetricsApiFactoryRecipe(sendingLatch, false);
         MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(factory);
 
+        try {
+
+            Assert.assertTrue(sendingLatch.await(1, TimeUnit.SECONDS));
+            Assert.assertTrue(successLatch.await(1, TimeUnit.SECONDS));
+
+        } catch (InterruptedException e) {
+
+            Assert.fail(e.getMessage());
+        }
+
         long start = System.currentTimeMillis();
-        while (manager.getSuccessCount() != 1 && manager.getFailureCount() != 1) {
+        while (count * count != manager.getQueue().size()) {
 
             try {
 
@@ -159,16 +169,6 @@ public class AnalyticsManagerTest {
 
                 Assert.fail(e.getMessage());
             }
-        }
-
-        try {
-
-            Assert.assertTrue(sendingLatch.await(1, TimeUnit.SECONDS));
-            Assert.assertTrue(successLatch.await(1, TimeUnit.SECONDS));
-
-        } catch (InterruptedException e) {
-
-            Assert.fail(e.getMessage());
         }
 
         Assert.assertEquals(count * count, manager.getQueue().size());
@@ -187,9 +187,6 @@ public class AnalyticsManagerTest {
 
             Assert.fail(e.getMessage());
         }
-
-        Assert.assertEquals(1, manager.getFailureCount());
-        Assert.assertTrue(manager.getSuccessCount() >= 1);
 
         start = System.currentTimeMillis();
         while (!manager.queue.isEmpty()) {
@@ -210,6 +207,9 @@ public class AnalyticsManagerTest {
         }
 
         Assert.assertTrue(manager.getQueue().isEmpty());
+
+        Assert.assertEquals(1, manager.getFailureCount());
+        Assert.assertTrue(manager.getSuccessCount() >= 1);
     }
 
     private ManagerWrapper getWrapped(final CountDownLatch latch) {
