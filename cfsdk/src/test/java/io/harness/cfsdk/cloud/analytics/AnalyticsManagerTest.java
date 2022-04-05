@@ -55,8 +55,8 @@ public class AnalyticsManagerTest {
 
         try {
 
-            Assert.assertTrue(sendingLatch.await(1, TimeUnit.SECONDS));
-            Assert.assertTrue(successLatch.await(1, TimeUnit.SECONDS));
+            Assert.assertTrue(sendingLatch.await(timeout, TimeUnit.MILLISECONDS));
+            Assert.assertTrue(successLatch.await(timeout, TimeUnit.MILLISECONDS));
 
         } catch (InterruptedException e) {
 
@@ -146,8 +146,8 @@ public class AnalyticsManagerTest {
 
         try {
 
-            Assert.assertTrue(sendingLatch.await(1, TimeUnit.SECONDS));
-            Assert.assertTrue(successLatch.await(1, TimeUnit.SECONDS));
+            Assert.assertTrue(sendingLatch.await(timeout, TimeUnit.MILLISECONDS));
+            Assert.assertTrue(successLatch.await(timeout, TimeUnit.MILLISECONDS));
 
         } catch (InterruptedException e) {
 
@@ -182,7 +182,7 @@ public class AnalyticsManagerTest {
 
         try {
 
-            Assert.assertTrue(sendingLatch.await(1, TimeUnit.SECONDS));
+            Assert.assertTrue(sendingLatch.await(timeout, TimeUnit.MILLISECONDS));
 
         } catch (InterruptedException e) {
 
