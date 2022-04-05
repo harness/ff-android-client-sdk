@@ -20,11 +20,13 @@ import io.harness.cfsdk.mock.MockedCfConfiguration;
 @SuppressWarnings("BusyWait")
 public class AnalyticsManagerTest {
 
+    private final long timeout;
     private final String logTag;
     private final int count = 3;
 
     {
 
+        timeout = 3000L;
         logTag = AnalyticsManagerTest.class.getSimpleName();
     }
 
@@ -68,9 +70,9 @@ public class AnalyticsManagerTest {
 
                 Thread.sleep(50);
 
-                if (System.currentTimeMillis() - start >= 1000) {
+                if (System.currentTimeMillis() - start >= timeout) {
 
-                    Assert.fail("Timeout after 1 second");
+                    Assert.fail("Timeout after 3 seconds");
                 }
 
             } catch (InterruptedException e) {
@@ -88,9 +90,9 @@ public class AnalyticsManagerTest {
 
                 Thread.sleep(50);
 
-                if (System.currentTimeMillis() - start >= 1000) {
+                if (System.currentTimeMillis() - start >= timeout) {
 
-                    Assert.fail("Timeout after 1 second");
+                    Assert.fail("Timeout after 3 seconds");
                 }
 
             } catch (InterruptedException e) {
@@ -111,9 +113,9 @@ public class AnalyticsManagerTest {
 
                 Thread.sleep(50);
 
-                if (System.currentTimeMillis() - start >= 1000) {
+                if (System.currentTimeMillis() - start >= timeout) {
 
-                    Assert.fail("Timeout after 1 second");
+                    Assert.fail("Timeout after 3 seconds");
                 }
 
             } catch (InterruptedException e) {
@@ -159,9 +161,9 @@ public class AnalyticsManagerTest {
 
                 Thread.sleep(50);
 
-                if (System.currentTimeMillis() - start >= 1000) {
+                if (System.currentTimeMillis() - start >= timeout) {
 
-                    Assert.fail("Timeout after 1 second");
+                    Assert.fail("Timeout after 3 seconds");
                 }
 
             } catch (InterruptedException e) {
@@ -194,9 +196,9 @@ public class AnalyticsManagerTest {
 
                 Thread.sleep(50);
 
-                if (System.currentTimeMillis() - start >= 1000) {
+                if (System.currentTimeMillis() - start >= timeout) {
 
-                    Assert.fail("Timeout after 1 second");
+                    Assert.fail("Timeout after 3 seconds");
                 }
 
             } catch (InterruptedException e) {
@@ -313,9 +315,9 @@ public class AnalyticsManagerTest {
 
                 Thread.sleep(50);
 
-                if (System.currentTimeMillis() - start >= 1000) {
+                if (System.currentTimeMillis() - start >= timeout) {
 
-                    Assert.fail("Timeout after 1 second");
+                    Assert.fail("Timeout after 3 seconds");
                 }
 
             } catch (InterruptedException e) {
