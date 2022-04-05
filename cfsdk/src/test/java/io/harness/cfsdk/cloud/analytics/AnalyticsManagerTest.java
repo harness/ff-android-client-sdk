@@ -21,7 +21,7 @@ import io.harness.cfsdk.mock.MockedCfConfiguration;
 public class AnalyticsManagerTest {
 
     private final String logTag;
-    private final int count = 10;
+    private final int count = 3;
 
     {
 
@@ -62,6 +62,26 @@ public class AnalyticsManagerTest {
         }
 
         long start = System.currentTimeMillis();
+        while (!manager.queue.isEmpty()) {
+
+            try {
+
+                Thread.sleep(50);
+
+                if (System.currentTimeMillis() - start >= 1000) {
+
+                    Assert.fail("Timeout after 1 second");
+                }
+
+            } catch (InterruptedException e) {
+
+                Assert.fail(e.getMessage());
+            }
+        }
+
+        Assert.assertTrue(manager.getQueue().isEmpty());
+
+        start = System.currentTimeMillis();
         while (manager.getSuccessCount() == 0 && manager.getFailureCount() == 0) {
 
             try {
@@ -79,34 +99,11 @@ public class AnalyticsManagerTest {
             }
         }
 
-        Assert.assertEquals(1, manager.getSuccessCount());
+        Assert.assertTrue(manager.getSuccessCount() >= 1);
         Assert.assertEquals(0, manager.getFailureCount());
-
-        start = System.currentTimeMillis();
-        while (!manager.queue.isEmpty()) {
-
-            try {
-
-                Thread.sleep(50);
-
-                if (System.currentTimeMillis() - start >= 1000) {
-
-                    Assert.fail("Timeout after 1 second");
-                }
-
-            } catch (InterruptedException e) {
-
-                Assert.fail(e.getMessage());
-            }
-        }
-
-        Assert.assertTrue(manager.getQueue().isEmpty());
 
         manager.destroy();
 
-        Assert.assertTrue(manager.getSuccessCount() > 1);
-        Assert.assertEquals(0, manager.getFailureCount());
-
         start = System.currentTimeMillis();
         while (!manager.queue.isEmpty()) {
 
@@ -126,6 +123,8 @@ public class AnalyticsManagerTest {
         }
 
         Assert.assertTrue(manager.getQueue().isEmpty());
+        Assert.assertTrue(manager.getSuccessCount() > 1);
+        Assert.assertEquals(0, manager.getFailureCount());
     }
 
     @Test
@@ -207,7 +206,6 @@ public class AnalyticsManagerTest {
         }
 
         Assert.assertTrue(manager.getQueue().isEmpty());
-
         Assert.assertEquals(1, manager.getFailureCount());
         Assert.assertTrue(manager.getSuccessCount() >= 1);
     }
@@ -308,10 +306,24 @@ public class AnalyticsManagerTest {
             }
         }
 
-        while (manager.queue.size() < count * count) {
+        long start = System.currentTimeMillis();
+        while (manager.queue.size() != count * count) {
 
-            Thread.yield();
+            try {
+
+                Thread.sleep(50);
+
+                if (System.currentTimeMillis() - start >= 1000) {
+
+                    Assert.fail("Timeout after 1 second");
+                }
+
+            } catch (InterruptedException e) {
+
+                Assert.fail(e.getMessage());
+            }
         }
+
         Assert.assertEquals(count * count, manager.getQueue().size());
     }
 
