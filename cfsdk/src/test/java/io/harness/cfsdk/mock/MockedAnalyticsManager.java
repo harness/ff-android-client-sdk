@@ -1,59 +1,89 @@
 package io.harness.cfsdk.mock;
 
-import org.jetbrains.annotations.NotNull;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.harness.cfsdk.CfConfiguration;
-import io.harness.cfsdk.cloud.analytics.AnalyticsEventHandler;
 import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
-import io.harness.cfsdk.cloud.analytics.AnalyticsPublisherService;
+import io.harness.cfsdk.cloud.analytics.AnalyticsPublisherServiceCallback;
+import io.harness.cfsdk.cloud.analytics.model.Analytics;
+import io.harness.cfsdk.logging.CfLog;
 
 public class MockedAnalyticsManager extends AnalyticsManager {
 
-    private MockedAnalyticsHandler analyticsEventHandler;
+    private CountDownLatch latch;
+    private int successCountValue;
+    private int failureCountValue;
+
+    private final String logTag;
+    private final AtomicInteger successCount;
+    private final AtomicInteger failureCount;
+
+    {
+
+        successCount = new AtomicInteger();
+        failureCount = new AtomicInteger();
+        logTag = MockedAnalyticsManager.class.getSimpleName();
+    }
 
     public MockedAnalyticsManager(
 
-            String environmentID,
-            String authToken,
-            CfConfiguration config
+            final String environmentID,
+            final String authToken,
+            final CfConfiguration config,
+            final CountDownLatch latch
+    ) {
+
+        super(environmentID, "", authToken, config);
+        this.latch = latch;
+    }
+
+    public MockedAnalyticsManager(
+
+            final String environmentID,
+            final String authToken,
+            final CfConfiguration config
     ) {
 
         super(environmentID, "", authToken, config);
     }
 
-    @NotNull
+    public BlockingQueue<Analytics> getQueue() {
+
+        return queue;
+    }
+
     @Override
-    protected AnalyticsEventHandler getAnalyticsEventHandler(
+    protected AnalyticsPublisherServiceCallback getSendingCallback() {
 
-            AnalyticsPublisherService analyticsPublisherService
-    ) {
+        return success -> {
 
-        if (analyticsEventHandler == null) {
+            CfLog.OUT.v(logTag, "Sending result: " + success);
 
-            analyticsEventHandler = new MockedAnalyticsHandler(
+            if (success) {
 
-                    analyticsCache,
-                    analyticsPublisherService
-            );
-        }
-        return analyticsEventHandler;
+                successCountValue = successCount.incrementAndGet();
+
+            } else {
+
+                failureCountValue = failureCount.incrementAndGet();
+            }
+
+            if (latch != null) {
+
+                latch.countDown();
+            }
+        };
     }
 
-    public void addCallback(MockedAnalyticsHandlerCallback callback) throws IllegalStateException {
+    public int getSuccessCount() {
 
-        if (analyticsEventHandler == null) {
-
-            throw new IllegalStateException("Analytics event handler not yet instantiated");
-        }
-        analyticsEventHandler.addCallback(callback);
+        return successCountValue;
     }
 
-    public void removeCallback(MockedAnalyticsHandlerCallback callback) throws IllegalStateException {
+    public int getFailureCount() {
 
-        if (analyticsEventHandler == null) {
-
-            throw new IllegalStateException("Analytics event handler not yet instantiated");
-        }
-        analyticsEventHandler.removeCallback(callback);
+        return failureCountValue;
     }
 }

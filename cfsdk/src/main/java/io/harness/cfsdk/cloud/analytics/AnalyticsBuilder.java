@@ -2,7 +2,6 @@ package io.harness.cfsdk.cloud.analytics;
 
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
 import io.harness.cfsdk.cloud.core.model.Variation;
-import io.harness.cfsdk.cloud.model.EventType;
 import io.harness.cfsdk.cloud.model.Target;
 
 public class AnalyticsBuilder {
@@ -10,12 +9,6 @@ public class AnalyticsBuilder {
     private Target target;
     private String evaluationId;
     private Variation variation;
-    private EventType eventType;
-
-    {
-
-        eventType = EventType.METRICS;
-    }
 
     public AnalyticsBuilder target(Target target) {
 
@@ -26,12 +19,6 @@ public class AnalyticsBuilder {
     public AnalyticsBuilder variation(Variation variation) {
 
         this.variation = variation;
-        return this;
-    }
-
-    public AnalyticsBuilder eventType(EventType eventType) {
-
-        this.eventType = eventType;
         return this;
     }
 
@@ -47,8 +34,7 @@ public class AnalyticsBuilder {
 
                 target,
                 evaluationId,
-                variation,
-                eventType
+                variation
         );
     }
 }

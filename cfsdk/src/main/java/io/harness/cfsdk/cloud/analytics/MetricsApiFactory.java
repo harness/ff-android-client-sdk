@@ -1,13 +1,7 @@
 package io.harness.cfsdk.cloud.analytics;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import io.harness.cfsdk.CfConfiguration;
-import io.harness.cfsdk.cloud.analytics.api.DefaultApi;
-import io.harness.cfsdk.cloud.core.client.ApiClient;
-import io.harness.cfsdk.logging.CfLog;
-import io.harness.cfsdk.utils.CfUtils;
+import io.harness.cfsdk.cloud.analytics.api.MetricsApi;
 
 /**
  * This is a factory class to provide the API for metrics related operations.
@@ -18,39 +12,27 @@ import io.harness.cfsdk.utils.CfUtils;
  */
 public class MetricsApiFactory {
 
-    private static final String logTag;
+    private static MetricsApiFactoryRecipe recipe;
 
     static {
 
-        logTag = MetricsApiFactory.class.getSimpleName();
+        recipe = new DefaultMetricsApiFactoryRecipe();
     }
 
-    public static DefaultApi create(
+    public static MetricsApi create(
 
             final String authToken,
             final CfConfiguration config
     ) {
 
-        final DefaultApi metricsAPI = new DefaultApi();
+        return recipe.create(authToken, config);
+    }
 
-        if (!CfUtils.Text.isEmpty(config.getEventURL())) {
+    public static void setDefaultMetricsApiFactoryRecipe(
 
-            ApiClient apiClient = metricsAPI.getApiClient();
-            apiClient.setBasePath(config.getEventURL());
-            apiClient.addDefaultHeader("Authorization", "Bearer " + authToken);
-            apiClient.setUserAgent("android 1.0.8-SNAPSHOT");
-            String hostname = "UnknownHost";
-            try {
+            final MetricsApiFactoryRecipe metricsApiRecipe
+    ) {
 
-                hostname = InetAddress.getLocalHost().getHostName();
-                CfLog.OUT.v(logTag, "Hostname: " + hostname);
-            } catch (UnknownHostException e) {
-
-                CfLog.OUT.w(logTag, "Unable to get hostname");
-            }
-            apiClient.addDefaultHeader("Hostname", hostname);
-            metricsAPI.setApiClient(apiClient);
-        }
-        return metricsAPI;
+        recipe = metricsApiRecipe;
     }
 }

@@ -3,12 +3,13 @@ package io.harness.cfsdk.cloud.analytics;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 
 import io.harness.cfsdk.CfConfiguration;
-import io.harness.cfsdk.cloud.analytics.api.DefaultApi;
-import io.harness.cfsdk.cloud.analytics.cache.AnalyticsCache;
+import io.harness.cfsdk.cloud.analytics.api.MetricsApi;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
 import io.harness.cfsdk.cloud.analytics.model.KeyValue;
 import io.harness.cfsdk.cloud.analytics.model.Metrics;
@@ -44,9 +45,8 @@ public class AnalyticsPublisherService {
 
     private final String logTag;
     private final String cluster;
-    private final AnalyticsCache analyticsCache;
+    private final String authToken;
     private final String environmentID;
-    private final DefaultApi metricsAPI;
     private final CfConfiguration config;
 
     {
@@ -59,34 +59,78 @@ public class AnalyticsPublisherService {
             final String authToken,
             final CfConfiguration config,
             final String environmentID,
-            final String cluster,
-            final AnalyticsCache analyticsCache
+            final String cluster
     ) {
 
         this.config = config;
         this.cluster = cluster;
+        this.authToken = authToken;
         this.environmentID = environmentID;
-        this.analyticsCache = analyticsCache;
-
-        metricsAPI = MetricsApiFactory.create(authToken, config);
     }
 
     /**
      * This method sends the metrics data to the analytics server and resets the cache
+     *
+     * @param queue    Queue that contains data to be sent.
+     * @param callback Sending results callback.
      */
-    public void sendDataAndResetCache() {
+    public void sendDataAndResetQueue(
+
+            final BlockingQueue<Analytics> queue,
+            final AnalyticsPublisherServiceCallback callback
+    ) {
 
         CfLog.OUT.d(logTag, "Reading from queue and building cache");
 
-        final Map<Analytics, Integer> all = analyticsCache.getAll();
+        final Map<Analytics, Integer> all = new HashMap<>();
+
+        for (Analytics analytics : queue) {
+
+            if (analytics != null) {
+
+                Integer count = all.get(analytics);
+                if (count == null) {
+
+                    count = 0;
+                    all.put(analytics, count);
+
+                } else {
+
+                    count++;
+                    all.put(analytics, count);
+                }
+
+                CfLog.OUT.v(
+
+                        logTag,
+                        String.format(
+
+                                Locale.getDefault(),
+                                "Preparing metrics: metric='%s', count=%d",
+                                analytics.getEvaluationId(),
+                                count
+                        )
+                );
+            }
+        }
 
         if (all.isEmpty()) {
 
             CfLog.OUT.d(logTag, "Cache is empty");
+            callback.onAnalyticsSent(true);
 
         } else {
 
-            CfLog.OUT.d(logTag, "Cache contains the metrics data");
+            CfLog.OUT.d(
+
+                    logTag,
+                    String.format(
+
+                            Locale.getDefault(),
+                            "Cache contains the metrics data, size=%d",
+                            all.size()
+                    )
+            );
 
             try {
 
@@ -97,11 +141,12 @@ public class AnalyticsPublisherService {
 
                     CfLog.OUT.v(logTag, "Sending metrics");
 
+                    final MetricsApi metricsAPI = MetricsApiFactory.create(authToken, config);
                     metricsAPI.postMetrics(environmentID, cluster, metrics);
 
                     long endTime = System.currentTimeMillis();
 
-                    if ((endTime - startTime) > config.getMetricsServiceAcceptableDuration()) {
+                    if ((endTime - startTime) > config.getMetricsServiceAcceptableDurationInMillis()) {
 
                         CfLog.OUT.w(logTag, "Metrics service API duration=" + (endTime - startTime));
                     }
@@ -113,12 +158,45 @@ public class AnalyticsPublisherService {
                     CfLog.OUT.v(logTag, "No analytics data to send the server");
                 }
 
-                analyticsCache.resetCache();
-                CfLog.OUT.v(logTag, "Cache is cleared");
+                boolean queueCleared = true;
+                for (final Analytics analytics : all.keySet()) {
+
+                    while (queue.contains(analytics)) {
+
+                        if (queue.remove(analytics)) {
+
+                            CfLog.OUT.v(
+
+                                    logTag,
+                                    "Metrics item was removed from the queue: "
+                                            + analytics.getEvaluationId()
+                            );
+
+                        } else {
+
+                            CfLog.OUT.e(
+
+                                    logTag,
+                                    "Metrics item was not removed from the queue: "
+                                            + analytics.getEvaluationId()
+                            );
+
+                            queueCleared = false;
+                        }
+                    }
+                }
+
+                if (queueCleared) {
+
+                    CfLog.OUT.v(logTag, "Queue is cleared, size=" + queue.size());
+                }
+
+                callback.onAnalyticsSent(true);
 
             } catch (ApiException e) {
 
                 CfLog.OUT.e(logTag, "Error sending metrics", e);
+                callback.onAnalyticsSent(false);
             }
         }
     }
@@ -133,14 +211,21 @@ public class AnalyticsPublisherService {
 
         for (Analytics analytics : data.keySet()) {
 
-            final int count = data.get(analytics);
+            Integer count = data.get(analytics);
+
+            if (count == null) {
+
+                count = 0;
+            }
 
             final SummaryMetrics summaryMetrics = prepareSummaryMetricsKey(analytics);
             final Integer summaryCount = summaryMetricsData.get(summaryMetrics);
 
             if (summaryCount == null) {
+
                 summaryMetricsData.put(summaryMetrics, count);
             } else {
+
                 summaryMetricsData.put(summaryMetrics, summaryCount + count);
             }
 
@@ -178,13 +263,16 @@ public class AnalyticsPublisherService {
         }
 
         final List<MetricsData> mData = metrics.getMetricsData();
+
         if (mData != null) {
 
             CfLog.OUT.v(logTag, "Metrics data size: " + mData.size());
+
         } else {
 
             CfLog.OUT.w(logTag, "Metrics data size: no data");
         }
+
         return metrics;
     }
 
@@ -198,7 +286,12 @@ public class AnalyticsPublisherService {
         );
     }
 
-    private void setMetricsAttributes(MetricsData metricsData, String key, String value) {
+    private void setMetricsAttributes(
+
+            final MetricsData metricsData,
+            final String key,
+            final String value
+    ) {
 
         KeyValue metricsAttributes = new KeyValue();
         metricsAttributes.setKey(key);

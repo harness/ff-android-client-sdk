@@ -110,6 +110,11 @@ public class CfLogStrategyTest implements CfLogging {
 
     private String getOutput(String tag, String message) {
 
-        return String.format("%s :: %s", tag, message);
+        return String.format("%s :: %s", getTime() + tag, message);
+    }
+
+    private String getTime() {
+
+        return System.currentTimeMillis() + " :: ";
     }
 }

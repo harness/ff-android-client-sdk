@@ -18,7 +18,7 @@ buildscript {
 ```
 
 In app module's `build.gradle` file add dependency for Harness's SDK
-`implementation 'io.harness:ff-android-client-sdk:1.0.7'`
+`implementation 'io.harness:ff-android-client-sdk:1.0.8'`
 
 After this step, the SDK elements, primarily `CfClient` should be accessible in main application.
 
@@ -202,7 +202,7 @@ val remoteConfiguration = CfConfiguration.builder()
 Otherwise, the default metrics endpoint URL will be used.
 
 ## _Shutting down the SDK_
-To avoid potential memory leak, when SDK is no longer needed (when the app is closed, for example), a caller should call this method
+To avoid potential memory leak, when SDK is no longer needed (when the app is closed, for example), a caller should call this method:
 ```Kotlin
 CfClient.getInstance().destroy()
 ```

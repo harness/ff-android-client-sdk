@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
 
         private const val KEY_UAT = "UAT"
 
-        private const val UAT_KEY = "de651804-a535-42b6-98aa-44e67b5b1d41"
+        private const val UAT_KEY = "960a7bda-c1c6-4593-b174-e4a3b7f4ce76"
         private const val FREEMIUM_API_KEY = "a6efdb72-4c01-45e0-8285-1dcbd63f72e7"
         private const val NON_FREEMIUM_API_KEY = "d122149a-fadd-471d-ab31-7938a2b90ba2"
     }

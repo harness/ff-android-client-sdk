@@ -640,7 +640,11 @@ public class CfClient implements Destroyable {
             variation.setName(evaluationId);
             variation.setValue(String.valueOf(result));
             variation.setIdentifier(result.getIdentifier());
-            analyticsManager.pushToQueue(this.target, evaluationId, variation);
+
+            if (!analyticsManager.pushToQueue(this.target, evaluationId, variation)) {
+
+                CfLog.OUT.e(logTag, "Error adding into the metrics queue");
+            }
         }
 
         return result;
@@ -768,15 +772,15 @@ public class CfClient implements Destroyable {
     @Override
     public void destroy() {
 
-        unregister();
-
-        eventsListenerSet.clear();
-        evaluationListenerSet.clear();
-
         if (analyticsManager != null) {
 
             analyticsManager.destroy();
         }
+
+        unregister();
+
+        eventsListenerSet.clear();
+        evaluationListenerSet.clear();
 
         if (networkInfoProvider != null) {
 
@@ -821,10 +825,12 @@ public class CfClient implements Destroyable {
 
             evaluationPolling.stop();
         }
+
         if (featureRepository != null) {
 
             featureRepository.clear();
         }
+
         target = null;
     }
 }

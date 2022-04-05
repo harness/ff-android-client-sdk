@@ -1,35 +1,24 @@
 package io.harness.cfsdk.cloud.analytics;
 
-import com.lmax.disruptor.InsufficientCapacityException;
-import com.lmax.disruptor.RingBuffer;
-import com.lmax.disruptor.dsl.Disruptor;
-
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Timer;
-import java.util.concurrent.Executors;
+import java.util.TimerTask;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import io.harness.cfsdk.CfConfiguration;
-import io.harness.cfsdk.cloud.analytics.cache.AnalyticsCache;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
 import io.harness.cfsdk.cloud.core.model.Variation;
-import io.harness.cfsdk.cloud.model.EventType;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.common.Destroyable;
 import io.harness.cfsdk.logging.CfLog;
 
-/**
- * This class handles various analytics service related components and prepares them 1) It creates
- * the LMAX ring buffer 2) It pushes data to the buffer and publishes it for consumption 3)
- * Initilazes the cache for analytics
- */
 public class AnalyticsManager implements Destroyable {
 
-    protected final AnalyticsCache analyticsCache;
+    protected final BlockingQueue<Analytics> queue;
 
     private final Timer timer;
     private final String logTag;
-    private final RingBuffer<Analytics> ringBuffer;
+    private final AnalyticsPublisherService analyticsPublisherService;
 
     {
 
@@ -45,103 +34,93 @@ public class AnalyticsManager implements Destroyable {
             final CfConfiguration config
     ) {
 
-        this.analyticsCache = AnalyticsCacheFactory.create(config.getAnalyticsCacheType());
+        queue = new LinkedBlockingQueue<>(config.getMetricsCapacity());
 
-        AnalyticsPublisherService analyticsPublisherService =
-                new AnalyticsPublisherService(
+        analyticsPublisherService = new AnalyticsPublisherService(
 
-                        authToken, config, environmentID, cluster, analyticsCache
-                );
+                authToken, config, environmentID, cluster
+        );
 
-        ringBuffer = createRingBuffer(config.getBufferSize(), analyticsPublisherService);
+        final long frequency = config.getMetricsPublishingIntervalInMillis();
 
-        final int frequency = config.getFrequency();
-        final AnalyticsTimerTask timerTask = new AnalyticsTimerTask(ringBuffer);
         timer.schedule(
 
-                timerTask,
+                new TimerTask() {
+
+                    @Override
+                    public void run() {
+
+                        analyticsPublisherService.sendDataAndResetQueue(queue, getSendingCallback());
+                    }
+                },
+
                 0L,
-                frequency * 1000L
+                frequency
         );
 
         final String msg = String.format(
 
-                "%s scheduled with frequency of: %s",
-                AnalyticsTimerTask.class.getSimpleName(),
-                frequency
+                "Metrics sending scheduled with frequency of: %s", frequency
         );
+
         CfLog.OUT.v(logTag, msg);
     }
 
-    private RingBuffer<Analytics> createRingBuffer(
+    public boolean pushToQueue(
 
-            int bufferSize,
-            AnalyticsPublisherService analyticsPublisherService
+            final Target target,
+            final String evaluationId,
+            final Variation variation
     ) {
 
-        // The factory for the event
-        AnalyticsEventFactory factory = new AnalyticsEventFactory();
+        if (queue.remainingCapacity() == 0) {
 
-        // Construct the Disruptor
-        Disruptor<Analytics> disruptor =
-                new Disruptor<>(factory, bufferSize, Executors.newSingleThreadExecutor());
-
-        // Connect the handler
-        disruptor.handleEventsWith(getAnalyticsEventHandler(analyticsPublisherService));
-
-        // Start the Disruptor, starts all threads running
-        disruptor.start();
-
-        // Get the ring buffer from the Disruptor to be used for publishing.
-        return disruptor.getRingBuffer();
-    }
-
-    // push the incoming data to the ring buffer
-    public void pushToQueue(Target target, String evaluationId, Variation variation) {
+            analyticsPublisherService.sendDataAndResetQueue(queue, getSendingCallback());
+        }
 
         CfLog.OUT.v(logTag, "pushToQueue: Variation=" + variation);
 
-        Analytics analytics = new AnalyticsBuilder()
+        final Analytics analytics = new AnalyticsBuilder()
                 .target(target)
                 .evaluationId(evaluationId)
                 .variation(variation)
-                .eventType(EventType.METRICS)
                 .build();
 
-        long sequence = -1;
         try {
 
-            sequence = ringBuffer.tryNext(); // Grab the next sequence
-            Analytics event = ringBuffer.get(sequence); // Get the entry in the Disruptor for the sequence
-            event.setTarget(analytics.getTarget());
-            event.setEvaluationId(analytics.getEvaluationId());
-            event.setVariation(analytics.getVariation());
-            event.setEventType(analytics.getEventType());
+            queue.put(analytics);
+            return queue.contains(analytics);
 
-        } catch (InsufficientCapacityException e) {
+        } catch (final InterruptedException e) {
 
-            CfLog.OUT.w(logTag, "Insufficient capacity in the analytics ringBuffer");
-        } finally {
-            if (sequence != -1) {
-
-                ringBuffer.publish(sequence);
-            }
+            CfLog.OUT.e(logTag, "Error", e);
         }
+
+        return false;
     }
 
     @Override
     public void destroy() {
 
+        CfLog.OUT.v(logTag, "destroying");
+
+        analyticsPublisherService.sendDataAndResetQueue(queue, getSendingCallback());
         timer.cancel();
         timer.purge();
     }
 
-    @NotNull
-    protected AnalyticsEventHandler getAnalyticsEventHandler(
+    protected AnalyticsPublisherServiceCallback getSendingCallback() {
 
-            AnalyticsPublisherService analyticsPublisherService
-    ) {
+        return success -> {
 
-        return new AnalyticsEventHandler(analyticsCache, analyticsPublisherService);
+            if (success) {
+
+                CfLog.OUT.v(logTag, "Metrics sending success");
+
+            } else {
+
+                CfLog.OUT.w(logTag, "Metrics sending failure");
+            }
+        };
     }
 }
