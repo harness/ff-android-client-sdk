@@ -22,6 +22,8 @@ In app module's `build.gradle` file add dependency for Harness's SDK
 
 After this step, the SDK elements, primarily `CfClient` should be accessible in main application.
 
+Note: The minimal supported Android is API level 19.
+
 ## **_Initialization_**
 `CfClient` is base class that provides all features of SDK. This is singleton and it is acessed with `CfClient.getInstance()`. 
 
