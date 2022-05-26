@@ -116,32 +116,40 @@ class MainActivity : AppCompatActivity() {
 
 ### Running the example
 If you want to run the [getting started example](examples/GettingStarted), then you can open the project in Android Studio.
-If you would like to build, install and run the app from the CLI then follow these steps.
+If you would like to build, install and run the app from the CLI then follow these [steps to setup the SDK](docs/dev_environment.md).
+
 N.B this assumes you have set `$ANDROID_SDK` to the location where the Android SDK has been installed.
 
-#### Setup and Run emulator
-If you have already setup an emulator go ahead and start it.  If you haven't setup an emulator you can either use
-Android Studio or follow the [CLI steps here](docs/dev_environment.md)
+<br>
+
+#### Start the emulator
 ```
 $ANDROID_SDK/emulator/emulator @Pixel_4.4_API_32
 ```
+<br>
 
 #### Build the project
 ```shell
 cd examples/GettingStarted
 ./gradlew build
 ```
+<br>
 
 #### Install the Project
-You must provide the FF_API_KEY which will be compiled in.  You can also optionally override the flag that will be evaluated
+You must provide the FF_API_KEY which will be compiled in.  
+You can also optionally override the flag that will be evaluated
 by providing FF_FLAG_NAME
 ```shell
 FF_FLAG_NAME="harnessappdemodarkmode" FF_API_KEY="dca85a82-2860-4b12-8bf9-584f3da5ceb8" ./gradlew installDebug
 ```
-
+<br>
 The app should show the configured flags current value.  As you toggle the flag in the Harrness UI you will see the
 value update.
+<br><br>
+
 ![Alt Text](docs/images/android_sdk.gif)
+
+<br>
 
 ### Running with docker
 You will need to install the Android SDK in order to run the emulator, but if you wish to avoid installing Java, Gradle etc
@@ -156,6 +164,7 @@ docker run -v $(pwd):/app -v "$HOME/.dockercache/gradle":"/root/.gradle" -w /app
 # Install Debug build to emulator
 docker run -v $(pwd):/app -v "$HOME/.dockercache/gradle":"/root/.gradle" -w /app mingc/android-build-box ./gradlew installDebug
 ```
+<br>
 
 ### Additional Reading
 
