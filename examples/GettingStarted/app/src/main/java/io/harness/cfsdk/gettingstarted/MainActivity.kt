@@ -10,8 +10,7 @@ import io.harness.cfsdk.cloud.model.Target
 
 class MainActivity : AppCompatActivity() {
 
-    // The default flag name in this demo is "harnessappdemodarkmode".
-    private val flagName: String = BuildConfig.FF_FLAG_NAME.ifEmpty { "harnessappdemodarkmode" }
+    private var flagName: String = BuildConfig.FF_FLAG_NAME.ifEmpty { "harnessappdemodarkmode" }
 
     // The SDK API Key to use for authentication.  Configure it when installing the app by setting FF_API_KEY
     // e.g. FF_API_KEY='my key' ./gradlew installDebug
@@ -21,6 +20,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         printMessage("Starting SDK")
+
+        if (flagName.equals("null")) { flagName = "harnessappdemodarkmode" }
 
         // Create Default Configuration for the SDK.  We can use this to disable streaming,
         // change the URL the client connects to etc
@@ -34,26 +35,23 @@ class MainActivity : AppCompatActivity() {
         CfClient.getInstance().initialize(this, apiKey, sdkConfiguration, target)
         { info, result ->
             if (result.isSuccess) {
-                Log.i("SDKInit", "Successfully initialized client")
+                Log.i("SDKInit", "Successfully initialized client: " +info)
 
                 // Get initial value of flag and display it
                 var flagValue : Boolean = CfClient.getInstance().boolVariation(flagName, false)
                 printMessage("$flagName : $flagValue")
 
                 // Setup Listener to handle flag change events.  This fires when a flag is modified
-                CfClient.getInstance().registerEvaluationListener(flagName, flagListener)
+                CfClient.getInstance().registerEvaluationListener(flagName, EvaluationListener {
+                    Log.i("SDKEvent", "received event for flag")
+                    var flagValue : Boolean = CfClient.getInstance().boolVariation(flagName, false)
+                    printMessage("$flagName : $flagValue")
+               })
             } else {
                 Log.e("SDKInit", "Failed to initialize client", result.error)
                 result.error.message?.let { printMessage(it) }
             }
         }
-    }
-
-    // flagListener can be used to handle an event
-    private val flagListener: EvaluationListener = EvaluationListener {
-        Log.i("SDKEvent", "received event for flag")
-        var flagValue : Boolean = CfClient.getInstance().boolVariation(flagName, false)
-        printMessage("$flagName : $flagValue")
     }
 
     // printMessage uses the UI Thread to update the text on the display
