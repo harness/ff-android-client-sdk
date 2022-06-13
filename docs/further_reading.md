@@ -2,6 +2,44 @@
 
 Covers advanced topics (different config options and scenarios)
 
+## Configuration Options
+The following configuration options are available to control the behaviour of the SDK.
+You can provide options by adding them to the SDK Configuration.
+
+```Kotlin
+        val sdkConfiguration = CfConfiguration.builder()
+            .baseUrl("https://config.ff.harness.io/api/1.0")
+            .eventUrl("https://events.ff.harness.io/api/1.0")
+            .pollingInterval(60)
+            .enableStream(true)
+            .enableAnalytics(true)
+            .build()
+```
+
+
+| Name            | Config Option                                    | Description                                                                                                                                      | default                              |
+|-----------------|--------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------|
+| baseUrl         | baseUrl("https://config.ff.harness.io/api/1.0")  | the URL used to fetch feature flag evaluations. You should change this when using the Feature Flag proxy to http://localhost:7000                | https://config.ff.harness.io/api/1.0 |
+| eventsUrl       | eventUrl("https://events.ff.harness.io/api/1.0") | the URL used to post metrics data to the feature flag service. You should change this when using the Feature Flag proxy to http://localhost:7000 | https://events.ff.harness.io/api/1.0 |
+| pollInterval    | pollingInterval(60)                              | when running in stream mode, the interval in seconds that we poll for changes.                                                                   | 60                                   |
+| enableStream    | enableStream(true)                               | Enable streaming mode.                                                                                                                           | true                                 |
+| enableAnalytics | enableAnalytics(true)                            | Enable analytics.  Metrics data is posted every 60s                                                                                              | true                                 |
+
+
+## Logging Configuration
+We use Android Log, for details on how to use Android Log including selectively log based on levels see the [official guide here](https://source.android.com/devices/tech/debug/understanding-logging#log-standards)
+The SDK uses the simple class names as tags.  You can enable log levels for each of them using the following tags
+
+* CfClient - main client logs
+* AnalyticsManager - logs for analytics
+* SSEListener - logs relating to the SEE stream
+* DefaultApi - logs for http requests
+
+You can enable a level for any one of these tags using the following command:
+```shell
+adb shell setprop log.tag.<tag_name> VERBOSE
+```
+
 ## Recommended reading
 
 [Feature Flag Concepts](https://ngdocs.harness.io/article/7n9433hkc0-cf-feature-flag-overview)
