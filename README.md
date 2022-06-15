@@ -1,4 +1,4 @@
-Harness Feature Flag Android SDK
+Android SDK for Harness Feature Flags
 ========================
 
 ## Table of Contents
@@ -10,24 +10,26 @@ Harness Feature Flag Android SDK
 
 ## Intro
 
-Harness Feature Flags (FF) is a feature management solution that enables users to change the software’s functionality, 
-without deploying new code. FF uses feature flags to hide code or behaviours without having to ship new versions of the software.
-A feature flag is like a powerful if statement.
-* For more information, see https://harness.io/products/feature-flags/
-* To read more, see https://ngdocs.harness.io/category/vjolt35atg-feature-flags
-* To sign up, https://app.harness.io/auth/#/signup/
+Use this README to get started with our Feature Flags (FF) SDK for Android. This guide outlines the basics of getting started with the SDK and provides a full code sample for you to try out.
+
+This sample doesn’t include configuration options, for in depth steps and configuring the SDK, for example, disabling streaming or using our Relay Proxy, see the [Android SDK Reference](https://ngdocs.harness.io/article/74t18egxbi-android-sdk-reference).
+
+For a sample FF Android SDK project, see [our test Android Project](https://github.com/harness/ff-android-client-sdk/tree/main/examples/GettingStarted).
+
 
 ![FeatureFlags](docs/images/ff-gui.png)
 
 ## Requirements
-[Android Studio](https://developer.android.com/studio?gclid=CjwKCAjwp7eUBhBeEiwAZbHwkRqdhQkk6wroJeWGu0uGWjW9Ue3hFXc4SuB6lwYU4LOZiZ-MQ4p57BoCvF0QAvD_BwE&gclsrc=aw.ds) or the [Android SDK](docs/dev_environment.md) for CLI only<br>
-[Java 11](https://www.oracle.com/java/technologies/downloads/#java11) or newer <br>
-[Gradle 7.4.1](https://gradle.org/releases/) or newer <br>
 
-## Quickstart
-The Feature Flag SDK provides a client that connects to the feature flag service, and fetches the value
-of feature flags.  The following section provides an example of how to install the SDK and initalize it from an application.
-This quickstart assumes you have followed the instructions to [setup a Feature Flag project and have created a flag called `harnessappdemodarkmode` and created a client API Key](https://ngdocs.harness.io/article/1j7pdkqh7j-create-a-feature-flag#step_1_create_a_project).
+To use this SDK, make sure you've:
+
+- [Android Studio](https://developer.android.com/studio?gclid=CjwKCAjwp7eUBhBeEiwAZbHwkRqdhQkk6wroJeWGu0uGWjW9Ue3hFXc4SuB6lwYU4LOZiZ-MQ4p57BoCvF0QAvD_BwE&gclsrc=aw.ds) or the [Android SDK](docs/dev_environment.md) for CLI only<br>
+- [Java 11](https://www.oracle.com/java/technologies/downloads/#java11) or newer <br>
+- [Gradle 7.4.1](https://gradle.org/releases/) or newer <br>
+
+To follow along with our test code sample, make sure you’ve:
+- [Created a Feature Flag](https://ngdocs.harness.io/article/1j7pdkqh7j-create-a-feature-flag) on the Harness Platform called harnessappdemodarkmode
+- Created a [server/client SDK key](https://ngdocs.harness.io/article/1j7pdkqh7j-create-a-feature-flag#step_3_create_an_sdk_key) and made a copy of it
 
 ### Install the SDK
 You can add the Android SDK to your application by adding the following snippet to root project's [build.gradle](https://github.com/harness/ff-android-client-sdk/blob/main/examples/GettingStarted/build.gradle#L2) file:
@@ -44,7 +46,7 @@ In app module's [build.gradle](https://github.com/harness/ff-android-client-sdk/
 `implementation 'io.harness:ff-android-client-sdk:1.0.9'`
 
 
-### A Simple Example
+### Code Sample
 Here is a complete [example](https://github.com/harness/ff-android-client-sdk/blob/main/examples/GettingStarted/app/src/main/java/io/harness/cfsdk/gettingstarted/MainActivity.kt) that will connect to the feature flag service and report the flag value.  An event listener is registered
 to receive flag change events.
 Any time a flag is toggled from the feature flag service you will receive the updated value.
@@ -136,7 +138,7 @@ cd examples/GettingStarted
 <br>
 
 #### Install the Project
-You must provide the FF_API_KEY which will be compiled in.  
+You must provide the FF_API_KEY which will be compiled in.
 You can also optionally override the flag that will be evaluated
 by providing FF_FLAG_NAME
 ```shell
@@ -151,10 +153,10 @@ value update.
 
 <br>
 
-### Running with docker
+### Running the example with docker
 You will need to install the Android SDK in order to run the emulator, but if you wish to avoid installing Java, Gradle etc
 you can use a docker image to compile and install the application to a locally running emulator.
-Follow the steps to [setup and run the emulator](#Setup-and-Run-emulator). 
+Follow the steps to [setup and run the emulator](#Setup-and-Run-emulator).
 
 With the emulator running build and install the app
 ```shell
