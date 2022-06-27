@@ -185,7 +185,13 @@ public class CfClient implements Destroyable {
         });
     }
 
-    private void notifyListeners(Evaluation evaluation) {
+    private void notifyListeners(final Evaluation evaluation) {
+
+        if (evaluation == null) {
+
+            CfLog.OUT.e(logTag, "Evaluation is null");
+            return;
+        }
 
         if (evaluationListenerSet.containsKey(evaluation.getFlag())) {
 
