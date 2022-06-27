@@ -50,12 +50,19 @@ public class SSEListener implements ServerSentEvent.Listener {
             Evaluation evaluation = new Evaluation();
             evaluation.flag(identifier);
 
+            CfLog.OUT.v(
+
+                    logTag,
+                    String.format("onMessage(): eventType=%s, identifier=%s", eventType, identifier)
+            );
+
             if ("create".equals(eventType) || "patch".equals(eventType)) {
 
                 eventsListener.onEventReceived(
 
                         new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, evaluation)
                 );
+
             } else if ("delete".equals(eventType)) {
 
                 eventsListener.onEventReceived(
@@ -63,6 +70,7 @@ public class SSEListener implements ServerSentEvent.Listener {
                         new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_REMOVE, evaluation)
                 );
             }
+
         } catch (JSONException e) {
 
             CfLog.OUT.e(logTag, e.getMessage(), e);
