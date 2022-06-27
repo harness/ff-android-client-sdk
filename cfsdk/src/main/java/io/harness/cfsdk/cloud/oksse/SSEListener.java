@@ -47,7 +47,7 @@ public class SSEListener implements ServerSentEvent.Listener {
             String identifier = jsonObject.getString("identifier");
             String eventType = jsonObject.getString("event");
 
-            Evaluation evaluation = new Evaluation();
+            final Evaluation evaluation = new Evaluation();
             evaluation.flag(identifier);
 
             CfLog.OUT.v(
@@ -58,17 +58,17 @@ public class SSEListener implements ServerSentEvent.Listener {
 
             if ("create".equals(eventType) || "patch".equals(eventType)) {
 
-                eventsListener.onEventReceived(
+                final StatusEvent statusEvent =
+                        new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, evaluation);
 
-                        new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, evaluation)
-                );
+                eventsListener.onEventReceived(statusEvent);
 
             } else if ("delete".equals(eventType)) {
 
-                eventsListener.onEventReceived(
+                final StatusEvent statusEvent =
+                        new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_REMOVE, evaluation);
 
-                        new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_REMOVE, evaluation)
-                );
+                eventsListener.onEventReceived(statusEvent);
             }
 
         } catch (JSONException e) {
