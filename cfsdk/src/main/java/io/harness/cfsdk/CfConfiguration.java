@@ -19,7 +19,7 @@ public class CfConfiguration {
     protected final String streamURL;
 
     protected boolean analyticsEnabled;
-    protected final boolean streamEnabled;
+    protected boolean streamEnabled;
 
     protected int metricsCapacity;
     protected final int pollingInterval;
@@ -36,6 +36,7 @@ public class CfConfiguration {
     {
 
         analyticsEnabled = true;
+        streamEnabled = true;
         metricsCapacity = DEFAULT_METRICS_CAPACITY;
 
         metricsPublishingIntervalInMillis =
@@ -171,6 +172,7 @@ public class CfConfiguration {
         {
 
             analyticsEnabled = true;
+            streamEnabled = true;
             metricsCapacity = DEFAULT_METRICS_CAPACITY;
             metricsPublishingIntervalInMillis = MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS * 1000L;
 
