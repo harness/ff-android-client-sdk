@@ -137,6 +137,13 @@ public class CfClient implements Destroyable {
                 Evaluation eval = statusEvent.extractPayload();
                 featureRepository.remove(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), eval.getFlag());
                 break;
+
+            case EVALUATION_RELOAD:
+
+                CfLog.OUT.v(logTag, "We are about to reload");
+                // TODO
+
+                break;
         }
 
         sendEvent(statusEvent);
@@ -257,14 +264,18 @@ public class CfClient implements Destroyable {
                 if (useStream) {
 
                     startSSE();
+
                 } else {
 
                     evaluationPolling.start(this::reschedule);
                 }
+
             } catch (Exception e) {
 
                 CfLog.OUT.e(logTag, e.getMessage(), e);
+
                 if (networkInfoProvider.isNetworkAvailable()) {
+
                     evaluationPolling.start(this::reschedule);
                 }
             }
