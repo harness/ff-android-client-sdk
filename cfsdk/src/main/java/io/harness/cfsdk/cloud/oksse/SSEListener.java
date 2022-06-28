@@ -44,8 +44,10 @@ public class SSEListener implements ServerSentEvent.Listener {
         try {
 
             jsonObject = new JSONObject(message);
-            String identifier = jsonObject.getString("identifier");
+
+            String domain = jsonObject.getString("domain");
             String eventType = jsonObject.getString("event");
+            String identifier = jsonObject.getString("identifier");
 
             final Evaluation evaluation = new Evaluation();
             evaluation.flag(identifier);
@@ -53,7 +55,11 @@ public class SSEListener implements ServerSentEvent.Listener {
             CfLog.OUT.v(
 
                     logTag,
-                    String.format("onMessage(): eventType=%s, identifier=%s", eventType, identifier)
+                    String.format(
+
+                            "onMessage(): domain=%s, eventType=%s, identifier=%s",
+                            domain, eventType, identifier
+                    )
             );
 
             if ("create".equals(eventType) || "patch".equals(eventType)) {
