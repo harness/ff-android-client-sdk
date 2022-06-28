@@ -62,7 +62,17 @@ public class SSEListener implements ServerSentEvent.Listener {
                     )
             );
 
-            if ("create".equals(eventType) || "patch".equals(eventType)) {
+            if (
+                    ("delete".equals(eventType) || "patch".equals(eventType))  &&
+                            "target-segment".equals(domain)
+            ) {
+
+                final StatusEvent statusEvent =
+                        new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluation);
+
+                eventsListener.onEventReceived(statusEvent);
+
+            } else if ("create".equals(eventType) || "patch".equals(eventType)) {
 
                 final StatusEvent statusEvent =
                         new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, evaluation);
