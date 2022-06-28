@@ -96,10 +96,12 @@ public class CfClient implements Destroyable {
         final String cluster = authInfo.getCluster();
 
         switch (statusEvent.getEventType()) {
+
             case SSE_START:
 
                 evaluationPolling.stop();
                 break;
+
             case SSE_END:
 
                 if (networkInfoProvider.isNetworkAvailable()) {
@@ -129,12 +131,14 @@ public class CfClient implements Destroyable {
                 notifyListeners(e);
 
                 break;
+
             case EVALUATION_REMOVE:
 
                 Evaluation eval = statusEvent.extractPayload();
                 featureRepository.remove(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), eval.getFlag());
                 break;
         }
+
         sendEvent(statusEvent);
     };
 
