@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity() {
                 val logPrefix = keyName + " :: " + client.hashCode()
 
                 val config = CfConfiguration.builder()
-                    .enableAnalytics(false)
+                    .enableAnalytics(true)
                     .enableStream(true)
                     .build()
 
@@ -103,18 +103,18 @@ class MainActivity : AppCompatActivity() {
                             val timer = Timer()
                             timers[keyName] = timer
 
-//                            timer.schedule(
-//
-//                                object : TimerTask() {
-//
-//                                    override fun run() {
-//
-//                                        readEvaluations(client, logPrefix)
-//                                    }
-//                                },
-//                                0,
-//                                30000
-//                            )
+                            timer.schedule(
+
+                                object : TimerTask() {
+
+                                    override fun run() {
+
+                                        readEvaluations(client, logPrefix)
+                                    }
+                                },
+                                0,
+                                10000
+                            )
 
                         } catch (e: IllegalStateException) {
 
