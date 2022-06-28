@@ -112,14 +112,15 @@ public class CfClient implements Destroyable {
                             target.getIdentifier(),
                             cluster
                     );
+
                     evaluationPolling.start(this::reschedule);
                 }
                 break;
 
             case EVALUATION_CHANGE:
 
-                Evaluation evaluation = statusEvent.extractPayload();
-                Evaluation e = featureRepository.getEvaluation(
+                final Evaluation evaluation = statusEvent.extractPayload();
+                final Evaluation e = featureRepository.getEvaluation(
 
                         authInfo.getEnvironmentIdentifier(),
                         target.getIdentifier(),
@@ -134,14 +135,20 @@ public class CfClient implements Destroyable {
 
             case EVALUATION_REMOVE:
 
-                Evaluation eval = statusEvent.extractPayload();
+                final Evaluation eval = statusEvent.extractPayload();
                 featureRepository.remove(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), eval.getFlag());
                 break;
 
             case EVALUATION_RELOAD:
 
                 CfLog.OUT.v(logTag, "We are about to reload");
-                // TODO
+
+                this.featureRepository.getAllEvaluations(
+
+                        environmentID,
+                        target.getIdentifier(),
+                        cluster
+                );
 
                 break;
         }
@@ -187,9 +194,11 @@ public class CfClient implements Destroyable {
 
     private void sendEvent(StatusEvent statusEvent) {
 
+        CfLog.OUT.v(logTag, "sendEvent(): " + statusEvent.getEventType());
+
         listenerUpdateExecutor.execute(() -> {
 
-            for (EventsListener listener : eventsListenerSet) {
+            for (final EventsListener listener : eventsListenerSet) {
 
                 listener.onEventReceived(statusEvent);
             }
@@ -220,8 +229,11 @@ public class CfClient implements Destroyable {
     private void reschedule() {
 
         CfLog.OUT.v(logTag, "Reschedule");
+
         executor.execute(() -> {
+
             try {
+
                 if (!ready.get()) {
 
                     boolean success = cloud.initialize();
@@ -252,14 +264,14 @@ public class CfClient implements Destroyable {
                 final String environmentID = authInfo.getEnvironmentIdentifier();
                 final String cluster = authInfo.getCluster();
 
-                List<Evaluation> evaluations = this.featureRepository.getAllEvaluations(
+                final List<Evaluation> evaluations = this.featureRepository.getAllEvaluations(
 
                         environmentID,
                         target.getIdentifier(),
                         cluster
                 );
 
-                sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
+                CfLog.OUT.v(logTag, "Evaluations count: " + evaluations.size());
 
                 if (useStream) {
 
@@ -287,6 +299,7 @@ public class CfClient implements Destroyable {
         if (networkInfoProvider != null) {
 
             networkInfoProvider.unregisterAll();
+
         } else {
 
             networkInfoProvider = cloudFactory.networkInfoProvider(context);
@@ -295,8 +308,10 @@ public class CfClient implements Destroyable {
         networkInfoProvider.register(status -> {
 
             if (status == NetworkStatus.CONNECTED) {
+
                 reschedule();
             } else {
+
                 evaluationPolling.stop();
             }
         });
@@ -307,6 +322,7 @@ public class CfClient implements Destroyable {
         CfLog.OUT.v(logTag, "Start SSE");
 
         final SSEConfig config = cloud.getConfig();
+
         if (config.isValid()) {
 
             sseController.start(config, eventsListener);
