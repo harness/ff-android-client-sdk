@@ -68,7 +68,11 @@ public class FeatureRepositoryImpl implements FeatureRepository {
 
         final String envKey = environment + "_" + target;
 
+        CfLog.OUT.v(tag, "getAllEvaluations(): " + envKey);
+
         if (!networkInfoProvider.isNetworkAvailable()) {
+
+            CfLog.OUT.v(tag, "getAllEvaluations(), returning from the cache: " + envKey);
 
             return this.cloudCache.getAllEvaluations(envKey);
         }
@@ -79,7 +83,13 @@ public class FeatureRepositoryImpl implements FeatureRepository {
             final List<Evaluation> evaluationList = apiResponse.body();
             cloudCache.saveAllEvaluations(envKey, evaluationList);
 
-            CfLog.OUT.v(tag, "Got all evaluations: " + evaluationList.size());
+            CfLog.OUT.v(
+
+                    tag,
+                    "getAllEvaluations(), returning from the cloud, size: " +
+                            evaluationList.size()
+            );
+
             return evaluationList;
         }
 

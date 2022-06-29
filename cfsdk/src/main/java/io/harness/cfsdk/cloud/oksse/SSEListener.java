@@ -44,25 +44,49 @@ public class SSEListener implements ServerSentEvent.Listener {
         try {
 
             jsonObject = new JSONObject(message);
-            String identifier = jsonObject.getString("identifier");
-            String eventType = jsonObject.getString("event");
 
-            Evaluation evaluation = new Evaluation();
+            String domain = jsonObject.getString("domain");
+            String eventType = jsonObject.getString("event");
+            String identifier = jsonObject.getString("identifier");
+
+            final Evaluation evaluation = new Evaluation();
             evaluation.flag(identifier);
 
-            if ("create".equals(eventType) || "patch".equals(eventType)) {
+            CfLog.OUT.v(
 
-                eventsListener.onEventReceived(
+                    logTag,
+                    String.format(
 
-                        new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, evaluation)
-                );
+                            "onMessage(): domain=%s, eventType=%s, identifier=%s",
+                            domain, eventType, identifier
+                    )
+            );
+
+            if (
+                    ("delete".equals(eventType) || "patch".equals(eventType))  &&
+                            "target-segment".equals(domain)
+            ) {
+
+                final StatusEvent statusEvent =
+                        new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluation);
+
+                eventsListener.onEventReceived(statusEvent);
+
+            } else if ("create".equals(eventType) || "patch".equals(eventType)) {
+
+                final StatusEvent statusEvent =
+                        new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, evaluation);
+
+                eventsListener.onEventReceived(statusEvent);
+
             } else if ("delete".equals(eventType)) {
 
-                eventsListener.onEventReceived(
+                final StatusEvent statusEvent =
+                        new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_REMOVE, evaluation);
 
-                        new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_REMOVE, evaluation)
-                );
+                eventsListener.onEventReceived(statusEvent);
             }
+
         } catch (JSONException e) {
 
             CfLog.OUT.e(logTag, e.getMessage(), e);
