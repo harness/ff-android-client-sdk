@@ -141,7 +141,7 @@ public class CfClient implements Destroyable {
 
             case EVALUATION_RELOAD:
 
-                CfLog.OUT.v(logTag, "We are about to reload");
+                CfLog.OUT.v(logTag, "Reloading all evaluations");
 
                 this.featureRepository.getAllEvaluations(
 
