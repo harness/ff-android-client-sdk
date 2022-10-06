@@ -71,3 +71,11 @@ Before setting up the emulator you should follow the steps above to install the 
    ```shell
    $ANDROID_HOME/emulator/emulator @Pixel_4.4_API_32
    ```
+
+## Connecting to a Local FF-Server
+To connect to a local FF Server, you must enable clear text traffic.
+This can be done by adding the following to the project AndroidManifest.xml
+        ```android:usesCleartextTraffic="true"```
+
+Because you will be running an emulator, the localhost that your project is using will not be the same as where the FF-Server is running.
+You must use the host [10.0.2.2 (read more)](https://developer.android.com/studio/run/emulator-networking.html) which is bridged to your machines localhost.
