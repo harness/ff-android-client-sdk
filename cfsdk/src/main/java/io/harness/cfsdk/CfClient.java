@@ -4,8 +4,6 @@ import android.content.Context;
 
 import androidx.annotation.Nullable;
 
-import com.google.gson.Gson;
-
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
