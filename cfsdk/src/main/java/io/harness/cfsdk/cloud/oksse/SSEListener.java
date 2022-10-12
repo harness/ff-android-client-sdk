@@ -62,29 +62,32 @@ public class SSEListener implements ServerSentEvent.Listener {
                     )
             );
 
-            if (
-                    ("delete".equals(eventType) || "patch".equals(eventType))  &&
-                            "target-segment".equals(domain)
-            ) {
+            StatusEvent statusEvent = null;
+            if ("target-segment".equals(domain)) {
+                // On creation, change or removal of a target group we want to reload evaluations
+                if ("delete".equals(eventType) || "patch".equals(eventType) || "create".equals(eventType)) {
+                    statusEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluation);
+                }
+            }
 
-                final StatusEvent statusEvent =
-                        new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluation);
+            if ("flag".equals(domain)) {
+                // On creation or change of a flag we want to send a change event
+                if ("create".equals(eventType) || "patch".equals(eventType)) {
+                    statusEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, evaluation);
+                }
+                // On deletion of a flag we want to send a remove event
+                if ("delete".equals(eventType)) {
+                    statusEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_REMOVE, evaluation);
+                }
+            }
 
+            if (statusEvent != null) {
                 eventsListener.onEventReceived(statusEvent);
-
-            } else if ("create".equals(eventType) || "patch".equals(eventType)) {
-
-                final StatusEvent statusEvent =
-                        new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, evaluation);
-
-                eventsListener.onEventReceived(statusEvent);
-
-            } else if ("delete".equals(eventType)) {
-
-                final StatusEvent statusEvent =
-                        new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_REMOVE, evaluation);
-
-                eventsListener.onEventReceived(statusEvent);
+            } else {
+                CfLog.OUT.e(logTag, String.format(
+                        "Unrecognized Status Event received, Ignoring... onMessage(): domain=%s, eventType=%s, identifier=%s",
+                        domain, eventType, identifier
+                ));
             }
 
         } catch (JSONException e) {

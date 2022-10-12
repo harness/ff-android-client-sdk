@@ -4,6 +4,8 @@ import android.content.Context;
 
 import androidx.annotation.Nullable;
 
+import com.google.gson.Gson;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -144,12 +146,15 @@ public class CfClient implements Destroyable {
 
                 CfLog.OUT.v(logTag, "Reloading all evaluations");
 
-                this.featureRepository.getAllEvaluations(
+
+                final List<Evaluation> evaluations = featureRepository.getAllEvaluations(
 
                         environmentID,
                         target.getIdentifier(),
                         cluster
                 );
+
+                statusEvent = new StatusEvent(statusEvent.getEventType(), evaluations);
 
                 break;
         }
