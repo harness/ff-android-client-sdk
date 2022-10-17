@@ -144,12 +144,15 @@ public class CfClient implements Destroyable {
 
                 CfLog.OUT.v(logTag, "Reloading all evaluations");
 
-                this.featureRepository.getAllEvaluations(
+
+                final List<Evaluation> evaluations = featureRepository.getAllEvaluations(
 
                         environmentID,
                         target.getIdentifier(),
                         cluster
                 );
+
+                statusEvent = new StatusEvent(statusEvent.getEventType(), evaluations);
 
                 break;
         }
