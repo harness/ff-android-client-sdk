@@ -135,8 +135,5 @@ publishing {
 
 
 signing {
-    def signingKey = gpgKey
-    def signingPassword = gpgPassword
-    useInMemoryPgpKeys(signingKey, signingPassword)
     sign publishing.publications
 }
