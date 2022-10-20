@@ -53,6 +53,8 @@ if (secretPropsFile.exists()) {
 
 ext["ossrhUsername"] = System.getenv('OSSRH_USERNAME')
 ext["ossrhPassword"] = System.getenv('OSSRH_PASSWORD')
+ext["gpgKey"] = System.getenv('GPG_KEY')
+ext["gpgPassword"] = System.getenv('GPG_PASSWORD')
 ext["sonatypeStagingProfileId"] = System.getenv('SONATYPE_STAGING_PROFILE_ID')
 
 
@@ -133,5 +135,8 @@ publishing {
 
 
 signing {
+    def signingKey = gpgKey
+    def signingPassword = gpgPassword
+    useInMemoryPgpKeys(signingKey, signingPassword)
     sign publishing.publications
 }
