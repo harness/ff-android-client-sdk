@@ -4,6 +4,7 @@ import android.content.Context;
 
 import androidx.annotation.Nullable;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -147,12 +148,15 @@ public class CfClient implements Destroyable {
 
                 CfLog.OUT.v(logTag, "Reloading all evaluations");
 
-                this.featureRepository.getAllEvaluations(
+
+                final List<Evaluation> evaluations = featureRepository.getAllEvaluations(
 
                         environmentID,
                         target.getIdentifier(),
                         cluster
                 );
+
+                statusEvent = new StatusEvent(statusEvent.getEventType(), evaluations);
 
                 break;
         }
@@ -774,8 +778,9 @@ public class CfClient implements Destroyable {
 
                     return e.getValue();
                 }
-
-                return new JSONObject((String) e.getValue());
+                String eval = StringEscapeUtils.unescapeJava(e.getValue().toString());
+                eval = eval.substring(1, eval.length() - 1);
+                return new JSONObject(eval);
             }
         } catch (JSONException e) {
 
