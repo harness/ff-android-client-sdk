@@ -257,7 +257,7 @@ public class AnalyticsPublisherService {
             setMetricsAttributes(metricsData, TARGET_ATTRIBUTE, GLOBAL_TARGET);
             setMetricsAttributes(metricsData, SDK_TYPE, CLIENT);
             setMetricsAttributes(metricsData, SDK_LANGUAGE, "android");
-            setMetricsAttributes(metricsData, SDK_VERSION, "1.0.11");
+            setMetricsAttributes(metricsData, SDK_VERSION, "1.0.12");
 
             metrics.addMetricsDataItem(metricsData);
         }

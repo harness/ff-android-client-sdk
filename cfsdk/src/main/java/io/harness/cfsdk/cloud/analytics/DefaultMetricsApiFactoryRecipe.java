@@ -29,7 +29,7 @@ public class DefaultMetricsApiFactoryRecipe implements MetricsApiFactoryRecipe {
             ApiClient apiClient = metricsAPI.getApiClient();
             apiClient.setBasePath(config.getEventURL());
             apiClient.addDefaultHeader("Authorization", "Bearer " + authToken);
-            apiClient.setUserAgent("android 1.0.11");
+            apiClient.setUserAgent("android 1.0.12");
             String hostname = "UnknownHost";
 
             try {
