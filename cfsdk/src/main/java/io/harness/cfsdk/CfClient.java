@@ -44,6 +44,7 @@ import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.sse.SSEControlling;
 import io.harness.cfsdk.common.Destroyable;
 import io.harness.cfsdk.logging.CfLog;
+import io.harness.cfsdk.utils.GuardObjectWrapper;
 
 /**
  * Main class used for any operation on SDK. Operations include, but not limited to, reading evaluations and
@@ -72,7 +73,8 @@ public class CfClient implements Destroyable {
     private final Executor listenerUpdateExecutor;
     private final Set<EventsListener> eventsListenerSet;
     private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet;
-
+    private GuardObjectWrapper evaluationPollingLock;
+    
     {
 
         ready = new AtomicBoolean();
@@ -81,6 +83,8 @@ public class CfClient implements Destroyable {
         evaluationListenerSet = new ConcurrentHashMap<>();
         listenerUpdateExecutor = Executors.newSingleThreadExecutor();
         eventsListenerSet = Collections.synchronizedSet(new LinkedHashSet<>());
+        evaluationPollingLock = new GuardObjectWrapper();
+
     }
 
     private final EventsListener eventsListener = statusEvent -> {
@@ -315,7 +319,8 @@ public class CfClient implements Destroyable {
 
                 reschedule();
             } else {
-
+                // waiting for the lock to be release.
+                evaluationPollingLock.get();
                 evaluationPolling.stop();
             }
         });
@@ -373,8 +378,9 @@ public class CfClient implements Destroyable {
             throw new IllegalStateException("Already initialized");
         }
 
-        setupNetworkInfo(context);
-        doInitialize(
+        setupNetworkInfo(context);  // evaluationPoll.stop()
+
+        doInitialize(       // evaluationPoll - defined.
 
                 apiKey,
                 configuration,
@@ -382,6 +388,8 @@ public class CfClient implements Destroyable {
                 cloudCache,
                 authCallback
         );
+
+
     }
 
     /**
@@ -515,6 +523,8 @@ public class CfClient implements Destroyable {
 
                 featureRepository = cloudFactory.getFeatureRepository(cloud, cloudCache, networkInfoProvider);
                 evaluationPolling = cloudFactory.evaluationPolling(configuration.getPollingInterval(), TimeUnit.SECONDS);
+                // release the lock.
+                evaluationPollingLock.set(evaluationPolling);
 
                 this.useStream = configuration.getStreamEnabled();
                 this.analyticsEnabled = configuration.isAnalyticsEnabled();
