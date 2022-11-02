@@ -213,6 +213,11 @@ public class AnalyticsPublisherService {
 
             Integer count = data.get(analytics);
 
+            CfLog.OUT.d(logTag,                     String.format(
+
+                    "count is: %s",
+                    count));
+
             if (count == null) {
 
                 count = 0;
@@ -223,7 +228,7 @@ public class AnalyticsPublisherService {
 
             if (summaryCount == null) {
 
-                summaryMetricsData.put(summaryMetrics, count);
+                summaryMetricsData.put(summaryMetrics, count + 1);
             } else {
 
                 summaryMetricsData.put(summaryMetrics, summaryCount + count);
