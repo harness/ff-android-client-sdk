@@ -28,6 +28,7 @@ public class AnalyticsPublisherService {
     private static final String SDK_LANGUAGE;
     private static final String GLOBAL_TARGET;
     private static final String TARGET_ATTRIBUTE;
+    private static final String FEATURE_IDENTIFIER_ATTRIBUTE;
     private static final String FEATURE_NAME_ATTRIBUTE;
     private static final String VARIATION_IDENTIFIER_ATTRIBUTE;
 
@@ -39,6 +40,7 @@ public class AnalyticsPublisherService {
         SDK_VERSION = "SDK_VERSION";
         SDK_LANGUAGE = "SDK_LANGUAGE";
         GLOBAL_TARGET = "__global__cf_target";
+        FEATURE_IDENTIFIER_ATTRIBUTE = "featureIdentifier";
         FEATURE_NAME_ATTRIBUTE = "featureName";
         VARIATION_IDENTIFIER_ATTRIBUTE = "variationIdentifier";
     }
@@ -223,7 +225,7 @@ public class AnalyticsPublisherService {
 
             if (summaryCount == null) {
 
-                summaryMetricsData.put(summaryMetrics, count);
+                summaryMetricsData.put(summaryMetrics, count + 1);
             } else {
 
                 summaryMetricsData.put(summaryMetrics, summaryCount + count);
@@ -252,6 +254,7 @@ public class AnalyticsPublisherService {
             metricsData.count(entry.getValue());
             metricsData.setMetricsType(MetricsData.MetricsTypeEnum.FFMETRICS);
 
+            setMetricsAttributes(metricsData, FEATURE_IDENTIFIER_ATTRIBUTE, entry.getKey().getFeatureName());
             setMetricsAttributes(metricsData, FEATURE_NAME_ATTRIBUTE, entry.getKey().getFeatureName());
             setMetricsAttributes(metricsData, VARIATION_IDENTIFIER_ATTRIBUTE, entry.getKey().getVariationIdentifier());
             setMetricsAttributes(metricsData, TARGET_ATTRIBUTE, GLOBAL_TARGET);
