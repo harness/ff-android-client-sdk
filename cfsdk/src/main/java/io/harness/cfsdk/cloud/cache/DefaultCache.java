@@ -27,7 +27,18 @@ public class DefaultCache implements CloudCache {
 
         key_all = "all_evaluations";
         executor = Executors.newSingleThreadExecutor();
-        evaluations = new ConcurrentHashMap<>(Hawk.get(key_all, new ConcurrentHashMap<>()));
+
+        ConcurrentHashMap<String, ConcurrentHashMap<String, Evaluation>> evaluationsTemp;
+
+        try {
+            evaluationsTemp = new ConcurrentHashMap<>(Hawk.get(key_all, new ConcurrentHashMap<>()));
+        } catch (Exception ex) {
+            // Possible cache corruption, reset the cache on disk and let it rebuild
+            Hawk.deleteAll();
+            evaluationsTemp = new ConcurrentHashMap<>(Hawk.get(key_all, new ConcurrentHashMap<>()));
+        }
+
+        evaluations = evaluationsTemp;
     }
 
     @Override
