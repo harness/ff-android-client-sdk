@@ -116,15 +116,7 @@ class MainActivity : AppCompatActivity() {
                                 10000
                             )
 
-                        } catch (e: IllegalStateException) {
-
-                            CfLog.OUT.e(logTag, "Error", e)
-
-                        } catch (e: IllegalArgumentException) {
-
-                            CfLog.OUT.e(logTag, "Error", e)
-
-                        } catch (e: NullPointerException) {
+                        } catch (e:Exception) {
 
                             CfLog.OUT.e(logTag, "Error", e)
                         }

@@ -61,6 +61,7 @@ public class CfLogStrategyDefault implements CfLogging {
     @Override
     public void e(String tag, String message, Throwable throwable) {
 
+        Log.e(tag, message, throwable);
     }
 
     @Override
