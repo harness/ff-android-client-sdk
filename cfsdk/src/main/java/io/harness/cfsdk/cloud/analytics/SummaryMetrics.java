@@ -5,12 +5,14 @@ public class SummaryMetrics {
     private String featureName;
     private String variationValue;
     private String variationIdentifier;
+    private String target;
 
-    public SummaryMetrics(String featureName, String variationValue, String variationIdentifier) {
+    public SummaryMetrics(String featureName, String variationValue, String variationIdentifier, String target) {
 
         this.featureName = featureName;
         this.variationValue = variationValue;
         this.variationIdentifier = variationIdentifier;
+        this.target = target;
     }
 
     public String getFeatureName() {
@@ -41,6 +43,14 @@ public class SummaryMetrics {
     public void setVariationValue(String variationValue) {
 
         this.variationValue = variationValue;
+    }
+
+    public String getTarget() {
+        return target;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
     }
 
     @Override

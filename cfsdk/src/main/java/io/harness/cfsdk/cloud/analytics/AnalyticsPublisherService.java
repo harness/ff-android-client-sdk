@@ -259,7 +259,8 @@ public class AnalyticsPublisherService {
             setMetricsAttributes(metricsData, FEATURE_IDENTIFIER_ATTRIBUTE, entry.getKey().getFeatureName());
             setMetricsAttributes(metricsData, FEATURE_NAME_ATTRIBUTE, entry.getKey().getFeatureName());
             setMetricsAttributes(metricsData, VARIATION_IDENTIFIER_ATTRIBUTE, entry.getKey().getVariationIdentifier());
-            setMetricsAttributes(metricsData, TARGET_ATTRIBUTE, GLOBAL_TARGET);
+            setMetricsAttributes(metricsData, VARIATION_VALUE_ATTRIBUTE, entry.getKey().getVariationValue());
+            setMetricsAttributes(metricsData, TARGET_ATTRIBUTE, entry.getKey().getTarget());
             setMetricsAttributes(metricsData, SDK_TYPE, CLIENT);
             setMetricsAttributes(metricsData, SDK_LANGUAGE, "android");
             setMetricsAttributes(metricsData, SDK_VERSION, "1.0.14");
@@ -287,7 +288,8 @@ public class AnalyticsPublisherService {
 
                 key.getVariation().getName(),
                 key.getVariation().getValue(),
-                key.getVariation().getIdentifier()
+                key.getVariation().getIdentifier(),
+                key.getTarget().getIdentifier()
         );
     }
 
