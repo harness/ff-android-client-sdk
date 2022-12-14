@@ -31,6 +31,7 @@ public class AnalyticsPublisherService {
     private static final String FEATURE_IDENTIFIER_ATTRIBUTE;
     private static final String FEATURE_NAME_ATTRIBUTE;
     private static final String VARIATION_IDENTIFIER_ATTRIBUTE;
+    private static final String VARIATION_VALUE_ATTRIBUTE;
 
     static {
 
@@ -43,6 +44,7 @@ public class AnalyticsPublisherService {
         FEATURE_IDENTIFIER_ATTRIBUTE = "featureIdentifier";
         FEATURE_NAME_ATTRIBUTE = "featureName";
         VARIATION_IDENTIFIER_ATTRIBUTE = "variationIdentifier";
+        VARIATION_VALUE_ATTRIBUTE = "variationValue";
     }
 
     private final String logTag;
