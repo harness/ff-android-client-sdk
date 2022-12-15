@@ -31,6 +31,7 @@ public class AnalyticsPublisherService {
     private static final String FEATURE_IDENTIFIER_ATTRIBUTE;
     private static final String FEATURE_NAME_ATTRIBUTE;
     private static final String VARIATION_IDENTIFIER_ATTRIBUTE;
+    private static final String VARIATION_VALUE_ATTRIBUTE;
 
     static {
 
@@ -43,6 +44,7 @@ public class AnalyticsPublisherService {
         FEATURE_IDENTIFIER_ATTRIBUTE = "featureIdentifier";
         FEATURE_NAME_ATTRIBUTE = "featureName";
         VARIATION_IDENTIFIER_ATTRIBUTE = "variationIdentifier";
+        VARIATION_VALUE_ATTRIBUTE = "variationValue";
     }
 
     private final String logTag;
@@ -257,7 +259,8 @@ public class AnalyticsPublisherService {
             setMetricsAttributes(metricsData, FEATURE_IDENTIFIER_ATTRIBUTE, entry.getKey().getFeatureName());
             setMetricsAttributes(metricsData, FEATURE_NAME_ATTRIBUTE, entry.getKey().getFeatureName());
             setMetricsAttributes(metricsData, VARIATION_IDENTIFIER_ATTRIBUTE, entry.getKey().getVariationIdentifier());
-            setMetricsAttributes(metricsData, TARGET_ATTRIBUTE, GLOBAL_TARGET);
+            setMetricsAttributes(metricsData, VARIATION_VALUE_ATTRIBUTE, entry.getKey().getVariationValue());
+            setMetricsAttributes(metricsData, TARGET_ATTRIBUTE, entry.getKey().getTarget());
             setMetricsAttributes(metricsData, SDK_TYPE, CLIENT);
             setMetricsAttributes(metricsData, SDK_LANGUAGE, "android");
             setMetricsAttributes(metricsData, SDK_VERSION, "1.0.14");
@@ -285,7 +288,8 @@ public class AnalyticsPublisherService {
 
                 key.getVariation().getName(),
                 key.getVariation().getValue(),
-                key.getVariation().getIdentifier()
+                key.getVariation().getIdentifier(),
+                key.getTarget().getIdentifier()
         );
     }
 
