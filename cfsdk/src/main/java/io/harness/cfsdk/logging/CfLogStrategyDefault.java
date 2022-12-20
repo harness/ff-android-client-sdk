@@ -40,27 +40,27 @@ public class CfLogStrategyDefault implements CfLogging {
 
     @Override
     public void v(String tag, String message, Throwable throwable) {
-
+        Log.v(tag, message, throwable);
     }
 
     @Override
     public void d(String tag, String message, Throwable throwable) {
-
+        Log.d(tag, message, throwable);
     }
 
     @Override
     public void i(String tag, String message, Throwable throwable) {
-
+        Log.i(tag, message, throwable);
     }
 
     @Override
     public void w(String tag, String message, Throwable throwable) {
-
+        Log.w(tag, message, throwable);
     }
 
     @Override
     public void e(String tag, String message, Throwable throwable) {
-
+        Log.e(tag, message, throwable);
         Log.e(tag, message, throwable);
     }
 
