@@ -200,17 +200,27 @@ public class CfClient implements Destroyable {
         return instance;
     }
 
-    private void sendEvent(StatusEvent statusEvent) {
+    void sendEvent(StatusEvent statusEvent) {
 
         CfLog.OUT.v(logTag, "sendEvent(): " + statusEvent.getEventType());
 
         listenerUpdateExecutor.execute(() -> {
 
             for (final EventsListener listener : eventsListenerSet) {
-
+                if (checkForInvalidEvent(statusEvent)) {
+                    continue;
+                }
                 listener.onEventReceived(statusEvent);
             }
         });
+    }
+
+    private boolean checkForInvalidEvent(StatusEvent statusEvent) {
+        if (statusEvent.getEventType() == StatusEvent.EVENT_TYPE.EVALUATION_RELOAD) {
+            Object payload = statusEvent.extractPayload();
+            return payload != null && !(payload instanceof List);
+        }
+        return false;
     }
 
     private void notifyListeners(final Evaluation evaluation) {
@@ -236,7 +246,7 @@ public class CfClient implements Destroyable {
 
     private void reschedule() {
 
-        CfLog.OUT.v(logTag, "Reschedule");
+        CfLog.OUT.i(logTag, "Reschedule");
 
         executor.execute(() -> {
 
@@ -884,5 +894,11 @@ public class CfClient implements Destroyable {
         }
 
         target = null;
+    }
+
+    /* Package private */
+
+    void setNetworkInfoProvider(NetworkInfoProviding networkInfoProvider) {
+        this.networkInfoProvider = networkInfoProvider;
     }
 }

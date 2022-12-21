@@ -140,6 +140,12 @@ class RealServerSentEvent implements ServerSentEvent {
         }
     }
 
+    private void notifyClosed() {
+        CfLog.OUT.e(logTag, "End of SSE stream encountered");
+        close();
+        if (listener != null) listener.onClosed(this);
+    }
+
     private boolean retry(Throwable throwable, Response response) {
         if (!Thread.currentThread().isInterrupted() && !call.isCanceled() && listener != null && listener.onRetryError(this, throwable, response)) {
             Request request = listener.onPreRetry(this, originalRequest);
@@ -223,7 +229,10 @@ class RealServerSentEvent implements ServerSentEvent {
         boolean read() {
             try {
                 String line = source.readUtf8Line();
-                System.out.println("received _ " + line);
+                if (line == null) {
+                    notifyClosed();
+                    return false;
+                }
                 processLine(line);
             } catch (IOException e) {
 
