@@ -86,11 +86,11 @@ public class CfClientTest {
             final int delayMs = 100;
             int maxWaitRemainingTime = (timeoutInSeconds*1000) / delayMs;
             while (!calledMap.containsKey(url) && maxWaitRemainingTime > 0) {
+                System.out.println("Waiting for connection to " + url);
                 Thread.sleep(delayMs);
                 maxWaitRemainingTime--;
             }
             if (maxWaitRemainingTime == 0) {
-                System.out.println("Waiting for connection to " + url);
                 fail("Timed out");
             } else {
                 System.out.println("Got a connection to " + url);
