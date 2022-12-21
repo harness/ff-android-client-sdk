@@ -209,7 +209,9 @@ public class CfConfiguration {
          *
          * @param streamURL Base url for the SSE API.
          * @return Builder instance.
+         * @deprecated If streamUrl is not given then stream URL will now be automatically derived from baseUrl
          */
+        @Deprecated
         public Builder streamUrl(String streamURL) {
 
             this.streamURL = streamURL;
@@ -347,7 +349,7 @@ public class CfConfiguration {
 
             if (streamEnabled && (streamURL == null || streamURL.isEmpty())) {
 
-                streamURL = STREAM_URL;
+                streamURL = baseURL + "/stream";
             }
 
             final CfConfiguration cfConfiguration = new CfConfiguration(
