@@ -1,6 +1,7 @@
 package io.harness.cfsdk;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static io.harness.cfsdk.TestUtils.makeAuthResponse;
 import static io.harness.cfsdk.TestUtils.makeBasicEvaluationsListJson;
@@ -25,8 +26,11 @@ import androidx.annotation.NonNull;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.model.Target;
@@ -49,18 +53,21 @@ public class CfClientTest {
 
     static class MockWebServerDispatcher extends Dispatcher {
         private final AtomicInteger version = new AtomicInteger(2);
+        private final Map<String, Boolean> calledMap = new ConcurrentHashMap<>();
         @NonNull
         @Override
         public MockResponse dispatch(RecordedRequest request) {
 
             System.out.println("MOCK WEB SERVER GOT ------> " + request.getPath());
 
+            calledMap.put(request.getPath(), true);
+
             switch (Objects.requireNonNull(request.getPath())) {
                 case "/api/1.0/client/auth":
                     return makeAuthResponse();
                 case "/api/1.0/client/env/00000000-0000-0000-0000-000000000000/target/anyone%40anywhere.com/evaluations?cluster=1":
                     return makeMockJsonResponse(200, makeBasicEvaluationsListJson());
-                case "/api/1.0?cluster=1":
+                case "/api/1.0/stream?cluster=1":
                     return makeMockStreamResponse(200,
                             makeTargetSegmentCreateEvent("anyone@anywhere.com", version.getAndIncrement()),
                             makeTargetSegmentPatchEvent("anyone@anywhere.com", version.getAndIncrement()),
@@ -73,6 +80,73 @@ public class CfClientTest {
             }
 
             throw new UnsupportedOperationException("ERROR: url not mapped " + request.getPath());
+        }
+
+        public void assertEndpointConnectionOrTimeout(int timeoutInSeconds, String url) throws InterruptedException {
+            final int delayMs = 100;
+            int maxWaitRemainingTime = (timeoutInSeconds*1000) / delayMs;
+            while (!calledMap.containsKey(url) && maxWaitRemainingTime > 0) {
+                Thread.sleep(delayMs);
+                maxWaitRemainingTime--;
+            }
+            if (maxWaitRemainingTime == 0) {
+                System.out.println("Waiting for connection to " + url);
+                fail("Timed out");
+            } else {
+                System.out.println("Got a connection to " + url);
+            }
+        }
+    }
+
+    @Test
+    public void shouldConnectToWebServerWithAbsoluteStreamUrl() throws Exception {
+        testShouldConnectToWebServerSteamTest((host, port) -> CfConfiguration.builder()
+                .baseUrl(makeServerUrl(host, port))
+                .eventUrl(makeServerUrl(host, port))
+                .streamUrl(makeServerUrl(host, port) + "/stream") // make sure we're still backwards compatible
+                .enableAnalytics(false)
+                .enableStream(true)
+                .build());
+    }
+
+    @Test
+    public void shouldConnectToWebServerWithoutStreamUrl() throws Exception {
+        testShouldConnectToWebServerSteamTest((host, port) -> CfConfiguration.builder()
+                .baseUrl(makeServerUrl(host, port))
+                .eventUrl(makeServerUrl(host, port))
+                // streamUrl not specified
+                .enableAnalytics(false)
+                .enableStream(true)
+                .build());
+    }
+
+    private void testShouldConnectToWebServerSteamTest(BiFunction<String, Integer, CfConfiguration> configCallback) throws Exception {
+
+        CfLog.testModeOn();
+
+        final MockWebServerDispatcher dispatcher = new MockWebServerDispatcher();
+        try (MockWebServer mockSvr = new MockWebServer()) {
+            mockSvr.setDispatcher(dispatcher);
+            mockSvr.start();
+
+            final CfClient client = new CfClient();
+            client.setNetworkInfoProvider(new MockedNetworkInfoProvider());
+
+            final CfConfiguration config = configCallback.apply(mockSvr.getHostName(), mockSvr.getPort());
+
+            client.setNetworkInfoProvider(new MockedNetworkInfoProvider());
+            final Target target = new Target().identifier("anyone@anywhere.com").name("unit-test");
+            final Context mockContext = mock(Context.class);
+
+            client.initialize(
+                    mockContext,
+                    "dummykey",
+                    config,
+                    target,
+                    new MockedCache()
+            );
+
+            dispatcher.assertEndpointConnectionOrTimeout(30, "/api/1.0/stream?cluster=1");
         }
     }
 
@@ -92,7 +166,6 @@ public class CfClientTest {
 
             final CfConfiguration config = CfConfiguration.builder()
                     .baseUrl(makeServerUrl(mockSvr.getHostName(), mockSvr.getPort()))
-                    .streamUrl(makeServerUrl(mockSvr.getHostName(), mockSvr.getPort()))
                     .eventUrl(makeServerUrl(mockSvr.getHostName(), mockSvr.getPort()))
                     .enableAnalytics(false)
                     .enableStream(true)
