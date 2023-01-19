@@ -517,6 +517,8 @@ public class CfClient implements Destroyable {
             return;
         }
 
+        setTargetDefaults(target);
+
         try {
 
             executor.execute(() -> {
@@ -604,6 +606,18 @@ public class CfClient implements Destroyable {
             }
 
             destroy();
+        }
+    }
+
+    private void setTargetDefaults(Target target) {
+        if ((target.getIdentifier() == null || target.getIdentifier().isEmpty())
+                && target.getName() == null || target.getName().isEmpty()) {
+            target.identifier("Default_Android_SDK_Target");
+            target.name("Default Android SDK Target");
+        }
+
+        if (target.getIdentifier() == null || target.getIdentifier().isEmpty()) {
+            target.identifier(target.getName());
         }
     }
 
