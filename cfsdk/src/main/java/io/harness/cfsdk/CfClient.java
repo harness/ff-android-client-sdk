@@ -611,9 +611,8 @@ public class CfClient implements Destroyable {
 
     private void setTargetDefaults(Target target) {
         if ((target.getIdentifier() == null || target.getIdentifier().isEmpty())
-                && target.getName() == null || target.getName().isEmpty()) {
-            target.identifier("Default_Android_SDK_Target");
-            target.name("Default Android SDK Target");
+                && (target.getName() == null || target.getName().isEmpty())) {
+            throw new IllegalArgumentException("Target identifier and name are both missing");
         }
 
         if (target.getIdentifier() == null || target.getIdentifier().isEmpty()) {
