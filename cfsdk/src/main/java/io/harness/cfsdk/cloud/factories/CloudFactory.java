@@ -1,5 +1,7 @@
 package io.harness.cfsdk.cloud.factories;
 
+import static io.harness.cfsdk.AndroidSdkVersion.ANDROID_SDK_VERSION;
+
 import android.content.Context;
 
 import java.net.InetAddress;
@@ -92,7 +94,7 @@ public class CloudFactory implements ICloudFactory {
     public ApiClient apiClient() {
 
         final ApiClient apiClient = new ApiClient();
-        apiClient.setUserAgent("android 1.0.16");
+        apiClient.setUserAgent("android " + ANDROID_SDK_VERSION);
         String hostname = "UnknownHost";
         try {
 

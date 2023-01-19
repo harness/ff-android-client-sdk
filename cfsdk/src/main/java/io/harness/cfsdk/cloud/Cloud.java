@@ -1,5 +1,7 @@
 package io.harness.cfsdk.cloud;
 
+import java.util.Locale;
+
 import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
 import io.harness.cfsdk.cloud.core.client.ApiException;
@@ -135,8 +137,11 @@ public class Cloud implements ICloud {
             authToken = defaultApi.authenticate(authenticationRequest).getAuthToken();
             this.tokenProvider.addToken(this.key, authToken);
         } catch (ApiException e) {
+            if (e.getCode() == 403) {
+                String message = String.format(Locale.US,"API, Authentication denied: message=%s httpCode=%d", e.getMessage(), e.getCode());
+                throw new RuntimeException(message, e);
+            }
             this.authToken = this.tokenProvider.getToken(this.key);
-
         } finally {
             apiClient.addDefaultHeader("Authorization", "Bearer " + authToken);
             this.authInfo = authResponseDecoder.extractInfo(authToken);

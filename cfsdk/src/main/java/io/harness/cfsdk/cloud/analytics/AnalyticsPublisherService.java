@@ -1,6 +1,8 @@
 package io.harness.cfsdk.cloud.analytics;
 
 
+import static io.harness.cfsdk.AndroidSdkVersion.ANDROID_SDK_VERSION;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -263,7 +265,7 @@ public class AnalyticsPublisherService {
             setMetricsAttributes(metricsData, TARGET_ATTRIBUTE, entry.getKey().getTarget());
             setMetricsAttributes(metricsData, SDK_TYPE, CLIENT);
             setMetricsAttributes(metricsData, SDK_LANGUAGE, "android");
-            setMetricsAttributes(metricsData, SDK_VERSION, "1.0.16");
+            setMetricsAttributes(metricsData, SDK_VERSION, ANDROID_SDK_VERSION);
 
             metrics.addMetricsDataItem(metricsData);
         }
