@@ -1,5 +1,7 @@
 package io.harness.cfsdk.cloud.analytics;
 
+import static io.harness.cfsdk.AndroidSdkVersion.ANDROID_SDK_VERSION;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -29,7 +31,7 @@ public class DefaultMetricsApiFactoryRecipe implements MetricsApiFactoryRecipe {
             ApiClient apiClient = metricsAPI.getApiClient();
             apiClient.setBasePath(config.getEventURL());
             apiClient.addDefaultHeader("Authorization", "Bearer " + authToken);
-            apiClient.setUserAgent("android 1.0.16");
+            apiClient.setUserAgent("android " + ANDROID_SDK_VERSION);
             String hostname = "UnknownHost";
 
             try {
