@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.harness.cfsdk.cloud.ICloud;
 import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
 import io.harness.cfsdk.cloud.cache.CloudCache;
+import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.events.AuthCallback;
@@ -74,7 +75,7 @@ public class CfClient implements Destroyable {
     private final Set<EventsListener> eventsListenerSet;
     private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet;
     private GuardObjectWrapper evaluationPollingLock;
-    
+
     {
 
         ready = new AtomicBoolean();
@@ -517,8 +518,14 @@ public class CfClient implements Destroyable {
             return;
         }
 
-        setTargetDefaults(target);
-
+        try {
+            setTargetDefaults(target);
+        } catch (IllegalArgumentException e) {
+            final AuthResult result = new AuthResult(false, e);
+            if (authCallback != null) {
+                authCallback.authorizationSuccess(null, result);
+            }
+        }
         try {
 
             executor.execute(() -> {
@@ -541,7 +548,15 @@ public class CfClient implements Destroyable {
                 this.useStream = configuration.getStreamEnabled();
                 this.analyticsEnabled = configuration.isAnalyticsEnabled();
 
-                boolean success = cloud.initialize();
+                boolean success = false;
+                try {
+                    success = cloud.initialize();
+                } catch (ApiException e) {
+                    final AuthResult result = new AuthResult(false, e);
+                    if (authCallback != null) {
+                        authCallback.authorizationSuccess(null, result);
+                    }
+                }
                 if (success) {
 
                     this.authInfo = cloud.getAuthInfo();
@@ -616,7 +631,9 @@ public class CfClient implements Destroyable {
         }
 
         if (target.getIdentifier() == null || target.getIdentifier().isEmpty()) {
-            target.identifier(target.getName());
+            // TargetIDs cannot have spaces in them.
+            String StrippedName = target.getName().replace(" ", "_");
+            target.identifier(StrippedName);
         }
     }
 

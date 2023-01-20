@@ -96,7 +96,7 @@ public class Cloud implements ICloud {
     }
 
     @Override
-    public boolean initialize() {
+    public boolean initialize() throws ApiException {
 
         this.authenticate();
         return this.isInitialized();
@@ -127,25 +127,17 @@ public class Cloud implements ICloud {
         return new SSEConfig(buildSSEUrl(), new SSEAuthentication(this.authToken, this.key));
     }
 
-    private void authenticate() {
+    private void authenticate() throws ApiException {
 
         defaultApi = cloudFactory.defaultApi(apiClient);
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.apiKey(this.key);
         authenticationRequest.setTarget(this.target);
-        try {
-            authToken = defaultApi.authenticate(authenticationRequest).getAuthToken();
-            this.tokenProvider.addToken(this.key, authToken);
-        } catch (ApiException e) {
-            if (e.getCode() == 403) {
-                String message = String.format(Locale.US,"API, Authentication denied: message=%s httpCode=%d", e.getMessage(), e.getCode());
-                throw new RuntimeException(message, e);
-            }
-            this.authToken = this.tokenProvider.getToken(this.key);
-        } finally {
-            apiClient.addDefaultHeader("Authorization", "Bearer " + authToken);
-            this.authInfo = authResponseDecoder.extractInfo(authToken);
-        }
+        authToken = defaultApi.authenticate(authenticationRequest).getAuthToken();
+        this.tokenProvider.addToken(this.key, authToken);
+        this.authToken = this.tokenProvider.getToken(this.key);
+        apiClient.addDefaultHeader("Authorization", "Bearer " + authToken);
+        this.authInfo = authResponseDecoder.extractInfo(authToken);
     }
 
     private String buildSSEUrl() {
