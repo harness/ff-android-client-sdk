@@ -625,7 +625,9 @@ public class CfClient implements Destroyable {
         }
 
         if (target.getIdentifier() == null || target.getIdentifier().isEmpty()) {
-            target.identifier(target.getName());
+            // TargetIDs cannot have spaces in them.
+            String StrippedName = target.getName().replace("_", "");
+            target.identifier(StrippedName);
         }
     }
 
