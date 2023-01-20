@@ -518,8 +518,14 @@ public class CfClient implements Destroyable {
             return;
         }
 
-        setTargetDefaults(target);
-
+        try {
+            setTargetDefaults(target);
+        } catch (IllegalArgumentException e) {
+            final AuthResult result = new AuthResult(false, e);
+            if (authCallback != null) {
+                authCallback.authorizationSuccess(null, result);
+            }
+        }
         try {
 
             executor.execute(() -> {
