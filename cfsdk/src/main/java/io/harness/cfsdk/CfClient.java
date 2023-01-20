@@ -546,7 +546,6 @@ public class CfClient implements Destroyable {
                 try {
                     success = cloud.initialize();
                 } catch (ApiException e) {
-                    e.printStackTrace();
                     final AuthResult result = new AuthResult(false, e);
                     if (authCallback != null) {
                         authCallback.authorizationSuccess(null, result);
