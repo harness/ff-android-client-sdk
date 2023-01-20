@@ -1,5 +1,6 @@
 package io.harness.cfsdk.cloud;
 
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 
@@ -76,8 +77,8 @@ public class CloudTest {
         Mockito.verify(defaultApi, Mockito.times(1)).getEvaluations(eq(authInfo.getEnvironment()), eq("demo_target1"), eq(""));
 
         Mockito.when(defaultApi.getEvaluationByIdentifier(eq(authInfo.getEnvironment())
-                , eq("flag_1"), eq("demo_target"), eq(""))
-        ).thenReturn(evaluation)
+                        , eq("flag_1"), eq("demo_target"), eq(""))
+                ).thenReturn(evaluation)
                 .thenThrow(new ApiException(400, "Unauthorized"));
 
         ApiResponse response = cloud.getEvaluationForId("flag_1", "demo_target", "");
@@ -90,7 +91,8 @@ public class CloudTest {
 
         Assert.assertEquals(cloud.getConfig().getAuthentication().getAuthToken(), authToken);
 
-        cloud.initialize();
+        assertThrows(ApiException.class,
+                cloud::initialize);
 
         Assert.assertEquals(cloud.getConfig().getAuthentication().getAuthToken(), authToken);
     }
