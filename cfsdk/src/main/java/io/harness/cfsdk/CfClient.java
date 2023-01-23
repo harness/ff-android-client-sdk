@@ -525,6 +525,7 @@ public class CfClient implements Destroyable {
             if (authCallback != null) {
                 authCallback.authorizationSuccess(null, result);
             }
+            return;
         }
         try {
 
@@ -556,6 +557,7 @@ public class CfClient implements Destroyable {
                     if (authCallback != null) {
                         authCallback.authorizationSuccess(null, result);
                     }
+                    return;
                 }
                 if (success) {
 
