@@ -106,19 +106,6 @@ public class CfClient implements Destroyable {
             case SSE_START:
 
                 evaluationPolling.stop();
-
-                // This event fires when SSE begins but it also fires If we lose a connection to the stream
-                // (e.g. if internet connectivity is lost) and reconnect again - in that case we will miss any events that are emitted so
-                // reload all evaluations to ensure we are up to date as soon as connectivity is restored.
-                final List<Evaluation> reloadedEvaluations = featureRepository.getAllEvaluations(
-
-                        environmentID,
-                        target.getIdentifier(),
-                        cluster
-                );
-
-                sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, reloadedEvaluations));
-
                 break;
 
             case SSE_END:
