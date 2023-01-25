@@ -30,7 +30,15 @@ public class SSEListener implements ServerSentEvent.Listener {
     @Override
     public void onOpen(ServerSentEvent serverSentEvent, Response response, boolean isRescheduled) {
         if (this.eventsListener != null) {
-
+            // SSE can be started from two entrypoints in CFClient:
+            // 1. initialize
+            // 2. reschedule
+            // So make sure the right event is sent depending on how SSE has been started.
+            if (isRescheduled) {
+                this.eventsListener.onEventReceived(
+                        new StatusEvent(StatusEvent.EVENT_TYPE.SSE_RESUME, serverSentEvent)
+                );
+            }
             this.eventsListener.onEventReceived(
                     new StatusEvent(StatusEvent.EVENT_TYPE.SSE_START, serverSentEvent)
             );
