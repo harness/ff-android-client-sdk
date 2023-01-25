@@ -65,11 +65,11 @@ public class OkSse {
             Request request,
             ServerSentEvent.Listener listener,
             SSEAuthentication authentication,
-            Boolean IsRescheduled
+            boolean isRescheduled
     ) {
 
         RealServerSentEvent sse = new RealServerSentEvent(request, listener, authentication);
-        sse.connect(client);
+        sse.connect(client, isRescheduled);
         return sse;
     }
 }

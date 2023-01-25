@@ -28,7 +28,7 @@ public class SSEListener implements ServerSentEvent.Listener {
     }
 
     @Override
-    public void onOpen(ServerSentEvent serverSentEvent, Response response) {
+    public void onOpen(ServerSentEvent serverSentEvent, Response response, boolean isRescheduled) {
         if (this.eventsListener != null) {
 
             this.eventsListener.onEventReceived(
@@ -36,6 +36,7 @@ public class SSEListener implements ServerSentEvent.Listener {
             );
         }
     }
+
 
     @Override
     public void onMessage(ServerSentEvent serverSentEvent, String id, String event, String message) {
