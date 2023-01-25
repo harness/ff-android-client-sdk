@@ -58,6 +58,8 @@ public class EventsListenerCounter implements EventsListener {
                 latch.countDown();
                 break;
             case SSE_START:
+            case SSE_RESUME:
+
             case SSE_END:
                 map.merge(name, 1L, Long::sum);
                 latch.countDown();
