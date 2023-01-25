@@ -294,7 +294,7 @@ public class CfClient implements Destroyable {
 
                 if (useStream) {
 
-                    startSSE();
+                    startSSE(true);
 
                 } else {
 
@@ -337,7 +337,7 @@ public class CfClient implements Destroyable {
         });
     }
 
-    private synchronized void startSSE() {
+    private synchronized void startSSE(boolean isRescheduled) {
 
         CfLog.OUT.v(logTag, "Start SSE");
 
@@ -345,7 +345,7 @@ public class CfClient implements Destroyable {
 
         if (config.isValid()) {
 
-            sseController.start(config, eventsListener);
+            sseController.start(config, eventsListener, isRescheduled);
         }
     }
 
@@ -582,7 +582,7 @@ public class CfClient implements Destroyable {
 
                         if (useStream) {
 
-                            startSSE();
+                            startSSE(false);
                         } else {
 
                             evaluationPolling.start(this::reschedule);

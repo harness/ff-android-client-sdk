@@ -20,7 +20,7 @@ public class SSEController implements SSEControlling {
     }
 
     @Override
-    public synchronized void start(SSEConfig config, EventsListener eventsListener) {
+    public synchronized void start(SSEConfig config, EventsListener eventsListener, boolean isRescheduled) {
 
         if (config != null && config.getAuthentication() != null) {
 
@@ -36,7 +36,8 @@ public class SSEController implements SSEControlling {
 
                     request,
                     new SSEListener(eventsListener),
-                    config.getAuthentication()
+                    config.getAuthentication(),
+                    isRescheduled
             );
         }
     }

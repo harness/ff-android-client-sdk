@@ -64,7 +64,8 @@ public class OkSse {
 
             Request request,
             ServerSentEvent.Listener listener,
-            SSEAuthentication authentication
+            SSEAuthentication authentication,
+            Boolean IsRescheduled
     ) {
 
         RealServerSentEvent sse = new RealServerSentEvent(request, listener, authentication);

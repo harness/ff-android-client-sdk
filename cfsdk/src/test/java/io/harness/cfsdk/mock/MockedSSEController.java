@@ -18,7 +18,7 @@ public class MockedSSEController implements SSEControlling {
     }
 
     @Override
-    public void start(SSEConfig config, EventsListener eventsListener) {
+    public void start(SSEConfig config, EventsListener eventsListener, boolean isRescheduled) {
 
         CfLog.OUT.v(logTag, "Start");
 
