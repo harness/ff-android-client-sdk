@@ -114,14 +114,14 @@ public class CfClient implements Destroyable {
                 CfLog.OUT.v(logTag, "SSE connection resumed, reloading all evaluations");
 
 
-                final List<Evaluation> evaluations = featureRepository.getAllEvaluations(
+                final List<Evaluation> resumedEvaluations = featureRepository.getAllEvaluations(
 
                         environmentID,
                         target.getIdentifier(),
                         cluster
                 );
 
-                statusEvent = new StatusEvent(statusEvent.getEventType(), evaluations);
+                statusEvent = new StatusEvent(statusEvent.getEventType(), resumedEvaluations);
 
 
             case SSE_END:
@@ -309,7 +309,7 @@ public class CfClient implements Destroyable {
                 CfLog.OUT.v(logTag, "Evaluations count: " + evaluations.size());
 
                 if (useStream) {
-
+                    final boolean isRescheduled = true;
                     startSSE(true);
 
                 } else {
@@ -597,8 +597,8 @@ public class CfClient implements Destroyable {
                         sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
 
                         if (useStream) {
-
-                            startSSE(false);
+                            final boolean isRescheduled = false;
+                            startSSE(isRescheduled);
                         } else {
 
                             evaluationPolling.start(this::reschedule);
