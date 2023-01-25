@@ -59,10 +59,10 @@ class RealServerSentEvent implements ServerSentEvent {
         this.listener = listener;
     }
 
-    void connect(OkHttpClient client) {
+    void connect(OkHttpClient client, boolean isRescheduled) {
         this.client = client;
         prepareCall(originalRequest);
-        enqueue();
+        enqueue(isRescheduled);
     }
 
     private void prepareCall(Request request) {
@@ -83,7 +83,7 @@ class RealServerSentEvent implements ServerSentEvent {
         call = client.newCall(requestBuilder.build());
     }
 
-    private void enqueue() {
+    private void enqueue(boolean isRescheduled) {
 
         CfLog.OUT.v(logTag, "API, SSE starting");
         call.enqueue(
@@ -93,7 +93,7 @@ class RealServerSentEvent implements ServerSentEvent {
                     public void onFailure(@NotNull Call call, @NotNull IOException e) {
 
                         CfLog.OUT.e(logTag, "API, SSE failure", e);
-                        notifyFailure(e, null);
+                        notifyFailure(e, null, isRescheduled);
                     }
 
                     @Override
@@ -106,34 +106,34 @@ class RealServerSentEvent implements ServerSentEvent {
                         );
                         if (response.isSuccessful()) {
 
-                            openSse(response);
+                            openSse(response, isRescheduled);
                         } else {
 
-                            notifyFailure(new IOException(response.message()), response);
+                            notifyFailure(new IOException(response.message()), response, isRescheduled);
                         }
                     }
                 }
         );
     }
 
-    private void openSse(Response response) {
+    private void openSse(Response response, boolean isRescheduled) {
 
         try (ResponseBody body = response.body()) {
 
             sseReader = new Reader(response);
             sseReader.setTimeout(readTimeoutMillis, TimeUnit.MILLISECONDS);
-            if (listener != null) listener.onOpen(this, response);
+            if (listener != null) listener.onOpen(this, response, isRescheduled);
 
             //noinspection StatementWithEmptyBody
-            while (call != null && !call.isCanceled() && sseReader.read()) {
+            while (call != null && !call.isCanceled() && sseReader.read(isRescheduled)) {
             }
         }
     }
 
-    private void notifyFailure(Throwable throwable, Response response) {
+    private void notifyFailure(Throwable throwable, Response response, boolean isRescheduled) {
 
         CfLog.OUT.e(logTag, "Error in opening SSE stream", throwable);
-        if (!retry(throwable, response)) {
+        if (!retry(throwable, response, isRescheduled)) {
 
             if (listener != null) listener.onClosed(this);
             close();
@@ -146,7 +146,7 @@ class RealServerSentEvent implements ServerSentEvent {
         if (listener != null) listener.onClosed(this);
     }
 
-    private boolean retry(Throwable throwable, Response response) {
+    private boolean retry(Throwable throwable, Response response, boolean isRescheduled) {
         if (!Thread.currentThread().isInterrupted() && !call.isCanceled() && listener != null && listener.onRetryError(this, throwable, response)) {
             Request request = listener.onPreRetry(this, originalRequest);
             if (request == null) {
@@ -159,7 +159,7 @@ class RealServerSentEvent implements ServerSentEvent {
                 return false;
             }
             if (!Thread.currentThread().isInterrupted() && !call.isCanceled()) {
-                enqueue();
+                enqueue(isRescheduled);
                 return true;
             }
         }
@@ -190,7 +190,7 @@ class RealServerSentEvent implements ServerSentEvent {
      * Internal reader for the SSE channel. This will wait for data being send and will parse it according to the
      * SSE standard.
      *
-     * @see Reader#read()
+     * @see Reader#read(boolean isRescheduled)
      */
     private class Reader {
 
@@ -226,7 +226,7 @@ class RealServerSentEvent implements ServerSentEvent {
          *
          * @return true if the read was successfully, false if an error was thrown
          */
-        boolean read() {
+        boolean read(boolean isRescheduled) {
             try {
                 String line = source.readUtf8Line();
                 if (line == null) {
@@ -237,7 +237,7 @@ class RealServerSentEvent implements ServerSentEvent {
             } catch (IOException e) {
 
                 CfLog.OUT.e(logTag, e.getMessage(), e);
-                notifyFailure(e, null);
+                notifyFailure(e, null, isRescheduled);
                 return false;
             }
             return true;

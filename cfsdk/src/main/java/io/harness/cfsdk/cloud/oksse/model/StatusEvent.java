@@ -20,6 +20,10 @@ public class StatusEvent {
          */
         SSE_START,
         /**
+         * Realtime evaluation update has restarted after recovering from network failure. Has no payload.
+         */
+        SSE_RESUME,
+        /**
          * Realtime evaluation update is stopped. Has no payload.
          */
         SSE_END,

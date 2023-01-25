@@ -108,6 +108,22 @@ public class CfClient implements Destroyable {
                 evaluationPolling.stop();
                 break;
 
+            case SSE_RESUME:
+
+                evaluationPolling.stop();
+                CfLog.OUT.v(logTag, "SSE connection resumed, reloading all evaluations");
+
+
+                final List<Evaluation> evaluations = featureRepository.getAllEvaluations(
+
+                        environmentID,
+                        target.getIdentifier(),
+                        cluster
+                );
+
+                statusEvent = new StatusEvent(statusEvent.getEventType(), evaluations);
+
+
             case SSE_END:
 
                 if (networkInfoProvider.isNetworkAvailable()) {
