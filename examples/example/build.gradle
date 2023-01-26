@@ -8,8 +8,8 @@ android {
 
     defaultConfig {
         applicationId "io.harness.cfsdk.example"
-        minSdk 19
-        targetSdk 31
+        minSdkVersion 19
+        targetSdkVersion 31
         versionCode 1
         versionName "1.0"
 
