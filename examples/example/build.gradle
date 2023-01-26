@@ -7,15 +7,13 @@ android {
     compileSdk 32
 
     defaultConfig {
-        applicationId "io.harness.cfsdk.gettingstarted"
-        minSdk 25
-        targetSdk 32
+        applicationId "io.harness.cfsdk.example"
+        minSdk 19
+        targetSdk 31
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField "String", "FF_FLAG_NAME", "\"${System.env.FF_FLAG_NAME}\""
-        buildConfigField "String", "FF_API_KEY", "\"${System.env.FF_API_KEY}\""
     }
 
     buildTypes {
