@@ -7,6 +7,7 @@ import android.util.Log
 import io.harness.cfsdk.*
 import io.harness.cfsdk.cloud.events.EvaluationListener
 import io.harness.cfsdk.cloud.model.Target
+import io.harness.cfsdk.cloud.oksse.model.StatusEvent
 
 class MainActivity : AppCompatActivity() {
 
@@ -41,12 +42,24 @@ class MainActivity : AppCompatActivity() {
                 var flagValue : Boolean = CfClient.getInstance().boolVariation(flagName, false)
                 printMessage("$flagName : $flagValue")
 
-                // Setup Listener to handle flag change events.  This fires when a flag is modified
-                CfClient.getInstance().registerEvaluationListener(flagName, EvaluationListener {
-                    Log.i("SDKEvent", "received event for flag")
-                    var flagValue : Boolean = CfClient.getInstance().boolVariation(flagName, false)
-                    printMessage("$flagName : $flagValue")
-               })
+                // Setup Listener to handle different events emitted by the SDK
+                CfClient.getInstance().registerEventsListener { event ->
+                    when (event.eventType) {
+                        // Setup Listener to handle flag change events.  This fires when a flag is modified.
+                        StatusEvent.EVENT_TYPE.EVALUATION_CHANGE -> {
+                            Log.i("SDKEvent", "received event for flag")
+                            var flagValue : Boolean = CfClient.getInstance().boolVariation(flagName, false)
+                            printMessage("$flagName : $flagValue")
+                        }
+                        // There's been an interruption SSE stream which has since resumed, which means the
+                        // cache will have been updated with the latest values, so we can call
+                        // bool variation to get the most up to date evaluation value.
+                        StatusEvent.EVENT_TYPE.SSE_RESUME -> {
+                            Log.i("SDKEvent", "received event for flag")
+                            var flagValue : Boolean = CfClient.getInstance().boolVariation(flagName, false)
+                            printMessage("$flagName : $flagValue")
+                        }}
+                }
             } else {
                 Log.e("SDKInit", "Failed to initialize client", result.error)
                 result.error.message?.let { printMessage(it) }

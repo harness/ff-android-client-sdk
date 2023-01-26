@@ -108,6 +108,22 @@ public class CfClient implements Destroyable {
                 evaluationPolling.stop();
                 break;
 
+            case SSE_RESUME:
+
+                evaluationPolling.stop();
+                CfLog.OUT.v(logTag, "SSE connection resumed, reloading all evaluations");
+
+
+                final List<Evaluation> resumedEvaluations = featureRepository.getAllEvaluations(
+
+                        environmentID,
+                        target.getIdentifier(),
+                        cluster
+                );
+
+                statusEvent = new StatusEvent(statusEvent.getEventType(), resumedEvaluations);
+
+
             case SSE_END:
 
                 if (networkInfoProvider.isNetworkAvailable()) {
@@ -293,8 +309,8 @@ public class CfClient implements Destroyable {
                 CfLog.OUT.v(logTag, "Evaluations count: " + evaluations.size());
 
                 if (useStream) {
-
-                    startSSE();
+                    final boolean isRescheduled = true;
+                    startSSE(true);
 
                 } else {
 
@@ -337,7 +353,7 @@ public class CfClient implements Destroyable {
         });
     }
 
-    private synchronized void startSSE() {
+    private synchronized void startSSE(boolean isRescheduled) {
 
         CfLog.OUT.v(logTag, "Start SSE");
 
@@ -345,7 +361,7 @@ public class CfClient implements Destroyable {
 
         if (config.isValid()) {
 
-            sseController.start(config, eventsListener);
+            sseController.start(config, eventsListener, isRescheduled);
         }
     }
 
@@ -581,8 +597,8 @@ public class CfClient implements Destroyable {
                         sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
 
                         if (useStream) {
-
-                            startSSE();
+                            final boolean isRescheduled = false;
+                            startSSE(isRescheduled);
                         } else {
 
                             evaluationPolling.start(this::reschedule);

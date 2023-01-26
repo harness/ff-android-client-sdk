@@ -17,6 +17,7 @@ import static io.harness.cfsdk.cloud.oksse.model.StatusEvent.EVENT_TYPE.EVALUATI
 import static io.harness.cfsdk.cloud.oksse.model.StatusEvent.EVENT_TYPE.EVALUATION_RELOAD;
 import static io.harness.cfsdk.cloud.oksse.model.StatusEvent.EVENT_TYPE.EVALUATION_REMOVE;
 import static io.harness.cfsdk.cloud.oksse.model.StatusEvent.EVENT_TYPE.SSE_END;
+import static io.harness.cfsdk.cloud.oksse.model.StatusEvent.EVENT_TYPE.SSE_RESUME;
 import static io.harness.cfsdk.cloud.oksse.model.StatusEvent.EVENT_TYPE.SSE_START;
 
 import android.content.Context;
@@ -210,5 +211,20 @@ public class CfClientTest {
         assertEquals((Long) 1L, (Long) eventCounter.getCountFor(EVALUATION_RELOAD));
     }
 
+    @Test
+    public void sseResumeEventShouldSendCorrectPayload() throws InterruptedException {
+
+        CfLog.testModeOn();
+
+        final EventsListenerCounter eventCounter = new EventsListenerCounter(1);
+        final CfClient client = new CfClient();
+        client.registerEventsListener(eventCounter);
+
+        client.sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.SSE_RESUME, new Evaluation())); // invalid, will be filtered out
+        client.sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.SSE_RESUME, Collections.singletonList(new Evaluation()))); // valid
+        eventCounter.waitForAllEventsOrTimeout(30);
+
+        assertEquals((Long) 1L, (Long) eventCounter.getCountFor(SSE_RESUME));
+    }
 
 }

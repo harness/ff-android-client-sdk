@@ -50,7 +50,7 @@ public interface ServerSentEvent {
          * @param sse      the instance of {@link ServerSentEvent}
          * @param response the response from the server after establishing the connection
          */
-        void onOpen(ServerSentEvent sse, Response response);
+        void onOpen(ServerSentEvent sse, Response response, boolean isRescheduled);
 
         /**
          * Called every time a message is received.

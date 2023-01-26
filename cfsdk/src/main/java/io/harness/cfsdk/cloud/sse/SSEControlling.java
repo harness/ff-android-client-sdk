@@ -5,7 +5,7 @@ import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 
 public interface SSEControlling {
 
-    void start(SSEConfig config, EventsListener eventsListener);
+    void start(SSEConfig config, EventsListener eventsListener, boolean isRescheduled);
 
     void stop();
 }
