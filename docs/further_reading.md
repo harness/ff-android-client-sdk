@@ -195,6 +195,7 @@ Triggered event will have one of the following types:
 ```Java
 public enum EVENT_TYPE {
         SSE_START, 
+        SSE_RESUME
         SSE_END, 
         EVALUATION_CHANGE,
         EVALUATION_RELOAD
@@ -203,8 +204,9 @@ public enum EVENT_TYPE {
 Following table provides summary on possible event types and corresponding responses.
 
 | EVENT_TYPE        | Response          |         
-| -------------     |:-------:          |      
+|-------------------|:-------:          |      
 | SSE_START         | -                 |
+| SSE_RESUME        | -                 |
 | SSE_END           | -                 |
 | EVALUATION_CHANGE | `Evaluation`      | 
 | EVALUATION_RELOAD | `List<Evaluation>`|
