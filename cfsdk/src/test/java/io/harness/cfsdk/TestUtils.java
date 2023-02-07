@@ -34,13 +34,23 @@ public class TestUtils {
 
     static String makeBasicEvaluationsListJson() {
         final List<Evaluation> list = new ArrayList<>();
-        list.add(new Evaluation().flag("testFlag").kind("fixme").value("on").identifier("anyone@anywhere.com"));
+        list.add(new Evaluation().flag("testFlag").kind("boolean").value("true").identifier("anyone@anywhere.com"));
 
         return new Gson().toJson(list);
     }
 
+    static String makeEmptyEvaluationsListJson() {
+        final List<Evaluation> list = new ArrayList<>();
+        return new Gson().toJson(list);
+    }
+
+    static String makeSingleEvaluationJson(String flag, String kind, String value, String id) {
+        final Evaluation eval = new Evaluation().flag(flag).kind(kind).value(value).identifier(id);
+        return new Gson().toJson(eval);
+    }
+
     static String makeSingleEvaluationJson() {
-        final Evaluation eval = new Evaluation().flag("testFlag").kind("fixme").value("on").identifier("anyone@anywhere.com");
+        final Evaluation eval = new Evaluation().flag("testFlag").kind("boolean").value("true").identifier("anyone@anywhere.com");
         return new Gson().toJson(eval);
     }
 

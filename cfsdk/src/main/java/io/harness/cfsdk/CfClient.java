@@ -709,7 +709,7 @@ public class CfClient implements Destroyable {
      * @param defaultValue Default value to be used in case when evaluation is not found
      * @return Evaluation for a given id
      */
-    private <T> Evaluation getEvaluationById(
+    <T> Evaluation getEvaluationById(
 
             String evaluationId,
             String target,
@@ -948,5 +948,9 @@ public class CfClient implements Destroyable {
 
     void setNetworkInfoProvider(NetworkInfoProviding networkInfoProvider) {
         this.networkInfoProvider = networkInfoProvider;
+    }
+
+    void reset() {
+        unregister();
     }
 }

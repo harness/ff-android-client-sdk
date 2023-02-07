@@ -22,7 +22,7 @@ public class MockedCloudFactory extends CloudFactory {
     @Override
     public NetworkInfoProviding networkInfoProvider(final Context context) {
 
-        return new MockedNetworkInfoProvider();
+        return MockedNetworkInfoProvider.create();
     }
 
     @Override
