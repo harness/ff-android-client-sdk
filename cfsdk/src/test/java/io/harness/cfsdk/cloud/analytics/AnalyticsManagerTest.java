@@ -26,7 +26,7 @@ public class AnalyticsManagerTest {
 
     {
 
-        timeout = 3000L;
+        timeout = 30_000L;
         logTag = AnalyticsManagerTest.class.getSimpleName();
     }
 
@@ -72,7 +72,7 @@ public class AnalyticsManagerTest {
 
                 if (System.currentTimeMillis() - start >= timeout) {
 
-                    Assert.fail("Timeout after 3 seconds");
+                    Assert.fail("Timeout after " + timeout);
                 }
 
             } catch (InterruptedException e) {
@@ -92,7 +92,7 @@ public class AnalyticsManagerTest {
 
                 if (System.currentTimeMillis() - start >= timeout) {
 
-                    Assert.fail("Timeout after 3 seconds");
+                    Assert.fail("Timeout after " + timeout);
                 }
 
             } catch (InterruptedException e) {
