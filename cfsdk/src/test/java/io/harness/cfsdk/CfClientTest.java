@@ -2,7 +2,6 @@ package io.harness.cfsdk;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -33,7 +32,9 @@ import com.google.common.util.concurrent.AtomicLongMap;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Collections;
+import java.util.EventListener;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -44,6 +45,7 @@ import java.util.function.Consumer;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
+import io.harness.cfsdk.cloud.oksse.EventsListener;
 import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
 import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.mock.MockedCache;
@@ -59,6 +61,7 @@ import okhttp3.mockwebserver.RecordedRequest;
  */
 public class CfClientTest {
 
+    private static final String logTag = CfClientTest.class.getSimpleName();
     private static final Target DUMMY_TARGET = new Target().identifier("anyone@anywhere.com").name("unit-test");;
 
     static class MockWebServerDispatcher extends Dispatcher {
@@ -213,9 +216,12 @@ public class CfClientTest {
 
     @Test
     public void testRegisterEventsListener() throws Exception {
+        final MockWebServerDispatcher dispatcher = new EvalEndpointDispatcher_ForCacheMiss();
+        final MockedCache cache = new MockedCache();
+
 
         try (MockWebServer mockSvr = new MockWebServer()) {
-            mockSvr.setDispatcher(new MockWebServerDispatcher());
+            mockSvr.setDispatcher(dispatcher);
             mockSvr.start();
 
             final EventsListenerCounter eventCounter = new EventsListenerCounter(7); // Make sure this number matches assertions total below
@@ -237,7 +243,7 @@ public class CfClientTest {
                     "dummykey",
                     config,
                     DUMMY_TARGET,
-                    new MockedCache()
+                    cache
             );
 
             eventCounter.waitForAllEventsOrTimeout(30);
@@ -248,6 +254,14 @@ public class CfClientTest {
             assertEquals((Long) 1L, (Long) eventCounter.getCountFor(EVALUATION_REMOVE));
             assertEquals((Long) 1L, (Long) eventCounter.getCountFor(SSE_END));
             assertEquals((Long) 0L, (Long) eventCounter.getCountForUnknown());
+
+
+            // An SSE flag update should cause the evaluations endpoint to be queried, and the cache to be updated once
+            // There will be no cache hits on that target since it will always go out to the server (SSE events don't include the actual state)
+            assertEquals(1, dispatcher.getUrlAccessCount(MockWebServerDispatcher.EVALUATION_ENDPOINT));
+            assertEquals(1, cache.getCacheSavedCountForEvaluation("anyone@anywhere.com"));
+            assertEquals(0, cache.getCacheHitCountForEvaluation("anyone@anywhere.com"));
+
 
         }
     }
@@ -294,7 +308,7 @@ public class CfClientTest {
 
         cache.saveEvaluation("Production_anyone@anywhere.com", "anyone@anywhere.com", new Evaluation().value("true"));
 
-        runEvaluation(dispatcher, cache, MockedNetworkInfoProvider.createWithNetworkOff(), client -> {
+        runEvaluation_WithClientCallback(dispatcher, cache, MockedNetworkInfoProvider.createWithNetworkOff(), client -> {
             for (int i = 0; i < 60; i++) {
                 boolean eval = client.boolVariation("anyone@anywhere.com", false);
                 assertTrue(eval);
@@ -314,7 +328,7 @@ public class CfClientTest {
         final MockWebServerDispatcher dispatcher = new MockWebServerDispatcher();
         final MockedCache cache = new MockedCache();
 
-        runEvaluation(dispatcher, cache, MockedNetworkInfoProvider.create(), client -> {
+        runEvaluation_WithClientCallback(dispatcher, cache, MockedNetworkInfoProvider.create(), client -> {
             for (int i = 0; i < 60; i++) {
                 boolean eval = client.boolVariation("anyone@anywhere.com", false);
                 assertTrue(eval);
@@ -331,11 +345,29 @@ public class CfClientTest {
      * Result should be saved in cache
      */
     @Test
+    public void shouldGetFlag_FromNetwork_WhenNotInCache() throws Exception {
+        final MockWebServerDispatcher dispatcher = new EvalEndpointDispatcher_ForCacheMiss();
+        final MockedCache cache = new MockedCache();
+
+        runEvaluation_WithClientCallback(dispatcher, cache, MockedNetworkInfoProvider.create(), client -> {
+            boolean eval = client.boolVariation("anyone@anywhere.com", false);
+            assertTrue(eval);
+        });
+
+        assertEquals(1, dispatcher.getUrlAccessCount(MockWebServerDispatcher.EVALUATION_ENDPOINT));
+        assertEquals(0, cache.getCacheHitCountForEvaluation("anyone@anywhere.com"));
+        assertEquals(1, cache.getCacheSavedCountForEvaluation("anyone@anywhere.com"));
+    }
+
+    /*
+     * Same as above but calls getEvaluationById() directly
+     */
+    @Test
     public void shouldGetEvaluation_FromNetwork_WhenNotInCache() throws Exception {
         final MockWebServerDispatcher dispatcher = new EvalEndpointDispatcher_ForCacheMiss();
         final MockedCache cache = new MockedCache();
 
-        runEvaluation(dispatcher, cache, MockedNetworkInfoProvider.create(), client -> {
+        runEvaluation_WithClientCallback(dispatcher, cache, MockedNetworkInfoProvider.create(), client -> {
 
             Evaluation eval = client.getEvaluationById("anyone@anywhere.com", "anyone@anywhere.com", false);
             assertNotNull(eval);
@@ -360,7 +392,7 @@ public class CfClientTest {
         final MockedCache cache = new MockedCache();
         final String DEFAULT_VALUE = "false";
 
-        runEvaluation(dispatcher, cache, MockedNetworkInfoProvider.create(), client -> {
+        runEvaluation_WithClientCallback(dispatcher, cache, MockedNetworkInfoProvider.create(), client -> {
 
             Evaluation eval = client.getEvaluationById("anyone@anywhere.com", "anyone@anywhere.com", DEFAULT_VALUE);
             assertNotNull(eval);
@@ -382,7 +414,7 @@ public class CfClientTest {
         final MockedCache cache = new MockedCache();
         final String DEFAULT_VALUE = "false";
 
-        runEvaluation(dispatcher, cache, MockedNetworkInfoProvider.create(), client -> {
+        runEvaluation_WithClientCallback(dispatcher, cache, MockedNetworkInfoProvider.create(), client -> {
 
             Evaluation eval = client.getEvaluationById("anyone@anywhere.com", "anyone@anywhere.com", DEFAULT_VALUE);
             assertNotNull(eval);
@@ -395,7 +427,15 @@ public class CfClientTest {
         assertEquals(0, cache.getCacheSavedCountForEvaluation("anyone@anywhere.com"));
     }
 
-    private void runEvaluation(MockWebServerDispatcher dispatcher, MockedCache cache, NetworkInfoProviding networkInfoProvider, Consumer<CfClient> callback) throws Exception {
+    private void runEvaluation_WithClientCallback(MockWebServerDispatcher dispatcher, MockedCache cache, NetworkInfoProviding networkInfoProvider, Consumer<CfClient> callback) throws Exception {
+        runEvaluation(dispatcher, cache, networkInfoProvider, null, callback, false);
+    }
+
+    private void runEvaluation_WithEventsCallback(MockWebServerDispatcher dispatcher, MockedCache cache, NetworkInfoProviding networkInfoProvider, EventsListener eventListener) throws Exception {
+        runEvaluation(dispatcher, cache, networkInfoProvider, eventListener, null, true);
+    }
+
+    private void runEvaluation(MockWebServerDispatcher dispatcher, MockedCache cache, NetworkInfoProviding networkInfoProvider, EventsListener eventListener, Consumer<CfClient> callback, boolean streamEnabled) throws Exception {
 
         try (MockWebServer mockSvr = new MockWebServer()) {
             mockSvr.setDispatcher(dispatcher);
@@ -404,12 +444,13 @@ public class CfClientTest {
             final CfClient client = CfClient.getInstance();
             client.reset();
             client.setNetworkInfoProvider(networkInfoProvider);
+            client.registerEventsListener(eventListener);
 
             final CfConfiguration config = CfConfiguration.builder()
                     .baseUrl(makeServerUrl(mockSvr.getHostName(), mockSvr.getPort()))
                     .eventUrl(makeServerUrl(mockSvr.getHostName(), mockSvr.getPort()))
                     .enableAnalytics(false)
-                    .enableStream(false)
+                    .enableStream(streamEnabled)
                     .build();
 
             final Context mockContext = mock(Context.class);
@@ -426,7 +467,11 @@ public class CfClientTest {
             assertTrue(authLatch.await(30, TimeUnit.SECONDS));
             assertEquals(0, cache.getCacheHitCountForEvaluation("anyone@anywhere.com"));
 
-            callback.accept(client);
+            CfLog.OUT.i(logTag, "Auth completed");
+
+            if (callback != null) {
+                callback.accept(client);
+            }
         }
 
     }

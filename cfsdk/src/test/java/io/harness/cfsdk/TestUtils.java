@@ -10,6 +10,7 @@ import java.util.List;
 
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.SocketPolicy;
 
 public class TestUtils {
 
@@ -89,7 +90,8 @@ public class TestUtils {
                 .setResponseCode(httpCode)
                 .setBody(builder.toString())
                 .addHeader("Content-Type", "text/event-stream; charset=UTF-8")
-                .addHeader("Accept-Encoding", "identity");
+                .addHeader("Accept-Encoding", "identity")
+                .setSocketPolicy(SocketPolicy.KEEP_OPEN);
     }
 
     static String makeServerUrl(String host, int port) {

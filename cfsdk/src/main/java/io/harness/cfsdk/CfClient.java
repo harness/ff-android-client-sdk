@@ -142,7 +142,7 @@ public class CfClient implements Destroyable {
             case EVALUATION_CHANGE:
 
                 final Evaluation evaluation = statusEvent.extractPayload();
-                final Evaluation e = featureRepository.getEvaluation(
+                final Evaluation e = featureRepository.getEvaluationFromServer(
 
                         authInfo.getEnvironmentIdentifier(),
                         target.getIdentifier(),
@@ -150,8 +150,12 @@ public class CfClient implements Destroyable {
                         cluster
                 );
 
-                statusEvent = new StatusEvent(statusEvent.getEventType(), e);
-                notifyListeners(e);
+                if (e != null) {
+                    statusEvent = new StatusEvent(statusEvent.getEventType(), e);
+                    notifyListeners(e);
+                } else {
+                    CfLog.OUT.w(logTag, String.format("EVALUATION_CHANGE event failed to get evaluation for target '%s' from server", target.getIdentifier()));
+                }
 
                 break;
 

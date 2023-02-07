@@ -42,10 +42,23 @@ public class FeatureRepositoryImpl implements FeatureRepository {
             final String evaluationId,
             final String cluster
     ) {
-
         Evaluation eval = cloudCache.getEvaluation(buildKey(environment, target), evaluationId);
 
-        if (eval == null && networkInfoProvider.isNetworkAvailable()) {
+        if (eval == null) {
+            eval = getEvaluationFromServer(environment, target, evaluationId, cluster);
+        }
+
+        return eval;
+    }
+
+    @Override
+    public Evaluation getEvaluationFromServer(
+        final String environment,
+        final String target,
+        final String evaluationId,
+        final String cluster) {
+
+        if (networkInfoProvider.isNetworkAvailable()) {
             // Not in the cache, call out to the network for it
 
             ApiResponse apiResponse = this.featureService.getEvaluationForId(
@@ -56,11 +69,11 @@ public class FeatureRepositoryImpl implements FeatureRepository {
 
                 final String env = buildKey(environment, target);
                 cloudCache.saveEvaluation(env, evaluationId, apiResponse.body());
-                eval = apiResponse.body();
+                return apiResponse.body();
             }
         }
 
-        return eval;
+        return null;
     }
 
     @Override
