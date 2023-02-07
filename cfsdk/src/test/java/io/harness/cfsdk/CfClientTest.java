@@ -164,7 +164,7 @@ public class CfClientTest {
 
     @Test
     public void shouldConnectToWebServerWithAbsoluteStreamUrl() throws Exception {
-        testShouldConnectToWebServerSteamTest((host, port) -> CfConfiguration.builder()
+        testShouldConnectToWebServerStreamTest((host, port) -> CfConfiguration.builder()
                 .baseUrl(makeServerUrl(host, port))
                 .eventUrl(makeServerUrl(host, port))
                 .streamUrl(makeServerUrl(host, port) + "/stream") // make sure we're still backwards compatible
@@ -175,7 +175,7 @@ public class CfClientTest {
 
     @Test
     public void shouldConnectToWebServerWithoutStreamUrl() throws Exception {
-        testShouldConnectToWebServerSteamTest((host, port) -> CfConfiguration.builder()
+        testShouldConnectToWebServerStreamTest((host, port) -> CfConfiguration.builder()
                 .baseUrl(makeServerUrl(host, port))
                 .eventUrl(makeServerUrl(host, port))
                 // streamUrl not specified
@@ -184,7 +184,7 @@ public class CfClientTest {
                 .build());
     }
 
-    private void testShouldConnectToWebServerSteamTest(BiFunction<String, Integer, CfConfiguration> configCallback) throws Exception {
+    private void testShouldConnectToWebServerStreamTest(BiFunction<String, Integer, CfConfiguration> configCallback) throws Exception {
 
         final MockWebServerDispatcher dispatcher = new MockWebServerDispatcher();
         try (MockWebServer mockSvr = new MockWebServer()) {
@@ -345,7 +345,7 @@ public class CfClientTest {
         });
 
         assertEquals(1, dispatcher.getUrlAccessCount(MockWebServerDispatcher.EVALUATION_ENDPOINT));
-        assertEquals(0, cache.getCacheHitCountForEvaluation("anyonee@anywhere.com"));
+        assertEquals(0, cache.getCacheHitCountForEvaluation("anyone@anywhere.com"));
         assertEquals(1, cache.getCacheSavedCountForEvaluation("anyone@anywhere.com"));
     }
 
