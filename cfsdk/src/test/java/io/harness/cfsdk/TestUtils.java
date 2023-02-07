@@ -10,6 +10,7 @@ import java.util.List;
 
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.SocketPolicy;
 
 public class TestUtils {
 
@@ -34,13 +35,23 @@ public class TestUtils {
 
     static String makeBasicEvaluationsListJson() {
         final List<Evaluation> list = new ArrayList<>();
-        list.add(new Evaluation().flag("testFlag").kind("fixme").value("on").identifier("anyone@anywhere.com"));
+        list.add(new Evaluation().flag("testFlag").kind("boolean").value("true").identifier("anyone@anywhere.com"));
 
         return new Gson().toJson(list);
     }
 
+    static String makeEmptyEvaluationsListJson() {
+        final List<Evaluation> list = new ArrayList<>();
+        return new Gson().toJson(list);
+    }
+
+    static String makeSingleEvaluationJson(String flag, String kind, String value, String id) {
+        final Evaluation eval = new Evaluation().flag(flag).kind(kind).value(value).identifier(id);
+        return new Gson().toJson(eval);
+    }
+
     static String makeSingleEvaluationJson() {
-        final Evaluation eval = new Evaluation().flag("testFlag").kind("fixme").value("on").identifier("anyone@anywhere.com");
+        final Evaluation eval = new Evaluation().flag("testFlag").kind("boolean").value("true").identifier("anyone@anywhere.com");
         return new Gson().toJson(eval);
     }
 
@@ -79,7 +90,8 @@ public class TestUtils {
                 .setResponseCode(httpCode)
                 .setBody(builder.toString())
                 .addHeader("Content-Type", "text/event-stream; charset=UTF-8")
-                .addHeader("Accept-Encoding", "identity");
+                .addHeader("Accept-Encoding", "identity")
+                .setSocketPolicy(SocketPolicy.KEEP_OPEN);
     }
 
     static String makeServerUrl(String host, int port) {

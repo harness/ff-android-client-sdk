@@ -1,5 +1,5 @@
 package io.harness.cfsdk;
 
 public class AndroidSdkVersion {
-    public static final String ANDROID_SDK_VERSION = "1.0.19";
+    public static final String ANDROID_SDK_VERSION = "1.0.20";
 }

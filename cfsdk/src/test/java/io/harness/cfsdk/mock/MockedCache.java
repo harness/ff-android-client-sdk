@@ -1,25 +1,21 @@
 package io.harness.cfsdk.mock;
 
+import com.google.common.util.concurrent.AtomicLongMap;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 
 public class MockedCache implements CloudCache {
 
-    private final Executor executor;
     private final ConcurrentHashMap<String, ConcurrentHashMap<String, Evaluation>> evaluations;
+    private final AtomicLongMap<String> cacheHitsFreqMap = AtomicLongMap.create();
+    private final AtomicLongMap<String> cacheSavedFreqMap = AtomicLongMap.create();
 
     public MockedCache() {
-
-        executor = Executors.newSingleThreadExecutor();
-
-        ConcurrentHashMap<String, ConcurrentHashMap<String, Evaluation>> evaluationsTemp;
-
         evaluations =  new ConcurrentHashMap<>();
     }
 
@@ -28,8 +24,11 @@ public class MockedCache implements CloudCache {
 
         final ConcurrentHashMap<String, Evaluation> items = evaluations.get(env);
         if (items != null) {
-
-            return items.get(key);
+            Evaluation eval = items.get(key);
+            if (eval != null) {
+                cacheHitsFreqMap.incrementAndGet(key);
+            }
+            return eval;
         }
         return null;
     }
@@ -37,19 +36,15 @@ public class MockedCache implements CloudCache {
     @Override
     public void saveEvaluation(final String env, final String key, final Evaluation evaluation) {
 
-        final Runnable action = () -> {
+        cacheSavedFreqMap.incrementAndGet(key);
 
-            ConcurrentHashMap<String, Evaluation> items = evaluations.get(env);
-            if (items == null) {
+        ConcurrentHashMap<String, Evaluation> items = evaluations.get(env);
+        if (items == null) {
 
-                items = new ConcurrentHashMap<>();
-                evaluations.put(env, items);
-            }
-            items.put(key, evaluation);
-
-        };
-
-        executor.execute(action);
+            items = new ConcurrentHashMap<>();
+            evaluations.put(env, items);
+        }
+        items.put(key, evaluation);
     }
 
     @Override
@@ -66,45 +61,35 @@ public class MockedCache implements CloudCache {
     @Override
     public void saveAllEvaluations(final String env, final List<Evaluation> newEvaluations) {
 
-        final Runnable action = () -> {
+        final ConcurrentHashMap<String, Evaluation> items = new ConcurrentHashMap<>();
+        for (final Evaluation item : newEvaluations) {
 
-            final ConcurrentHashMap<String, Evaluation> items = new ConcurrentHashMap<>();
-            for (final Evaluation item : newEvaluations) {
+            items.put(item.getIdentifier(), item);
+        }
 
-                items.put(item.getIdentifier(), item);
-            }
-
-            evaluations.put(env, items);
-        };
-
-        executor.execute(action);
+        evaluations.put(env, items);
     }
 
     @Override
     public void removeEvaluation(final String env, final String key) {
 
-        final Runnable action = () -> {
+        final ConcurrentHashMap<String, Evaluation> items = evaluations.get(env);
+        if (items != null) {
 
-            final ConcurrentHashMap<String, Evaluation> items = evaluations.get(env);
-            if (items != null) {
-
-                items.remove(key);
-            }
-
-        };
-
-        executor.execute(action);
+            items.remove(key);
+        }
     }
 
     @Override
     public void clear() {
+        evaluations.clear();
+    }
 
-        final Runnable action = () -> {
+    public int getCacheHitCountForEvaluation(String id) {
+        return (int) cacheHitsFreqMap.get(id);
+    }
 
-            evaluations.clear();
-
-        };
-
-        executor.execute(action);
+    public int getCacheSavedCountForEvaluation(String id) {
+        return (int) cacheSavedFreqMap.get(id);
     }
 }

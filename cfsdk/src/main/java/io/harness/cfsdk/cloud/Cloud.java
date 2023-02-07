@@ -90,7 +90,7 @@ public class Cloud implements ICloud {
             );
         } catch (ApiException e) {
 
-            CfLog.OUT.e(logTag, e.getMessage(), e);
+            CfLog.OUT.e(logTag, e.getMessage() + " - httpCode: " + e.getCode(), e);
         }
         return null;
     }
