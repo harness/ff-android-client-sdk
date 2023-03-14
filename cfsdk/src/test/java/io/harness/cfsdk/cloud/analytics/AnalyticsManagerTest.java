@@ -224,12 +224,6 @@ public class AnalyticsManagerTest {
         long publishingAcceptableDurationInMillis = 500;
 
         long publishingIntervalInMillis = 100;
-        final CfConfiguration.Builder builder = CfConfiguration.builder()
-                .enableAnalytics(true)
-                .enableStream(false)
-                .metricsPublishingIntervalInMillis(publishingIntervalInMillis)
-                .metricsPublishingAcceptableDurationInMillis(publishingAcceptableDurationInMillis)
-                .metricsCapacity(metricsCapacity);
 
         final CfConfiguration configuration = mock(CfConfiguration.class);
         when(configuration.isAnalyticsEnabled()).thenReturn(true);
