@@ -13,6 +13,9 @@
 
 package io.harness.cfsdk.cloud.core.client;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
@@ -1003,15 +1006,28 @@ public class ApiClient {
                 return deserialize(response, returnType);
             }
         } else {
+            String message = "";
             String respBody = null;
             if (response.body() != null) {
                 try {
                     respBody = response.body().string();
+                    message = ", " + extractMessageFromBody(respBody);
                 } catch (IOException e) {
                     throw new ApiException(response.message(), e, response.code(), response.headers().toMultimap());
                 }
             }
-            throw new ApiException(response.message(), response.code(), response.headers().toMultimap(), respBody);
+            throw new ApiException(response.message() + message, response.code(), response.headers().toMultimap(), respBody);
+        }
+    }
+
+    private String extractMessageFromBody(String body) {
+        try {
+            Type mapType = new TypeToken<Map<String, String>>() {
+            }.getType();
+            Map<String, String> map = new Gson().fromJson(body, mapType);
+            return map.containsKey("message") ? map.get("message") : "";
+        } catch (Throwable ex) {
+            return "unable to extract message - malformed json";
         }
     }
 

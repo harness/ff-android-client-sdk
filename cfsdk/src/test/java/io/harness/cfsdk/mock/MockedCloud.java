@@ -30,7 +30,7 @@ public class MockedCloud implements ICloud {
         );
 
         SSEAuthentication sseAuthentication = new SSEAuthentication(mock, mock);
-        sseConfig = new SSEConfig(mock, sseAuthentication);
+        sseConfig = new SSEConfig(mock, sseAuthentication, null);
     }
 
 

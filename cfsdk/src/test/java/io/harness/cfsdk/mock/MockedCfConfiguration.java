@@ -14,30 +14,7 @@ public class MockedCfConfiguration  extends CfConfiguration {
             int pollingInterval
     ) {
 
-        super(baseURL, streamURL, eventURL, streamEnabled, analyticsEnabled, pollingInterval);
-    }
-
-    protected MockedCfConfiguration(
-
-            final String baseURL,
-            final String streamURL,
-            final boolean streamEnabled,
-            final boolean analyticsEnabled,
-            final int pollingInterval
-    ) {
-
-        super(baseURL, streamURL, streamEnabled, analyticsEnabled, pollingInterval);
-    }
-
-    protected MockedCfConfiguration(
-
-            final String baseURL,
-            final String streamURL,
-            final boolean streamEnabled,
-            final int pollingInterval
-    ) {
-
-        super(baseURL, streamURL, streamEnabled, pollingInterval);
+        super(baseURL, streamURL, eventURL, streamEnabled, analyticsEnabled, pollingInterval, null);
     }
 
     public MockedCfConfiguration(final CfConfiguration.Builder builder) {
@@ -60,7 +37,7 @@ public class MockedCfConfiguration  extends CfConfiguration {
     @Override
     public long getMetricsPublishingIntervalInMillis() {
 
-        return metricsPublishingIntervalInMillis;
+        return getMetricsServiceAcceptableDurationInMillis();
     }
 
     public static class Builder extends CfConfiguration.Builder {

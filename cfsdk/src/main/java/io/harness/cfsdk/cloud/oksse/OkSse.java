@@ -27,13 +27,6 @@ public class OkSse {
     private final OkHttpClient client;
 
     /**
-     * Create a OkSse using a new instance of {@link OkHttpClient} with the default settings.
-     */
-    public OkSse() {
-        this(new OkHttpClient.Builder().readTimeout(0, TimeUnit.SECONDS).retryOnConnectionFailure(true).build());
-    }
-
-    /**
      * Creates a new OkSse using the shared {@link OkHttpClient}
      *
      * @param client Client instance.

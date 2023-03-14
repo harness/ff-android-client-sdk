@@ -4,10 +4,15 @@ import static io.harness.cfsdk.AndroidSdkVersion.ANDROID_SDK_VERSION;
 
 import android.content.Context;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.AuthResponseDecoder;
 import io.harness.cfsdk.cloud.Cloud;
 import io.harness.cfsdk.cloud.FeatureService;
@@ -31,24 +36,19 @@ import io.harness.cfsdk.logging.CfLog;
 
 public class CloudFactory implements ICloudFactory {
 
-    private final String logTag;
+    private final String logTag = CloudFactory.class.getSimpleName();
     private TokenProvider tokenProvider;
-
-    {
-
-        logTag = CloudFactory.class.getSimpleName();
-    }
-
     @Override
+
     public AuthResponseDecoder getAuthResponseDecoder() {
 
         return new AuthResponseDecoder();
     }
 
     @Override
-    public ICloud cloud(String sseUrl, String baseUrl, String key, Target target) {
+    public ICloud cloud(String sseUrl, String baseUrl, String key, Target target, CfConfiguration config) {
 
-        return new Cloud(this, sseUrl, baseUrl, key, target);
+        return new Cloud(this, sseUrl, baseUrl, key, target, config);
     }
 
     @Override

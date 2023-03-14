@@ -26,6 +26,10 @@ public class TestUtils {
         final int version;
     }
 
+    static MockResponse makeSuccessResponse() {
+        return new MockResponse().setResponseCode(200);
+    }
+
     static MockResponse makeMockJsonResponse(int httpCode, String body) {
         return new MockResponse()
                 .setResponseCode(httpCode)
@@ -96,6 +100,10 @@ public class TestUtils {
 
     static String makeServerUrl(String host, int port) {
         return  String.format("http://%s:%s/api/1.0", host, port);
+    }
+
+    static String makeSecureServerUrl(String host, int port) {
+        return  String.format("https://%s:%s/api/1.0", host, port);
     }
 
     static String makeDummyJwtToken() {
