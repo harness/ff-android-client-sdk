@@ -38,8 +38,8 @@ public class CloudFactory implements ICloudFactory {
 
     private final String logTag = CloudFactory.class.getSimpleName();
     private TokenProvider tokenProvider;
-    @Override
 
+    @Override
     public AuthResponseDecoder getAuthResponseDecoder() {
 
         return new AuthResponseDecoder();
