@@ -228,7 +228,12 @@ public class CfConfiguration {
             return this;
         }
 
-
+        /**
+         * @param tlsTrustedCerts list of trusted CAs - for when the given config/event URLs are
+         *                        signed with a private CA. You should include intermediate CAs too
+         *                        to allow the HTTP client to build the full trust chain.
+         * @return This builder.
+         */
         public Builder tlsTrustedCAs(List<X509Certificate> tlsTrustedCerts) {
             this.tlsTrustedCerts = tlsTrustedCerts;
             return this;
