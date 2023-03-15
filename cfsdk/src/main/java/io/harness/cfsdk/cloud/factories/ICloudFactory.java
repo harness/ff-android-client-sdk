@@ -4,6 +4,7 @@ import android.content.Context;
 
 import java.util.concurrent.TimeUnit;
 
+import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.AuthResponseDecoder;
 import io.harness.cfsdk.cloud.FeatureService;
 import io.harness.cfsdk.cloud.ICloud;
@@ -22,7 +23,12 @@ public interface ICloudFactory {
 
     AuthResponseDecoder getAuthResponseDecoder();
 
-    ICloud cloud(String sseUrl, String baseUrl, String key, Target target);
+    @Deprecated
+    default ICloud cloud(String sseUrl, String baseUrl, String key, Target target) {
+        return cloud(sseUrl, baseUrl, key, target, null);
+    }
+
+    ICloud cloud(String sseUrl, String baseUrl, String key, Target target, CfConfiguration config);
 
     FeatureRepository getFeatureRepository(
 

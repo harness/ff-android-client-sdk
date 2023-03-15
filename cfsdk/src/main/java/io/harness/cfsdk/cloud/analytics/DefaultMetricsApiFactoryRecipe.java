@@ -11,6 +11,7 @@ import io.harness.cfsdk.cloud.analytics.api.MetricsApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
 import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.utils.CfUtils;
+import io.harness.cfsdk.utils.TlsUtils;
 
 public class DefaultMetricsApiFactoryRecipe implements MetricsApiFactoryRecipe {
 
@@ -32,6 +33,7 @@ public class DefaultMetricsApiFactoryRecipe implements MetricsApiFactoryRecipe {
             apiClient.setBasePath(config.getEventURL());
             apiClient.addDefaultHeader("Authorization", "Bearer " + authToken);
             apiClient.setUserAgent("android " + ANDROID_SDK_VERSION);
+            TlsUtils.setupTls(apiClient, config);
             String hostname = "UnknownHost";
 
             try {

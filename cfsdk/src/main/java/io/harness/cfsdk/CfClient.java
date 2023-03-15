@@ -526,6 +526,7 @@ public class CfClient implements Destroyable {
     ) {
 
         this.configuration = configuration;
+        this.target = target;
 
         if (target == null || configuration == null) {
             if (authCallback != null) {
@@ -552,13 +553,13 @@ public class CfClient implements Destroyable {
             executor.execute(() -> {
 
                 unregister();
-                this.target = target;
                 this.cloud = cloudFactory.cloud(
 
                         configuration.getStreamURL(),
                         configuration.getBaseURL(),
                         apiKey,
-                        target
+                        target,
+                        configuration
                 );
 
                 featureRepository = cloudFactory.getFeatureRepository(cloud, cloudCache, networkInfoProvider);
@@ -573,6 +574,7 @@ public class CfClient implements Destroyable {
                 try {
                     success = cloud.initialize();
                 } catch (ApiException e) {
+                    CfLog.OUT.w(logTag, e.getMessage(), e);
                     final AuthResult result = new AuthResult(false, e);
                     if (authCallback != null) {
                         authCallback.authorizationSuccess(null, result);
@@ -944,8 +946,6 @@ public class CfClient implements Destroyable {
 
             featureRepository.clear();
         }
-
-        target = null;
     }
 
     /* Package private */

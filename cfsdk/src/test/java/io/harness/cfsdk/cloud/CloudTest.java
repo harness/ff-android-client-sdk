@@ -52,7 +52,7 @@ public class CloudTest {
         Mockito.when(cloudFactory.tokenProvider()).thenReturn(tokenProvider);
         Target target = new Target();
         target.identifier("Fiserv");
-        Cloud cloud = new Cloud(cloudFactory, "sse_url", "", "demo_key", target);
+        Cloud cloud = new Cloud(cloudFactory, "sse_url", "", "demo_key", target, null);
         cloud.initialize();
 
         Mockito.verify(apiClient, Mockito.times(1)).addDefaultHeader(eq("Authorization"), eq("Bearer " + authToken));

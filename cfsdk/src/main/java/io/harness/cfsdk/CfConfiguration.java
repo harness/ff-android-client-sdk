@@ -1,6 +1,9 @@
 package io.harness.cfsdk;
 
 
+import java.security.cert.X509Certificate;
+import java.util.List;
+
 /**
  * Main configuration class used to tune the behaviour of {@link CfClient}. It uses builder pattern.
  */
@@ -10,40 +13,29 @@ public class CfConfiguration {
     public static final int MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS;
     public static final int DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS;
 
-    protected static final String BASE_URL;
-    protected static final String EVENT_URL;
-    protected static final String STREAM_URL;
+    private static final String BASE_URL;
+    private static final String EVENT_URL;
+    private static final String STREAM_URL;
 
-    protected final String baseURL;
-    protected final String eventURL;
-    protected final String streamURL;
+    private final String baseURL;
+    private final String eventURL;
+    private final String streamURL;
 
-    protected boolean analyticsEnabled;
-    protected boolean streamEnabled;
+    private final boolean analyticsEnabled;
+    private final boolean streamEnabled;
 
-    protected int metricsCapacity;
-    protected final int pollingInterval;
-    protected long metricsPublishingIntervalInMillis;
-    protected long metricsServiceAcceptableDurationInMillis;
+    private int metricsCapacity;
+    private final int pollingInterval;
+    private final List<X509Certificate> tlsTrustedCerts;
+
+    private long metricsPublishingIntervalInMillis;
+    private long metricsServiceAcceptableDurationInMillis;
 
     static {
 
         DEFAULT_METRICS_CAPACITY = 1024;
         MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS = 60;
         DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS = 10;
-    }
-
-    {
-
-        analyticsEnabled = true;
-        streamEnabled = true;
-        metricsCapacity = DEFAULT_METRICS_CAPACITY;
-
-        metricsPublishingIntervalInMillis =
-                MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS * 1000L;
-
-        metricsServiceAcceptableDurationInMillis =
-                DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS * 1000L;
     }
 
     static {
@@ -57,42 +49,12 @@ public class CfConfiguration {
 
             String baseURL,
             String streamURL,
-            boolean streamEnabled,
-            boolean analyticsEnabled,
-            int pollingInterval
-    ) {
-
-        this.baseURL = baseURL;
-        this.streamURL = streamURL;
-        this.eventURL = EVENT_URL;
-        this.streamEnabled = streamEnabled;
-        this.pollingInterval = pollingInterval;
-        this.analyticsEnabled = analyticsEnabled;
-    }
-
-    protected CfConfiguration(
-
-            String baseURL,
-            String streamURL,
-            boolean streamEnabled,
-            int pollingInterval
-    ) {
-
-        this.baseURL = baseURL;
-        this.streamURL = streamURL;
-        this.eventURL = EVENT_URL;
-        this.streamEnabled = streamEnabled;
-        this.pollingInterval = pollingInterval;
-    }
-
-    protected CfConfiguration(
-
-            String baseURL,
-            String streamURL,
             String eventURL,
             boolean streamEnabled,
             boolean analyticsEnabled,
-            int pollingInterval
+            int pollingInterval,
+            List<X509Certificate> tlsTrustedCerts
+
     ) {
 
         this.baseURL = baseURL;
@@ -101,22 +63,10 @@ public class CfConfiguration {
         this.streamEnabled = streamEnabled;
         this.pollingInterval = pollingInterval;
         this.analyticsEnabled = analyticsEnabled;
-    }
-
-    CfConfiguration(
-
-            String baseURL,
-            String streamURL,
-            String eventURL,
-            boolean streamEnabled,
-            int pollingInterval
-    ) {
-
-        this.baseURL = baseURL;
-        this.streamURL = streamURL;
-        this.eventURL = eventURL;
-        this.streamEnabled = streamEnabled;
-        this.pollingInterval = pollingInterval;
+        this.tlsTrustedCerts = tlsTrustedCerts;
+        this.metricsCapacity = DEFAULT_METRICS_CAPACITY;
+        this.metricsPublishingIntervalInMillis = MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS * 1000L;
+        this.metricsServiceAcceptableDurationInMillis = DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS * 1000L;
     }
 
     public String getBaseURL() {
@@ -157,28 +107,22 @@ public class CfConfiguration {
         return pollingInterval;
     }
 
+    public List<X509Certificate> getTlsTrustedCAs() {
+        return tlsTrustedCerts;
+    }
+
     public static class Builder {
 
         private String baseURL;
         private String eventURL;
         private String streamURL;
         private int pollingInterval;
-        private int metricsCapacity;
-        private boolean streamEnabled;
-        private boolean analyticsEnabled;
-        private long metricsPublishingIntervalInMillis;
-        private long metricsPublishingAcceptableDurationInMillis;
-
-        {
-
-            analyticsEnabled = true;
-            streamEnabled = true;
-            metricsCapacity = DEFAULT_METRICS_CAPACITY;
-            metricsPublishingIntervalInMillis = MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS * 1000L;
-
-            metricsPublishingAcceptableDurationInMillis =
-                    DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS * 1000L;
-        }
+        private int metricsCapacity = DEFAULT_METRICS_CAPACITY;
+        private boolean streamEnabled = true;
+        private boolean analyticsEnabled = true;
+        private long metricsPublishingIntervalInMillis = MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS * 1000L;
+        private long metricsPublishingAcceptableDurationInMillis = DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS * 1000L;
+        private List<X509Certificate> tlsTrustedCerts;
 
         /**
          * Sets the base API url
@@ -284,6 +228,17 @@ public class CfConfiguration {
             return this;
         }
 
+        /**
+         * @param tlsTrustedCerts list of trusted CAs - for when the given config/event URLs are
+         *                        signed with a private CA. You should include intermediate CAs too
+         *                        to allow the HTTP client to build the full trust chain.
+         * @return This builder.
+         */
+        public Builder tlsTrustedCAs(List<X509Certificate> tlsTrustedCerts) {
+            this.tlsTrustedCerts = tlsTrustedCerts;
+            return this;
+        }
+
         public int getMetricsCapacity() {
 
             return metricsCapacity;
@@ -330,6 +285,10 @@ public class CfConfiguration {
             return metricsPublishingIntervalInMillis;
         }
 
+        public List<X509Certificate> getTlsTrustedCAs() {
+            return this.tlsTrustedCerts;
+        }
+
         /**
          * Build the configuration instance.
          *
@@ -354,7 +313,7 @@ public class CfConfiguration {
 
             final CfConfiguration cfConfiguration = new CfConfiguration(
 
-                    baseURL, streamURL, eventURL, streamEnabled, analyticsEnabled, pollingInterval
+                    baseURL, streamURL, eventURL, streamEnabled, analyticsEnabled, pollingInterval, tlsTrustedCerts
             );
 
             cfConfiguration.setMetricsCapacity(metricsCapacity);

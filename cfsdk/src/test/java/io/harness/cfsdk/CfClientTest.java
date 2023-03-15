@@ -5,6 +5,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static io.harness.cfsdk.CfConfiguration.DEFAULT_METRICS_CAPACITY;
 import static io.harness.cfsdk.TestUtils.makeAuthResponse;
 import static io.harness.cfsdk.TestUtils.makeBasicEvaluationsListJson;
 import static io.harness.cfsdk.TestUtils.makeEmptyEvaluationsListJson;
@@ -12,8 +14,10 @@ import static io.harness.cfsdk.TestUtils.makeFlagCreateEvent;
 import static io.harness.cfsdk.TestUtils.makeFlagDeleteEvent;
 import static io.harness.cfsdk.TestUtils.makeMockJsonResponse;
 import static io.harness.cfsdk.TestUtils.makeMockStreamResponse;
+import static io.harness.cfsdk.TestUtils.makeSecureServerUrl;
 import static io.harness.cfsdk.TestUtils.makeServerUrl;
 import static io.harness.cfsdk.TestUtils.makeSingleEvaluationJson;
+import static io.harness.cfsdk.TestUtils.makeSuccessResponse;
 import static io.harness.cfsdk.TestUtils.makeTargetSegmentCreateEvent;
 import static io.harness.cfsdk.TestUtils.makeTargetSegmentPatchEvent;
 import static io.harness.cfsdk.cloud.oksse.model.StatusEvent.EVENT_TYPE.EVALUATION_CHANGE;
@@ -32,9 +36,7 @@ import com.google.common.util.concurrent.AtomicLongMap;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.Collections;
-import java.util.EventListener;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -55,6 +57,8 @@ import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
+import okhttp3.tls.HandshakeCertificates;
+import okhttp3.tls.HeldCertificate;
 
 /**
  * Runs CfClient with a mocked ff-server
@@ -62,7 +66,7 @@ import okhttp3.mockwebserver.RecordedRequest;
 public class CfClientTest {
 
     private static final String logTag = CfClientTest.class.getSimpleName();
-    private static final Target DUMMY_TARGET = new Target().identifier("anyone@anywhere.com").name("unit-test");;
+    private static final Target DUMMY_TARGET = new Target().identifier("anyone@anywhere.com").name("unit-test");
 
     static class MockWebServerDispatcher extends Dispatcher {
 
@@ -70,6 +74,7 @@ public class CfClientTest {
         public static final String EVALUATION_ENDPOINT = "/api/1.0/client/env/00000000-0000-0000-0000-000000000000/target/anyone%40anywhere.com/evaluations/anyone%40anywhere.com?cluster=1";
         public static final String ALL_EVALUATIONS_ENDPOINT = "/api/1.0/client/env/00000000-0000-0000-0000-000000000000/target/anyone%40anywhere.com/evaluations?cluster=1";
         public static final String STREAM_ENDPOINT = "/api/1.0/stream?cluster=1";
+        public static final String METRICS_ENDPOINTS = "/api/1.0/metrics/00000000-0000-0000-0000-000000000000?cluster=1";
 
         private final AtomicInteger version = new AtomicInteger(2);
         protected final AtomicLongMap<String> calledMap = AtomicLongMap.create();
@@ -96,6 +101,8 @@ public class CfClientTest {
                     );
                 case EVALUATION_ENDPOINT:
                     return makeMockJsonResponse(200, makeSingleEvaluationJson());
+                case METRICS_ENDPOINTS:
+                    return makeSuccessResponse();
             }
 
             throw new UnsupportedOperationException("ERROR: url not mapped " + request.getPath());
@@ -426,6 +433,74 @@ public class CfClientTest {
         assertEquals(0, cache.getCacheHitCountForEvaluation("anyone@anywhere.com"));
         assertEquals(0, cache.getCacheSavedCountForEvaluation("anyone@anywhere.com"));
     }
+
+    /*
+     * Tests config item tlsTrustedCAs() with a self signed cert. We want to see default, stream
+     * and metrics APIs called at least once (post handshake) when TLS is enabled.
+     */
+    @Test
+    public void testSdkWithCustomTlsCert() throws Exception {
+
+        final HeldCertificate localCert = new HeldCertificate.Builder()
+                .addSubjectAlternativeName("localhost")
+                .addSubjectAlternativeName("127.0.0.1")
+                .build();
+        final HandshakeCertificates serverCertificates = new HandshakeCertificates.Builder()
+                .heldCertificate(localCert)
+                .build();
+
+        CfLog.OUT.i(logTag, "Using self-signed cert:\n" + localCert.certificatePem());
+
+        final MockWebServerDispatcher dispatcher = new MockWebServerDispatcher();
+        try (MockWebServer mockSvr = new MockWebServer()) {
+            mockSvr.useHttps(serverCertificates.sslSocketFactory(), false);
+            mockSvr.setDispatcher(dispatcher);
+            mockSvr.start();
+            final String url = makeSecureServerUrl(mockSvr.getHostName(), mockSvr.getPort());
+            CfLog.OUT.i(logTag, String.format("mock TLS server running on %s:%d", mockSvr.getHostName(), mockSvr.getPort()));
+
+            final CfClient client = new CfClient();
+            client.setNetworkInfoProvider(MockedNetworkInfoProvider.create());
+
+            final CfConfiguration config = mock(CfConfiguration.class);
+            when(config.getBaseURL()).thenReturn(url);
+            when(config.getStreamURL()).thenReturn(url + "/stream");
+            when(config.getEventURL()).thenReturn(url);
+            when(config.isAnalyticsEnabled()).thenReturn(true);
+            when(config.getStreamEnabled()).thenReturn(true);
+            when(config.getMetricsPublishingIntervalInMillis()).thenReturn(1000L); // Force the publish time to be within the timeout
+            when(config.getMetricsCapacity()).thenReturn(DEFAULT_METRICS_CAPACITY);
+            when(config.getTlsTrustedCAs()).thenReturn(Collections.singletonList(localCert.certificate()));
+
+            client.setNetworkInfoProvider(MockedNetworkInfoProvider.create());
+
+            final Context mockContext = mock(Context.class);
+            final CountDownLatch authLatch = new CountDownLatch(1);
+
+            client.initialize(
+                    mockContext,
+                    "dummykey",
+                    config,
+                    DUMMY_TARGET,
+                    new MockedCache(),
+                    (authInfo, result) -> {
+                        if (result.isSuccess())
+                            authLatch.countDown();
+                        else
+                            result.getError().printStackTrace();
+                    }
+            );
+
+            assertTrue("auth did not succeed", authLatch.await(30, TimeUnit.SECONDS));
+
+            client.boolVariation("anyone@anywhere.com", false); // need at least 1 eval for metrics to push
+
+            dispatcher.assertEndpointConnectionOrTimeout(30, MockWebServerDispatcher.AUTH_ENDPOINT);
+            dispatcher.assertEndpointConnectionOrTimeout(30, MockWebServerDispatcher.STREAM_ENDPOINT);
+            dispatcher.assertEndpointConnectionOrTimeout(30, MockWebServerDispatcher.METRICS_ENDPOINTS);
+        }
+    }
+
 
     private void runEvaluation_WithClientCallback(MockWebServerDispatcher dispatcher, MockedCache cache, NetworkInfoProviding networkInfoProvider, Consumer<CfClient> callback) throws Exception {
         runEvaluation(dispatcher, cache, networkInfoProvider, null, callback, false);

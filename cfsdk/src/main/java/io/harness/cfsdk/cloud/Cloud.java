@@ -1,7 +1,12 @@
 package io.harness.cfsdk.cloud;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.Locale;
 
+import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
 import io.harness.cfsdk.cloud.core.client.ApiException;
@@ -12,13 +17,14 @@ import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.oksse.SSEAuthentication;
 import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 import io.harness.cfsdk.logging.CfLog;
+import io.harness.cfsdk.utils.TlsUtils;
 
 public class Cloud implements ICloud {
 
     private final String key;
     private String authToken;
     private AuthInfo authInfo;
-    private final String logTag;
+    private final String logTag = Cloud.class.getSimpleName();
     private final Target target;
     private DefaultApi defaultApi;
     private final String streamUrl;
@@ -26,11 +32,7 @@ public class Cloud implements ICloud {
     private final CloudFactory cloudFactory;
     private final TokenProvider tokenProvider;
     private final AuthResponseDecoder authResponseDecoder;
-
-    {
-
-        logTag = Cloud.class.getSimpleName();
-    }
+    private final CfConfiguration config;
 
     public Cloud(
 
@@ -38,7 +40,8 @@ public class Cloud implements ICloud {
             String sseUrl,
             String baseUrl,
             String key,
-            Target target
+            Target target,
+            CfConfiguration config
     ) {
 
         this.key = key;
@@ -47,10 +50,12 @@ public class Cloud implements ICloud {
         this.cloudFactory = cloudFactory;
         this.tokenProvider = cloudFactory.tokenProvider();
         this.authResponseDecoder = cloudFactory.getAuthResponseDecoder();
+        this.config = config;
 
         apiClient = cloudFactory.apiClient();
         apiClient.setBasePath(baseUrl);
         apiClient.setDebugging(false);
+        TlsUtils.setupTls(apiClient, config);
     }
 
     @Override
@@ -124,7 +129,7 @@ public class Cloud implements ICloud {
     @Override
     public SSEConfig getConfig() {
 
-        return new SSEConfig(buildSSEUrl(), new SSEAuthentication(this.authToken, this.key));
+        return new SSEConfig(buildSSEUrl(), new SSEAuthentication(this.authToken, this.key), config);
     }
 
     private void authenticate() throws ApiException {

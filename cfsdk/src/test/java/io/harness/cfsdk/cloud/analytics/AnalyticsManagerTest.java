@@ -1,5 +1,8 @@
 package io.harness.cfsdk.cloud.analytics;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,20 +18,14 @@ import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.mock.MockMetricsApiFactoryRecipe;
 import io.harness.cfsdk.mock.MockedAnalyticsManager;
-import io.harness.cfsdk.mock.MockedCfConfiguration;
+
 
 @SuppressWarnings("BusyWait")
 public class AnalyticsManagerTest {
 
-    private final long timeout;
-    private final String logTag;
+    private final long timeout = 30_000L;
+    private final String logTag = AnalyticsManagerTest.class.getSimpleName();
     private final int count = 3;
-
-    {
-
-        timeout = 30_000L;
-        logTag = AnalyticsManagerTest.class.getSimpleName();
-    }
 
     @Before
     public void prepare() {
@@ -224,49 +221,16 @@ public class AnalyticsManagerTest {
         target.name(test);
 
         int metricsCapacity = 100;
-        int publishingAcceptableDurationInMillis = 500;
+        long publishingAcceptableDurationInMillis = 500;
 
-        int publishingIntervalInMillis = 100;
-        final CfConfiguration.Builder builder = CfConfiguration.builder()
-                .enableAnalytics(true)
-                .enableStream(false)
-                .metricsPublishingIntervalInMillis(publishingIntervalInMillis)
-                .metricsPublishingAcceptableDurationInMillis(publishingAcceptableDurationInMillis)
-                .metricsCapacity(metricsCapacity);
+        long publishingIntervalInMillis = 100;
 
-        final CfConfiguration defaults = builder.build();
-
-        final MockedCfConfiguration configuration = new MockedCfConfiguration(builder);
-
-        Assert.assertEquals(
-
-                CfConfiguration.MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS * 1000L,
-                defaults.getMetricsPublishingIntervalInMillis()
-        );
-
-        Assert.assertEquals(
-
-                publishingAcceptableDurationInMillis,
-                defaults.getMetricsServiceAcceptableDurationInMillis()
-        );
-
-        Assert.assertEquals(
-
-                publishingIntervalInMillis,
-                configuration.getMetricsPublishingIntervalInMillis()
-        );
-
-        Assert.assertEquals(
-
-                publishingAcceptableDurationInMillis,
-                configuration.getMetricsServiceAcceptableDurationInMillis()
-        );
-
-        Assert.assertEquals(
-
-                metricsCapacity,
-                configuration.getMetricsCapacity()
-        );
+        final CfConfiguration configuration = mock(CfConfiguration.class);
+        when(configuration.isAnalyticsEnabled()).thenReturn(true);
+        when(configuration.getStreamEnabled()).thenReturn(false);
+        when(configuration.getMetricsPublishingIntervalInMillis()).thenReturn(publishingIntervalInMillis);
+        when(configuration.getMetricsCapacity()).thenReturn(metricsCapacity);
+        when(configuration.getMetricsServiceAcceptableDurationInMillis()).thenReturn(publishingAcceptableDurationInMillis);
 
         final MockedAnalyticsManager manager =
                 new MockedAnalyticsManager(test, token, configuration, latch);
