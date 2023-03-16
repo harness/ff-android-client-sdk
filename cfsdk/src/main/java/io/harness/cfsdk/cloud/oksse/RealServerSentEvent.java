@@ -16,6 +16,8 @@
 
 package io.harness.cfsdk.cloud.oksse;
 
+import static io.harness.cfsdk.AndroidSdkVersion.ANDROID_SDK_VERSION;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -74,7 +76,9 @@ class RealServerSentEvent implements ServerSentEvent {
                 .header("Accept", "text/event-stream")
                 .header("Cache-Control", "no-cache")
                 .header("API-Key", this.authentication.getApiToken())
-                .header("Authorization", "Bearer " + this.authentication.getAuthToken());
+                .header("Authorization", "Bearer " + this.authentication.getAuthToken())
+                .header("User-Agent", "android " + ANDROID_SDK_VERSION)
+                .header("Harness-SDK-Info", "Android " + ANDROID_SDK_VERSION + " Client");
 
         if (lastEventId != null) {
             requestBuilder.header("Last-Event-Id", lastEventId);
