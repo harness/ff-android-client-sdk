@@ -7,6 +7,7 @@ import io.harness.cfsdk.cloud.analytics.MetricsApiFactoryRecipe;
 import io.harness.cfsdk.cloud.analytics.api.MetricsApi;
 import io.harness.cfsdk.cloud.analytics.model.Metrics;
 import io.harness.cfsdk.cloud.core.client.ApiException;
+import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.logging.CfLog;
 
 public class MockMetricsApiFactoryRecipe implements MetricsApiFactoryRecipe {
@@ -27,7 +28,7 @@ public class MockMetricsApiFactoryRecipe implements MetricsApiFactoryRecipe {
     }
 
     @Override
-    public MetricsApi create(String authToken, CfConfiguration config) {
+    public MetricsApi create(String authToken, CfConfiguration config, AuthInfo authInfo) {
 
         return (environment, cluster, metrics) -> {
 

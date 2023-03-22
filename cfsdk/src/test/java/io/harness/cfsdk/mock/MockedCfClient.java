@@ -7,6 +7,7 @@ import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
+import io.harness.cfsdk.cloud.model.AuthInfo;
 
 public class MockedCfClient extends CfClient {
 
@@ -22,8 +23,7 @@ public class MockedCfClient extends CfClient {
     protected AnalyticsManager getAnalyticsManager(
 
             CfConfiguration configuration,
-            String environmentID,
-            String cluster
+            AuthInfo authInfo
 
     ) {
 
@@ -31,9 +31,10 @@ public class MockedCfClient extends CfClient {
 
             analyticsManager = new MockedAnalyticsManager(
 
-                    environmentID,
+                    authInfo,
                     cloud.getAuthToken(),
-                    configuration
+                    configuration,
+                    null
             );
         }
         return analyticsManager;

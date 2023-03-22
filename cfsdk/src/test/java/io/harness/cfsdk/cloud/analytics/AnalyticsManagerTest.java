@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -14,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.core.model.Variation;
+import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.mock.MockMetricsApiFactoryRecipe;
@@ -233,7 +235,7 @@ public class AnalyticsManagerTest {
         when(configuration.getMetricsServiceAcceptableDurationInMillis()).thenReturn(publishingAcceptableDurationInMillis);
 
         final MockedAnalyticsManager manager =
-                new MockedAnalyticsManager(test, token, configuration, latch);
+                new MockedAnalyticsManager(Mockito.mock(AuthInfo.class), token, configuration, latch);
 
         Assert.assertEquals(
 
@@ -252,7 +254,7 @@ public class AnalyticsManagerTest {
 
         MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(
 
-                (authToken, config) -> (environment, cluster, metrics) ->
+                (authInfo, authToken, config) -> (environment, cluster, metrics) ->
                         CfLog.OUT.v(logTag, "Ignore this metrics posting")
         );
 

@@ -46,6 +46,7 @@ public class CloudTest {
         TokenProvider tokenProvider = new TokenProvider();
 
         CloudFactory cloudFactory = Mockito.mock(CloudFactory.class);
+
         Mockito.when(cloudFactory.getAuthResponseDecoder()).thenReturn(responseDecoder);
         Mockito.when(cloudFactory.apiClient()).thenReturn(apiClient);
         Mockito.when(cloudFactory.defaultApi(any())).thenReturn(defaultApi);

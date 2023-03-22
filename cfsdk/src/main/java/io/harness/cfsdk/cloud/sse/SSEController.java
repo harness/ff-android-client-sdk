@@ -48,7 +48,8 @@ public class SSEController implements SSEControlling {
                     request,
                     new SSEListener(eventsListener),
                     config.getAuthentication(),
-                    isRescheduled
+                    isRescheduled,
+                    authInfo
             );
         }
     }

@@ -16,8 +16,7 @@
 
 package io.harness.cfsdk.cloud.oksse;
 
-import java.util.concurrent.TimeUnit;
-
+import io.harness.cfsdk.cloud.model.AuthInfo;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 
@@ -58,10 +57,11 @@ public class OkSse {
             Request request,
             ServerSentEvent.Listener listener,
             SSEAuthentication authentication,
-            boolean isRescheduled
+            boolean isRescheduled,
+            AuthInfo authInfo
     ) {
 
-        RealServerSentEvent sse = new RealServerSentEvent(request, listener, authentication);
+        RealServerSentEvent sse = new RealServerSentEvent(request, listener, authentication, authInfo);
         sse.connect(client, isRescheduled);
         return sse;
     }
