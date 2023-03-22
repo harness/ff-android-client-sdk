@@ -2,6 +2,7 @@ package io.harness.cfsdk.mock;
 
 import android.content.Context;
 
+import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.ICloud;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
@@ -14,7 +15,7 @@ public class MockedCloudFactory extends CloudFactory {
     private SSEControlling controlling;
 
     @Override
-    public ICloud cloud(String sseUrl, String baseUrl, String key, Target target) {
+    public ICloud cloud(String sseUrl, String baseUrl, String key, Target target, CfConfiguration config) {
 
         return new MockedCloud();
     }

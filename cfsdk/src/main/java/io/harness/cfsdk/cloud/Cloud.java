@@ -1,11 +1,5 @@
 package io.harness.cfsdk.cloud;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.security.cert.X509Certificate;
-import java.util.List;
-import java.util.Locale;
-
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
@@ -143,6 +137,11 @@ public class Cloud implements ICloud {
         this.authToken = this.tokenProvider.getToken(this.key);
         apiClient.addDefaultHeader("Authorization", "Bearer " + authToken);
         this.authInfo = authResponseDecoder.extractInfo(authToken);
+
+        if (authInfo != null) {
+            apiClient.addDefaultHeader("Harness-EnvironmentID", authInfo.getEnvironment());
+            apiClient.addDefaultHeader("Harness-AccountID", authInfo.getAccountID());
+        }
     }
 
     private String buildSSEUrl() {

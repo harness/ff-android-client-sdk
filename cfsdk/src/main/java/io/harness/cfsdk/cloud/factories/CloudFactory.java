@@ -106,6 +106,7 @@ public class CloudFactory implements ICloudFactory {
         }
         apiClient.addDefaultHeader("Hostname", hostname);
         apiClient.addDefaultHeader("Harness-SDK-Info", "Android " + ANDROID_SDK_VERSION + " Client");
+
         return apiClient;
     }
 

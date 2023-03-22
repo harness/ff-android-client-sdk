@@ -23,11 +23,6 @@ public interface ICloudFactory {
 
     AuthResponseDecoder getAuthResponseDecoder();
 
-    @Deprecated
-    default ICloud cloud(String sseUrl, String baseUrl, String key, Target target) {
-        return cloud(sseUrl, baseUrl, key, target, null);
-    }
-
     ICloud cloud(String sseUrl, String baseUrl, String key, Target target, CfConfiguration config);
 
     FeatureRepository getFeatureRepository(

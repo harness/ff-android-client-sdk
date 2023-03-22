@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.logging.CfLog;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -39,26 +40,22 @@ class RealServerSentEvent implements ServerSentEvent {
     public Listener listener;
     private Reader sseReader;
     private String lastEventId;
-    private long reconnectTime;
-    private final String logTag;
+    private long reconnectTime = TimeUnit.SECONDS.toMillis(3);
+    private final String logTag = RealServerSentEvent.class.getSimpleName();
     private OkHttpClient client;
     private long readTimeoutMillis;
     private final Request originalRequest;
     private final SSEAuthentication authentication;
+    private final AuthInfo authInfo;
 
-    {
-
-        logTag = RealServerSentEvent.class.getSimpleName();
-        reconnectTime = TimeUnit.SECONDS.toMillis(3);
-    }
-
-    RealServerSentEvent(Request request, Listener listener, SSEAuthentication sseAuthentication) {
+    RealServerSentEvent(Request request, Listener listener, SSEAuthentication sseAuthentication, AuthInfo authInfo) {
         this.authentication = sseAuthentication;
         if (!"GET".equals(request.method())) {
             throw new IllegalArgumentException("Request must be GET: " + request.method());
         }
         this.originalRequest = request;
         this.listener = listener;
+        this.authInfo = authInfo;
     }
 
     void connect(OkHttpClient client, boolean isRescheduled) {
@@ -78,7 +75,9 @@ class RealServerSentEvent implements ServerSentEvent {
                 .header("API-Key", this.authentication.getApiToken())
                 .header("Authorization", "Bearer " + this.authentication.getAuthToken())
                 .header("User-Agent", "android " + ANDROID_SDK_VERSION)
-                .header("Harness-SDK-Info", "Android " + ANDROID_SDK_VERSION + " Client");
+                .header("Harness-SDK-Info", "Android " + ANDROID_SDK_VERSION + " Client")
+                .header("Harness-EnvironmentID", authInfo.getEnvironment())
+                .header("Harness-AccountID", authInfo.getAccountID());
 
         if (lastEventId != null) {
             requestBuilder.header("Last-Event-Id", lastEventId);

@@ -8,6 +8,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
 import io.harness.cfsdk.cloud.core.model.Variation;
+import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.common.Destroyable;
 import io.harness.cfsdk.logging.CfLog;
@@ -28,8 +29,7 @@ public class AnalyticsManager implements Destroyable {
 
     public AnalyticsManager(
 
-            final String environmentID,
-            final String cluster,
+            final AuthInfo authInfo,
             final String authToken,
             final CfConfiguration config
     ) {
@@ -38,7 +38,7 @@ public class AnalyticsManager implements Destroyable {
 
         analyticsPublisherService = new AnalyticsPublisherService(
 
-                authToken, config, environmentID, cluster
+                authToken, config, authInfo
         );
 
         final long frequency = config.getMetricsPublishingIntervalInMillis();

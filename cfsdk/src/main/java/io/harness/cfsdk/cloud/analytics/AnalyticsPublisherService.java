@@ -17,6 +17,7 @@ import io.harness.cfsdk.cloud.analytics.model.KeyValue;
 import io.harness.cfsdk.cloud.analytics.model.Metrics;
 import io.harness.cfsdk.cloud.analytics.model.MetricsData;
 import io.harness.cfsdk.cloud.core.client.ApiException;
+import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.logging.CfLog;
 
 /**
@@ -49,29 +50,21 @@ public class AnalyticsPublisherService {
         VARIATION_VALUE_ATTRIBUTE = "variationValue";
     }
 
-    private final String logTag;
-    private final String cluster;
+    private final String logTag = AnalyticsPublisherService.class.getSimpleName();
     private final String authToken;
-    private final String environmentID;
     private final CfConfiguration config;
-
-    {
-
-        logTag = AnalyticsPublisherService.class.getSimpleName();
-    }
+    private final AuthInfo authInfo;
 
     public AnalyticsPublisherService(
 
             final String authToken,
             final CfConfiguration config,
-            final String environmentID,
-            final String cluster
+            final AuthInfo authInfo
     ) {
 
         this.config = config;
-        this.cluster = cluster;
         this.authToken = authToken;
-        this.environmentID = environmentID;
+        this.authInfo = authInfo;
     }
 
     /**
@@ -147,8 +140,8 @@ public class AnalyticsPublisherService {
 
                     CfLog.OUT.v(logTag, "Sending metrics");
 
-                    final MetricsApi metricsAPI = MetricsApiFactory.create(authToken, config);
-                    metricsAPI.postMetrics(environmentID, cluster, metrics);
+                    final MetricsApi metricsAPI = MetricsApiFactory.create(authToken, config, authInfo);
+                    metricsAPI.postMetrics(authInfo.getEnvironment(), authInfo.getCluster(), metrics);
 
                     long endTime = System.currentTimeMillis();
 

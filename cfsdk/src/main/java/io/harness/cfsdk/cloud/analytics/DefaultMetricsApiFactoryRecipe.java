@@ -9,6 +9,7 @@ import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.api.DefaultApi;
 import io.harness.cfsdk.cloud.analytics.api.MetricsApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
+import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.utils.CfUtils;
 import io.harness.cfsdk.utils.TlsUtils;
@@ -23,7 +24,7 @@ public class DefaultMetricsApiFactoryRecipe implements MetricsApiFactoryRecipe {
     }
 
     @Override
-    public MetricsApi create(String authToken, CfConfiguration config) {
+    public MetricsApi create(String authToken, CfConfiguration config, AuthInfo authInfo) {
 
         final DefaultApi metricsAPI = new DefaultApi();
 
@@ -48,6 +49,8 @@ public class DefaultMetricsApiFactoryRecipe implements MetricsApiFactoryRecipe {
 
             apiClient.addDefaultHeader("Hostname", hostname);
             apiClient.addDefaultHeader("Harness-SDK-Info", "Android " + ANDROID_SDK_VERSION + " Client");
+            apiClient.addDefaultHeader("Harness-EnvironmentID", authInfo.getEnvironment());
+            apiClient.addDefaultHeader("Harness-AccountID", authInfo.getAccountID());
             metricsAPI.setApiClient(apiClient);
         }
 

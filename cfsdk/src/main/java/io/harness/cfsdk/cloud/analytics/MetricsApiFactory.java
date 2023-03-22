@@ -2,6 +2,7 @@ package io.harness.cfsdk.cloud.analytics;
 
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.api.MetricsApi;
+import io.harness.cfsdk.cloud.model.AuthInfo;
 
 /**
  * This is a factory class to provide the API for metrics related operations.
@@ -22,10 +23,11 @@ public class MetricsApiFactory {
     public static MetricsApi create(
 
             final String authToken,
-            final CfConfiguration config
-    ) {
+            final CfConfiguration config,
+            final AuthInfo authInfo
+            ) {
 
-        return recipe.create(authToken, config);
+        return recipe.create(authToken, config, authInfo);
     }
 
     public static void setDefaultMetricsApiFactoryRecipe(
