@@ -24,7 +24,7 @@ Download the command line tools from the [offical site](https://developer.androi
    
 3) Unpack the command line tools
    ```shell
-   unzip commandlinetools-mac-8092744_latest.zip -d $ANDROID_HOME/sdk
+   unzip commandlinetools-mac-8092744_latest.zip -d $ANDROID_HOME
    ```
    N.B due to an oddity with the command line tools package, after unpacking you need to
    move the binaries into a folder called latest
@@ -44,9 +44,14 @@ Download the command line tools from the [offical site](https://developer.androi
    echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "system-images;android-32;google_apis;x86_64"
    ```
    
-5) If everything worked, when you ls the $ANDROID_HOME you should see the following
+5) If everything worked, when you ls the $ANDROID_HOME 
    ```shell
-   $ ls $ANDROID_HOME
+   ls $ANDROID_HOME
+   ```
+   
+   you should see the following output
+
+   ```shell
    cmdline-tools  emulator       licenses       patcher        platform-tools platforms      system-images
    ```
    
@@ -61,11 +66,16 @@ Before setting up the emulator you should follow the steps above to install the 
 1) To list what devices have been installed run the following command:
    ```shell
    $ANDROID_HOME/emulator/emulator -list-avds
+   ```
+   
+   which gives output like so:
+   ```shell
    Pixel_2_API_30
    Pixel_2_API_30_2
    Pixel_4.4_API_32
    Pixel_5_API_32
    ```
+
    
 2) Start the emulator with desired device (prefix the name with @)
    ```shell
