@@ -156,7 +156,7 @@ value update.
 ### Running the example with docker
 You will need to install the Android SDK in order to run the emulator, but if you wish to avoid installing Java, Gradle etc
 you can use a docker image to compile and install the application to a locally running emulator.
-Follow the steps to [setup and run the emulator](#Setup-and-Run-emulator).
+Follow the steps to [setup and run the emulator](docs/dev_environment.md).
 
 With the emulator running build and install the app
 ```shell
