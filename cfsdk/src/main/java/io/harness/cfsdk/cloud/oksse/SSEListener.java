@@ -82,6 +82,17 @@ public class SSEListener implements ServerSentEvent.Listener {
             if ("flag".equals(domain)) {
                 // On creation or change of a flag we want to send a change event
                 if ("create".equals(eventType) || "patch".equals(eventType)) {
+                    // parse the actual evaluation sent in the sse event if there is one
+                    try {
+                        JSONObject evaluationJSON = new JSONObject(jsonObject.getString("evaluation"));
+                        evaluation.flag(evaluationJSON.getString("flag"));
+                        evaluation.identifier(evaluationJSON.getString("identifier"));
+                        evaluation.kind(evaluationJSON.getString("kind"));
+                        evaluation.value(evaluationJSON.getString("value"));
+                    } catch (Exception e) {
+                        // this will happen if the evaluations aren't sent down the stream with the event
+                        // it's not an error case so no need to log it
+                    }
                     statusEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, evaluation);
                 }
                 // On deletion of a flag we want to send a remove event

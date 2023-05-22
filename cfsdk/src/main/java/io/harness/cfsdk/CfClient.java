@@ -1,5 +1,7 @@
 package io.harness.cfsdk;
 
+import static io.harness.cfsdk.utils.CfUtils.EvaluationUtil.isEvaluationValid;
+
 import android.content.Context;
 
 import androidx.annotation.Nullable;
@@ -140,19 +142,25 @@ public class CfClient implements Destroyable {
                 break;
 
             case EVALUATION_CHANGE:
+                Evaluation evaluation = statusEvent.extractPayload();
 
-                final Evaluation evaluation = statusEvent.extractPayload();
-                final Evaluation e = featureRepository.getEvaluationFromServer(
+                // if evaluation is present in sse event save it directly, else fetch from server
+                if(isEvaluationValid(evaluation)) {
+                    featureRepository.save(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), evaluation);
+                } else {
+                    evaluation = featureRepository.getEvaluationFromServer(
 
-                        authInfo.getEnvironmentIdentifier(),
-                        target.getIdentifier(),
-                        evaluation.getFlag(),
-                        cluster
-                );
+                            authInfo.getEnvironmentIdentifier(),
+                            target.getIdentifier(),
+                            evaluation.getFlag(),
+                            cluster
+                    );
+                }
 
-                if (e != null) {
-                    statusEvent = new StatusEvent(statusEvent.getEventType(), e);
-                    notifyListeners(e);
+
+                if (evaluation != null) {
+                    statusEvent = new StatusEvent(statusEvent.getEventType(), evaluation);
+                    notifyListeners(evaluation);
                 } else {
                     CfLog.OUT.w(logTag, String.format("EVALUATION_CHANGE event failed to get evaluation for target '%s' from server", target.getIdentifier()));
                 }

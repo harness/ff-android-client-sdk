@@ -142,6 +142,12 @@ public class FeatureRepositoryImpl implements FeatureRepository {
         this.cloudCache.removeEvaluation(buildKey(environment, target), evaluationId);
     }
 
+    @Override
+    public void save(String environment, String target, Evaluation evaluation) {
+        final String env = buildKey(environment, target);
+        cloudCache.saveEvaluation(env, evaluation.getFlag(), evaluation);
+    }
+
 
     @Override
     public void clear() {
