@@ -40,5 +40,7 @@ public interface FeatureRepository {
 
     void remove(String environment, String target, String evaluationId);
 
+    void save(String environment, String target, Evaluation evaluation);
+
     void clear();
 }

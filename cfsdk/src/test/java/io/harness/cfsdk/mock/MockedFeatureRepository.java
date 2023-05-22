@@ -68,6 +68,16 @@ public class MockedFeatureRepository implements FeatureRepository {
     }
 
     @Override
+    public void save(
+
+            String environment,
+            String target,
+            Evaluation evaluation) {
+
+        mocks.put(evaluation.getFlag(), evaluation);
+    }
+
+    @Override
     public void clear() {
 
         mocks.clear();
