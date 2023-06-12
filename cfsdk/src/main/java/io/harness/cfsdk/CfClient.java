@@ -1,5 +1,6 @@
 package io.harness.cfsdk;
 
+import static io.harness.cfsdk.utils.CfUtils.EvaluationUtil.areEvaluationsValid;
 import static io.harness.cfsdk.utils.CfUtils.EvaluationUtil.isEvaluationValid;
 
 import android.content.Context;
@@ -11,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -142,27 +144,33 @@ public class CfClient implements Destroyable {
                 break;
 
             case EVALUATION_CHANGE:
-                Evaluation evaluation = statusEvent.extractPayload();
+                // TODO - add a try around this payload extract - possibly triggered by other things too
+                ArrayList<Evaluation> evaluations = statusEvent.extractPayload();
 
-                // if evaluation is present in sse event save it directly, else fetch from server
-                if(isEvaluationValid(evaluation)) {
-                    featureRepository.save(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), evaluation);
+                // if evaluations are present in sse event save it directly, else fetch from server
+                if(areEvaluationsValid(evaluations)) {
+                    for (int i = 0; i < evaluations.size(); i++) {
+                        featureRepository.save(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), evaluations.get(i));
+                        statusEvent = new StatusEvent(statusEvent.getEventType(), evaluations.get(i));
+                        notifyListeners(evaluations.get(i));
+                    }
                 } else {
-                    evaluation = featureRepository.getEvaluationFromServer(
+                    for (int i = 0; i < evaluations.size(); i++) {
+                        Evaluation evaluation = featureRepository.getEvaluationFromServer(
 
-                            authInfo.getEnvironmentIdentifier(),
-                            target.getIdentifier(),
-                            evaluation.getFlag(),
-                            cluster
-                    );
-                }
+                                authInfo.getEnvironmentIdentifier(),
+                                target.getIdentifier(),
+                                evaluations.get(i).getFlag(),
+                                cluster
+                        );
 
-
-                if (evaluation != null) {
-                    statusEvent = new StatusEvent(statusEvent.getEventType(), evaluation);
-                    notifyListeners(evaluation);
-                } else {
-                    CfLog.OUT.w(logTag, String.format("EVALUATION_CHANGE event failed to get evaluation for target '%s' from server", target.getIdentifier()));
+                        if (evaluation != null) {
+                            statusEvent = new StatusEvent(statusEvent.getEventType(), evaluation);
+                            notifyListeners(evaluation);
+                        } else {
+                            CfLog.OUT.w(logTag, String.format("EVALUATION_CHANGE event failed to get evaluation for target '%s' from server", target.getIdentifier()));
+                        }
+                    }
                 }
 
                 break;
@@ -174,18 +182,30 @@ public class CfClient implements Destroyable {
                 break;
 
             case EVALUATION_RELOAD:
+                // TODO - add a try around this payload - possibly triggered by other things too
+                evaluations = statusEvent.extractPayload();
 
-                CfLog.OUT.v(logTag, "Reloading all evaluations");
+                // if evaluations are present in sse event save it directly, else fetch from server
+                if(areEvaluationsValid(evaluations)) {
+                    for (int i = 0; i < evaluations.size(); i++) {
+                        featureRepository.save(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), evaluations.get(i));
+                        // TODO - do we need to notify listeners - the other path doesn't
+                        notifyListeners(evaluations.get(i));
+                    }
+                    statusEvent = new StatusEvent(statusEvent.getEventType(), evaluations);
+                } else {
+                    CfLog.OUT.v(logTag, "Reloading all evaluations");
 
 
-                final List<Evaluation> evaluations = featureRepository.getAllEvaluations(
+                    final List<Evaluation> fetchedEvaluations = featureRepository.getAllEvaluations(
 
-                        environmentID,
-                        target.getIdentifier(),
-                        cluster
-                );
+                            environmentID,
+                            target.getIdentifier(),
+                            cluster
+                    );
 
-                statusEvent = new StatusEvent(statusEvent.getEventType(), evaluations);
+                    statusEvent = new StatusEvent(statusEvent.getEventType(), fetchedEvaluations);
+                }
 
                 break;
         }

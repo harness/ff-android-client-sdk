@@ -2,6 +2,8 @@ package io.harness.cfsdk.utils;
 
 import static io.harness.cfsdk.utils.CfUtils.Text.isNotEmpty;
 
+import java.util.ArrayList;
+
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 
 /**
@@ -55,6 +57,19 @@ public class CfUtils {
          */
         public static boolean isEvaluationValid(Evaluation evaluation) {
             return isNotEmpty(evaluation.getFlag()) && isNotEmpty(evaluation.getKind()) && isNotEmpty(evaluation.getIdentifier()) && isNotEmpty(evaluation.getValue());
+        }
+
+        public static boolean areEvaluationsValid(ArrayList<Evaluation> evaluations) {
+            if (evaluations == null || evaluations.size() == 0) {
+                return false;
+            }
+
+            for (int i = 0; i < evaluations.size(); i++) {
+                if (!isEvaluationValid(evaluations.get(i))) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
