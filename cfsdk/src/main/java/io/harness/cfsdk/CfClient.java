@@ -144,8 +144,7 @@ public class CfClient implements Destroyable {
                 break;
 
             case EVALUATION_CHANGE:
-                // TODO - add a try around this payload extract - possibly triggered by other things too
-                ArrayList<Evaluation> evaluations = statusEvent.extractPayload();
+                List<Evaluation> evaluations = statusEvent.extractPayload();
 
                 // if evaluations are present in sse event save it directly, else fetch from server
                 if(areEvaluationsValid(evaluations)) {

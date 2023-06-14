@@ -78,10 +78,6 @@ public class SSEListener implements ServerSentEvent.Listener {
             } catch (Exception e) {
                 // this will happen if the evaluations aren't sent down the stream with the event
                 // it's not an error case so no need to log it
-                CfLog.OUT.e(logTag, String.format(
-                        "Failed to parse evaluations array error=%s",
-                        e.getMessage()
-                ));
             }
 
             CfLog.OUT.v(
