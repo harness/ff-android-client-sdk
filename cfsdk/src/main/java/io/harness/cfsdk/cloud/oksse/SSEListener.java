@@ -3,8 +3,14 @@ package io.harness.cfsdk.cloud.oksse;
 
 
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
@@ -58,8 +64,21 @@ public class SSEListener implements ServerSentEvent.Listener {
             String eventType = jsonObject.getString("event");
             String identifier = jsonObject.getString("identifier");
 
-            final Evaluation evaluation = new Evaluation();
-            evaluation.flag(identifier);
+
+            Type evaluationsType = new TypeToken<ArrayList<Evaluation>>(){}.getType();
+            ArrayList<Evaluation> evaluations = new ArrayList<>();
+            evaluations.add(new Evaluation());
+            evaluations.get(0).flag(identifier);
+
+            // parse the actual evaluations sent in the sse event
+            try {
+                String evaluationJSON = jsonObject.getString("evaluations");
+                Gson gson= new Gson();
+                evaluations = gson.fromJson(evaluationJSON,evaluationsType);
+            } catch (Exception e) {
+                // this will happen if the evaluations aren't sent down the stream with the event
+                // it's not an error case so no need to log it
+            }
 
             CfLog.OUT.v(
 
@@ -75,29 +94,18 @@ public class SSEListener implements ServerSentEvent.Listener {
             if ("target-segment".equals(domain)) {
                 // On creation, change or removal of a target group we want to reload evaluations
                 if ("delete".equals(eventType) || "patch".equals(eventType) || "create".equals(eventType)) {
-                    statusEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluation);
+                    statusEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations);
                 }
             }
 
             if ("flag".equals(domain)) {
                 // On creation or change of a flag we want to send a change event
                 if ("create".equals(eventType) || "patch".equals(eventType)) {
-                    // parse the actual evaluation sent in the sse event if there is one
-                    try {
-                        JSONObject evaluationJSON = new JSONObject(jsonObject.getString("evaluation"));
-                        evaluation.flag(evaluationJSON.getString("flag"));
-                        evaluation.identifier(evaluationJSON.getString("identifier"));
-                        evaluation.kind(evaluationJSON.getString("kind"));
-                        evaluation.value(evaluationJSON.getString("value"));
-                    } catch (Exception e) {
-                        // this will happen if the evaluations aren't sent down the stream with the event
-                        // it's not an error case so no need to log it
-                    }
-                    statusEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, evaluation);
+                    statusEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, evaluations);
                 }
                 // On deletion of a flag we want to send a remove event
                 if ("delete".equals(eventType)) {
-                    statusEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_REMOVE, evaluation);
+                    statusEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_REMOVE, evaluations.get(0));
                 }
             }
 
