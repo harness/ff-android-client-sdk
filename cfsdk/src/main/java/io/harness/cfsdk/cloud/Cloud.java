@@ -139,7 +139,7 @@ public class Cloud implements ICloud {
         this.authInfo = authResponseDecoder.extractInfo(authToken);
 
         if (authInfo != null) {
-            apiClient.addDefaultHeader("Harness-EnvironmentID", authInfo.getEnvironment());
+            apiClient.addDefaultHeader("Harness-EnvironmentID", authInfo.getEnvironmentIdentifier());
             apiClient.addDefaultHeader("Harness-AccountID", authInfo.getAccountID());
         }
     }
