@@ -76,8 +76,12 @@ class RealServerSentEvent implements ServerSentEvent {
                 .header("Authorization", "Bearer " + this.authentication.getAuthToken())
                 .header("User-Agent", "android " + ANDROID_SDK_VERSION)
                 .header("Harness-SDK-Info", "Android " + ANDROID_SDK_VERSION + " Client")
-                .header("Harness-EnvironmentID", authInfo.getEnvironmentIdentifier())
-                .header("Harness-AccountID", authInfo.getAccountID());
+                .header("Harness-EnvironmentID", authInfo.getEnvironmentTrackingHeader());
+
+        // Relay Proxy does not include the accountID
+        if (authInfo.getAccountID() != null) {
+            requestBuilder.header("Harness-AccountID", authInfo.getAccountID());
+        }
 
         if (lastEventId != null) {
             requestBuilder.header("Last-Event-Id", lastEventId);

@@ -46,6 +46,13 @@ public class AuthInfo {
         return environmentIdentifier;
     }
 
+    public String getEnvironmentTrackingHeader() {
+        if (environmentIdentifier == null) {
+            return environment;
+        }
+        return environmentIdentifier;
+    }
+
     public String getAccountID() {
         return accountID;
     }
