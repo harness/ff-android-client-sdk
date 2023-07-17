@@ -105,7 +105,7 @@ public class Cloud implements ICloud {
     public boolean isInitialized() {
 
         return this.authToken != null && this.authInfo != null &&
-                this.authInfo.getEnvironmentIdentifier() != null;
+                this.authInfo.getEnvironment() != null;
     }
 
     @Override
@@ -139,8 +139,11 @@ public class Cloud implements ICloud {
         this.authInfo = authResponseDecoder.extractInfo(authToken);
 
         if (authInfo != null) {
-            apiClient.addDefaultHeader("Harness-EnvironmentID", authInfo.getEnvironmentIdentifier());
-            apiClient.addDefaultHeader("Harness-AccountID", authInfo.getAccountID());
+            apiClient.addDefaultHeader("Harness-EnvironmentID", authInfo.getEnvironment());
+            String accountID = authInfo.getAccountID();
+            if (accountID != null) {
+                apiClient.addDefaultHeader("Harness-AccountID", accountID);
+            }
         }
     }
 
