@@ -49,8 +49,11 @@ public class DefaultMetricsApiFactoryRecipe implements MetricsApiFactoryRecipe {
 
             apiClient.addDefaultHeader("Hostname", hostname);
             apiClient.addDefaultHeader("Harness-SDK-Info", "Android " + ANDROID_SDK_VERSION + " Client");
-            apiClient.addDefaultHeader("Harness-EnvironmentID", authInfo.getEnvironmentIdentifier());
-            apiClient.addDefaultHeader("Harness-AccountID", authInfo.getAccountID());
+            apiClient.addDefaultHeader("Harness-EnvironmentID", authInfo.getEnvironmentTrackingHeader());
+            // Relay Proxy does not include the accountID
+            if (authInfo.getAccountID() != null) {
+                apiClient.addDefaultHeader("Harness-AccountID", authInfo.getAccountID());
+            }
             metricsAPI.setApiClient(apiClient);
         }
 
