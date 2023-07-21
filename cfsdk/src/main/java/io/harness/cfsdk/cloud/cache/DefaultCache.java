@@ -7,128 +7,87 @@ import androidx.annotation.Nullable;
 
 import com.orhanobut.hawk.Hawk;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
+import io.harness.cfsdk.AndroidSdkVersion;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 
 public class DefaultCache implements CloudCache {
 
-    private final String key_all;
-    private final Executor executor;
-    private final ConcurrentHashMap<String, ConcurrentHashMap<String, Evaluation>> evaluations;
+    private final String KEY_ALL = "all_evaluations_v2";
+    private final Map<String, Evaluation> evaluations;
+    private final InternalCache internalCache;
+
+    public interface InternalCache {
+        default void init(final Context appContext) { Hawk.init(appContext).build(); }
+        default void saveAll(String key, Map<String, Evaluation> evaluations) { Hawk.put(key, evaluations); }
+        default Map<String, Evaluation> loadAll(String key, Map<String, Evaluation> defaultMap) { return Hawk.get(key, defaultMap); }
+        default void deleteAll() { Hawk.deleteAll(); }
+    }
 
     public DefaultCache(final Context appContext) {
+        this(appContext, new InternalCache() {});
+    }
 
-        Hawk.init(appContext).build();
-
-        key_all = "all_evaluations";
-        executor = Executors.newSingleThreadExecutor();
-
-        ConcurrentHashMap<String, ConcurrentHashMap<String, Evaluation>> evaluationsTemp;
-
-        try {
-            evaluationsTemp = new ConcurrentHashMap<>(Hawk.get(key_all, new ConcurrentHashMap<>()));
-        } catch (Exception ex) {
-            // Possible cache corruption, reset the cache on disk and let it rebuild
-            Hawk.deleteAll();
-            evaluationsTemp = new ConcurrentHashMap<>(Hawk.get(key_all, new ConcurrentHashMap<>()));
-        }
-
-        evaluations = evaluationsTemp;
+    public DefaultCache(final Context appContext, final InternalCache cache) {
+        internalCache = cache;
+        internalCache.init(appContext);
+        evaluations = load();
     }
 
     @Override
     @Nullable
     public Evaluation getEvaluation(final String env, final String key) {
-
-        final ConcurrentHashMap<String, Evaluation> items = evaluations.get(env);
-        if (items != null) {
-
-            return items.get(key);
-        }
-        return null;
+        return evaluations.get(makeKey(env, key));
     }
 
     @Override
     public void saveEvaluation(final String env, final String key, final Evaluation evaluation) {
-
-        final Runnable action = () -> {
-
-            ConcurrentHashMap<String, Evaluation> items = evaluations.get(env);
-            if (items == null) {
-
-                items = new ConcurrentHashMap<>();
-                evaluations.put(env, items);
-            }
-            items.put(key, evaluation);
-
-            Hawk.put(key_all, evaluations);
-        };
-
-        executor.execute(action);
+        evaluations.put(makeKey(env, key), evaluation);
+        internalCache.saveAll(KEY_ALL, evaluations);
     }
 
     @Override
     @NonNull
     public List<Evaluation> getAllEvaluations(final String env) {
-
-        final ConcurrentHashMap<String, Evaluation> items = evaluations.get(env);
-        if (items != null) {
-
-            return new LinkedList<>(items.values());
-        }
-        return new LinkedList<>();
+        return new ArrayList<>(evaluations.values());
     }
 
     @Override
     public void saveAllEvaluations(final String env, final List<Evaluation> newEvaluations) {
-
-        final Runnable action = () -> {
-
-            final ConcurrentHashMap<String, Evaluation> items = new ConcurrentHashMap<>();
-            for (final Evaluation item : newEvaluations) {
-
-                items.put(item.getIdentifier(), item);
-            }
-
-            evaluations.put(env, items);
-
-            Hawk.put(key_all, evaluations);
-        };
-
-        executor.execute(action);
+        for (final Evaluation eval : newEvaluations) {
+            evaluations.put(makeKey(env, eval.getFlag()), eval);
+        }
+        internalCache.saveAll(KEY_ALL, evaluations);
     }
 
     @Override
     public void removeEvaluation(final String env, final String key) {
-
-        final Runnable action = () -> {
-
-            final ConcurrentHashMap<String, Evaluation> items = evaluations.get(env);
-            if (items != null) {
-
-                items.remove(key);
-            }
-
-            Hawk.put(key_all, evaluations);
-        };
-
-        executor.execute(action);
+        evaluations.remove(makeKey(env, key));
+        internalCache.saveAll(KEY_ALL, evaluations);
     }
 
     @Override
     public void clear() {
+        evaluations.clear();
+        internalCache.saveAll(KEY_ALL, evaluations);
+    }
 
-        final Runnable action = () -> {
+    private String makeKey(String env, String key) {
+        return env + '_' + key;
+    }
 
-            evaluations.clear();
-            Hawk.put(key_all, evaluations);
-        };
-
-        executor.execute(action);
+    private ConcurrentHashMap<String, Evaluation> load() {
+        final ConcurrentHashMap<String, Evaluation> defaultMap = new ConcurrentHashMap<>();
+        try {
+            return new ConcurrentHashMap<>(internalCache.loadAll(KEY_ALL, defaultMap));
+        } catch (Exception ex) {
+            // Possible cache corruption, reset the cache on disk and let it rebuild
+            internalCache.deleteAll();
+            return new ConcurrentHashMap<>(internalCache.loadAll(KEY_ALL, defaultMap));
+        }
     }
 }
