@@ -58,8 +58,8 @@ public class DefaultCache implements CloudCache {
 
     @Override
     public void saveAllEvaluations(final String env, final List<Evaluation> newEvaluations) {
-        for (final Evaluation item : newEvaluations) {
-            evaluations.put(makeKey(env, item.getIdentifier()), item);
+        for (final Evaluation eval : newEvaluations) {
+            evaluations.put(makeKey(env, eval.getFlag()), eval);
         }
         internalCache.saveAll(KEY_ALL, evaluations);
     }

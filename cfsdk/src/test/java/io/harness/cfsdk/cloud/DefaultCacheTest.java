@@ -51,9 +51,9 @@ public class DefaultCacheTest {
 
         String env = "dummyenv";
 
-        Evaluation eval1 = new Evaluation().identifier("flag1");
-        Evaluation eval2 = new Evaluation().identifier("flag2");
-        Evaluation eval3 = new Evaluation().identifier("flag3");
+        Evaluation eval1 = new Evaluation().flag("flag1");
+        Evaluation eval2 = new Evaluation().flag("flag2");
+        Evaluation eval3 = new Evaluation().flag("flag3");
 
         cache.saveEvaluation(env, "dummykey1", eval1);
         cache.saveEvaluation(env, "dummykey2", eval2);
@@ -65,13 +65,13 @@ public class DefaultCacheTest {
         assertNotNull(cache.getEvaluation(env, "dummykey2"));
         assertNotNull(cache.getEvaluation(env, "dummykey3"));
 
-        assertEquals("flag1", cache.getEvaluation(env, "dummykey1").getIdentifier());
-        assertEquals("flag2", cache.getEvaluation(env, "dummykey2").getIdentifier());
-        assertEquals("flag3", cache.getEvaluation(env, "dummykey3").getIdentifier());
+        assertEquals("flag1", cache.getEvaluation(env, "dummykey1").getFlag());
+        assertEquals("flag2", cache.getEvaluation(env, "dummykey2").getFlag());
+        assertEquals("flag3", cache.getEvaluation(env, "dummykey3").getFlag());
 
-        List<Evaluation> newEvals = Arrays.asList(new Evaluation().identifier("flag4"),
-                new Evaluation().identifier("flag5"),
-                new Evaluation().identifier("flag6"));
+        List<Evaluation> newEvals = Arrays.asList(new Evaluation().flag("flag4"),
+                new Evaluation().flag("flag5"),
+                new Evaluation().flag("flag6"));
 
         cache.saveAllEvaluations(env, newEvals);
 
