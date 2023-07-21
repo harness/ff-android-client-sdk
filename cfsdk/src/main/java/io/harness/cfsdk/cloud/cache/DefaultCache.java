@@ -77,7 +77,7 @@ public class DefaultCache implements CloudCache {
     }
 
     private String makeKey(String env, String key) {
-        return AndroidSdkVersion.ANDROID_SDK_VERSION + '_' + env + '_' + key;
+        return env + '_' + key;
     }
 
     private ConcurrentHashMap<String, Evaluation> load() {
