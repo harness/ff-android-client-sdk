@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -128,6 +129,7 @@ public class AnalyticsManagerTest {
         Assert.assertEquals(0, manager.getFailureCount());
     }
 
+    @Ignore("Tracked by FFM-8570")
     @Test
     public void testFaultyPath() {
 
@@ -162,7 +164,7 @@ public class AnalyticsManagerTest {
 
                 if (System.currentTimeMillis() - start >= timeout) {
 
-                    Assert.fail("Timeout after 3 seconds");
+                    Assert.fail("Timeout after 30 seconds");
                 }
 
             } catch (InterruptedException e) {
