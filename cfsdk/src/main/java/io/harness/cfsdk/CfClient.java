@@ -336,6 +336,11 @@ public class CfClient implements Destroyable {
 
                 CfLog.OUT.v(logTag, "Evaluations count: " + evaluations.size());
 
+                // Notify users that evaluations have been reloaded. This happens first on client init,
+                // then if polling is enabled, on each interval.
+                sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
+
+
                 if (useStream) {
                     final boolean isRescheduled = true;
                     startSSE(true);
