@@ -336,6 +336,9 @@ public class CfClient implements Destroyable {
 
                 CfLog.OUT.v(logTag, "Evaluations count: " + evaluations.size());
 
+                sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
+
+
                 if (useStream) {
                     final boolean isRescheduled = true;
                     startSSE(true);
