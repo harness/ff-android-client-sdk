@@ -1,6 +1,20 @@
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath 'org.owasp:dependency-check-gradle:8.4.0'
+  }
+}
+
 plugins {
 
     id 'com.android.library'
+}
+
+
+subprojects {
+    apply plugin: 'org.owasp.dependencycheck'
 }
 
 android {

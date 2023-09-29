@@ -1,18 +1,17 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
 
-    ext.kotlin_version = "1.5.31"
+    ext.kotlin_version = "1.7.20"
 
     repositories {
-
         google()
         mavenCentral()
     }
 
     dependencies {
-
-        classpath 'com.android.tools.build:gradle:7.1.2'
+        classpath 'com.android.tools.build:gradle:7.3.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'org.owasp:dependency-check-gradle:8.4.0'
     }
 }
 
@@ -22,6 +21,19 @@ allprojects {
 
         google()
         mavenCentral()
+    }
+
+    apply plugin: 'org.owasp.dependencycheck'
+
+      dependencyCheck {
+        scanBuildEnv = true
+        format = "JSON"
+        analyzers {
+            // full list https://github.com/dependency-check/dependency-check-gradle/blob/main/src/main/groovy/org/owasp/dependencycheck/gradle/extension/AnalyzerExtension.groovy
+            nuspecEnabled = false
+            assemblyEnabled = false
+            msbuildEnabled = false
+        }
     }
 }
 
