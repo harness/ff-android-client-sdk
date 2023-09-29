@@ -12,6 +12,11 @@ plugins {
     id 'com.android.library'
 }
 
+
+subprojects {
+    apply plugin: 'org.owasp.dependencycheck'
+}
+
 android {
 
     compileSdkVersion 31
