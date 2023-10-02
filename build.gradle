@@ -26,10 +26,9 @@ allprojects {
     apply plugin: 'org.owasp.dependencycheck'
 
       dependencyCheck {
-        scanBuildEnv = true
         format = "JSON"
         analyzers {
-            // full list https://github.com/dependency-check/dependency-check-gradle/blob/main/src/main/groovy/org/owasp/dependencycheck/gradle/extension/AnalyzerExtension.groovy
+            // full list https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration.html
             nuspecEnabled = false
             assemblyEnabled = false
             msbuildEnabled = false
