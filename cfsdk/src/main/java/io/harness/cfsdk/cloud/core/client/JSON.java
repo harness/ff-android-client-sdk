@@ -35,7 +35,6 @@ import java.text.ParsePosition;
 import java.util.Date;
 import java.util.Map;
 
-import io.gsonfire.GsonFireBuilder;
 import okio.ByteString;
 
 public class JSON {
@@ -46,13 +45,6 @@ public class JSON {
     private OffsetDateTimeTypeAdapter offsetDateTimeTypeAdapter = new OffsetDateTimeTypeAdapter();
     private LocalDateTypeAdapter localDateTypeAdapter = new LocalDateTypeAdapter();
     private ByteArrayAdapter byteArrayAdapter = new ByteArrayAdapter();
-
-    public static GsonBuilder createGson() {
-        GsonFireBuilder fireBuilder = new GsonFireBuilder()
-        ;
-        GsonBuilder builder = fireBuilder.createGsonBuilder();
-        return builder;
-    }
 
     private static String getDiscriminatorValue(JsonElement readElement, String discriminatorField) {
         JsonElement element = readElement.getAsJsonObject().get(discriminatorField);
@@ -78,7 +70,7 @@ public class JSON {
     }
 
     public JSON() {
-        gson = createGson()
+        gson = new GsonBuilder()
             .registerTypeAdapter(Date.class, dateTypeAdapter)
             .registerTypeAdapter(java.sql.Date.class, sqlDateTypeAdapter)
             .registerTypeAdapter(OffsetDateTime.class, offsetDateTimeTypeAdapter)
