@@ -56,7 +56,8 @@ dependencies {
 
     implementation 'io.swagger:swagger-annotations:1.5.24'
 
-    implementation 'io.gsonfire:gson-fire:1.8.4'
+    implementation 'com.google.code.gson:gson:2.10.1'
+
     implementation 'org.threeten:threetenbp:1.4.3'
     implementation 'com.orhanobut:hawk:2.0.1'
 
