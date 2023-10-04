@@ -1,5 +1,8 @@
 package io.harness.cfsdk.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,12 +19,11 @@ import javax.net.ssl.X509TrustManager;
 
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
-import io.harness.cfsdk.logging.CfLog;
 import okhttp3.OkHttpClient;
 
 public class TlsUtils {
 
-    private static final String logTag = TlsUtils.class.getSimpleName();
+    private static final Logger log = LoggerFactory.getLogger(TlsUtils.class);
 
     public static void setupTls(ApiClient apiClient, CfConfiguration config) {
         if (config == null) {
@@ -65,7 +67,7 @@ public class TlsUtils {
             }
         } catch (GeneralSecurityException | IOException ex) {
             String msg = "Failed to setup TLS on SSE endpoint: " + ex.getMessage();
-            CfLog.OUT.w(logTag, msg);
+            log.warn("Failed to setup TLS on SSE endpoint: {}", msg);
             throw new RuntimeException(msg, ex);
         }
     }

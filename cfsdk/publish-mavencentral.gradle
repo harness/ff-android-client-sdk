@@ -135,3 +135,8 @@ publishing {
 signing {
     sign publishing.publications
 }
+
+tasks.withType(Sign) {
+    // This allows publishToMavenLocal to work without the need to sign dev artifacts
+    onlyIf("calling publish task") { gradle.taskGraph.hasTask("publish") }
+}

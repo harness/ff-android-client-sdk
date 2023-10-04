@@ -1,7 +1,6 @@
 package io.harness.cfsdk;
 
 import static io.harness.cfsdk.utils.CfUtils.EvaluationUtil.areEvaluationsValid;
-import static io.harness.cfsdk.utils.CfUtils.EvaluationUtil.isEvaluationValid;
 
 import android.content.Context;
 
@@ -11,8 +10,9 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,7 +48,6 @@ import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.sse.SSEControlling;
 import io.harness.cfsdk.common.Destroyable;
-import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.utils.GuardObjectWrapper;
 
 /**
@@ -58,6 +57,8 @@ import io.harness.cfsdk.utils.GuardObjectWrapper;
  */
 public class CfClient implements Destroyable {
 
+    private static final Logger log = LoggerFactory.getLogger(CfClient.class);
+
     protected ICloud cloud;
     protected Target target;
     protected static CfClient instance;
@@ -66,7 +67,6 @@ public class CfClient implements Destroyable {
 
     private AuthInfo authInfo;
     private boolean useStream;
-    private final String logTag;
     private final Executor executor;
     private final AtomicBoolean ready;
     private SSEControlling sseController;
@@ -83,7 +83,6 @@ public class CfClient implements Destroyable {
     {
 
         ready = new AtomicBoolean();
-        logTag = CfClient.class.getSimpleName();
         executor = Executors.newSingleThreadExecutor();
         evaluationListenerSet = new ConcurrentHashMap<>();
         listenerUpdateExecutor = Executors.newSingleThreadExecutor();
@@ -94,11 +93,11 @@ public class CfClient implements Destroyable {
 
     private final EventsListener eventsListener = statusEvent -> {
 
-        CfLog.OUT.v(logTag, "SSE event received: " + statusEvent.getEventType());
+        log.debug("SSE event received: {}", statusEvent.getEventType());
 
         if (!ready.get()) {
 
-            CfLog.OUT.w(logTag, "SSE event ignored, client is not ready");
+            log.warn("SSE event ignored, client is not ready");
             return;
         }
 
@@ -115,7 +114,7 @@ public class CfClient implements Destroyable {
             case SSE_RESUME:
 
                 evaluationPolling.stop();
-                CfLog.OUT.v(logTag, "SSE connection resumed, reloading all evaluations");
+                log.debug("SSE connection resumed, reloading all evaluations");
 
 
                 final List<Evaluation> resumedEvaluations = featureRepository.getAllEvaluations(
@@ -167,7 +166,7 @@ public class CfClient implements Destroyable {
                             statusEvent = new StatusEvent(statusEvent.getEventType(), evaluation);
                             notifyListeners(evaluation);
                         } else {
-                            CfLog.OUT.w(logTag, String.format("EVALUATION_CHANGE event failed to get evaluation for target '%s' from server", target.getIdentifier()));
+                            log.warn("EVALUATION_CHANGE event failed to get evaluation for target '{}' from server", target.getIdentifier());
                         }
                     }
                 }
@@ -193,7 +192,7 @@ public class CfClient implements Destroyable {
                     }
                     statusEvent = new StatusEvent(statusEvent.getEventType(), evaluations);
                 } else {
-                    CfLog.OUT.v(logTag, "Reloading all evaluations");
+                    log.debug("Reloading all evaluations");
 
 
                     final List<Evaluation> fetchedEvaluations = featureRepository.getAllEvaluations(
@@ -250,7 +249,7 @@ public class CfClient implements Destroyable {
 
     void sendEvent(StatusEvent statusEvent) {
 
-        CfLog.OUT.v(logTag, "sendEvent(): " + statusEvent.getEventType());
+        log.debug("sendEvent(): {}", statusEvent.getEventType());
 
         listenerUpdateExecutor.execute(() -> {
 
@@ -275,7 +274,7 @@ public class CfClient implements Destroyable {
 
         if (evaluation == null) {
 
-            CfLog.OUT.e(logTag, "Evaluation is null");
+            log.error("Evaluation is null");
             return;
         }
 
@@ -294,7 +293,7 @@ public class CfClient implements Destroyable {
 
     private void reschedule() {
 
-        CfLog.OUT.i(logTag, "Reschedule");
+        log.debug("Reschedule");
 
         executor.execute(() -> {
 
@@ -334,7 +333,7 @@ public class CfClient implements Destroyable {
                         cluster
                 );
 
-                CfLog.OUT.v(logTag, "Evaluations count: " + evaluations.size());
+                log.debug("Evaluations count: {}", evaluations.size());
 
                 // Notify users that evaluations have been reloaded. This happens first on client init,
                 // then if polling is enabled, on each interval.
@@ -352,7 +351,7 @@ public class CfClient implements Destroyable {
 
             } catch (Exception e) {
 
-                CfLog.OUT.e(logTag, e.getMessage(), e);
+               log.error(e.getMessage(), e);
 
                 if (networkInfoProvider.isNetworkAvailable()) {
 
@@ -388,7 +387,7 @@ public class CfClient implements Destroyable {
 
     private synchronized void startSSE(boolean isRescheduled) {
 
-        CfLog.OUT.v(logTag, "Start SSE");
+        log.debug("Start SSE");
 
         final SSEConfig config = cloud.getConfig();
 
@@ -400,7 +399,7 @@ public class CfClient implements Destroyable {
 
     private synchronized void stopSSE() {
 
-        CfLog.OUT.v(logTag, "Stop SSE");
+        log.debug("Stop SSE");
 
         this.useStream = false;
         if (sseController != null) {
@@ -603,7 +602,7 @@ public class CfClient implements Destroyable {
                 try {
                     success = cloud.initialize();
                 } catch (ApiException e) {
-                    CfLog.OUT.w(logTag, e.getMessage(), e);
+                    log.warn(e.getMessage(), e);
                     final AuthResult result = new AuthResult(false, e);
                     if (authCallback != null) {
                         authCallback.authorizationSuccess(null, result);
@@ -662,7 +661,7 @@ public class CfClient implements Destroyable {
             });
         } catch (RejectedExecutionException e) {
 
-            CfLog.OUT.e(logTag, e.getMessage(), e);
+            log.error(e.getMessage(), e);
             if (authCallback != null) {
 
                 final AuthResult result = new AuthResult(false, e);
@@ -767,7 +766,7 @@ public class CfClient implements Destroyable {
 
         if (result == null) {
 
-            CfLog.OUT.w(logTag, "Result is null, creating the default one");
+            log.warn("Result is null, creating the default one");
 
             result = new Evaluation()
                     .value(defaultValue)
@@ -783,7 +782,7 @@ public class CfClient implements Destroyable {
 
             if (!analyticsManager.pushToQueue(this.target, evaluationId, variation)) {
 
-                CfLog.OUT.e(logTag, "Error adding into the metrics queue");
+                log.warn("Error adding into the metrics queue");
             }
         }
 
@@ -838,7 +837,7 @@ public class CfClient implements Destroyable {
                 return Double.parseDouble(strValue);
             } catch (NumberFormatException e) {
 
-                CfLog.OUT.e(logTag, e.getMessage(), e);
+                log.error(e.getMessage(), e);
             }
         }
         return defaultValue;
@@ -873,7 +872,7 @@ public class CfClient implements Destroyable {
             }
         } catch (JSONException e) {
 
-            CfLog.OUT.e(logTag, e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
         return null;
     }

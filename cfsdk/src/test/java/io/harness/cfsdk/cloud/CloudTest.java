@@ -19,14 +19,11 @@ import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
-import io.harness.cfsdk.logging.CfLog;
 
 public class CloudTest {
 
     @Test
     public void cloudTest() throws ApiException {
-
-        CfLog.testModeOn();
 
         ApiClient apiClient = Mockito.mock(ApiClient.class);
         Mockito.doReturn(apiClient).when(apiClient).addDefaultHeader(any(), any());

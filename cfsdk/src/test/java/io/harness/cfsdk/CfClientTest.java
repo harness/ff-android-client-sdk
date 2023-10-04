@@ -35,6 +35,8 @@ import com.google.common.util.concurrent.AtomicLongMap;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Objects;
@@ -49,7 +51,6 @@ import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
 import io.harness.cfsdk.cloud.oksse.EventsListener;
 import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
-import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.mock.MockedCache;
 import io.harness.cfsdk.mock.MockedNetworkInfoProvider;
 import io.harness.cfsdk.utils.EventsListenerCounter;
@@ -65,7 +66,8 @@ import okhttp3.tls.HeldCertificate;
  */
 public class CfClientTest {
 
-    private static final String logTag = CfClientTest.class.getSimpleName();
+    private static final Logger log = LoggerFactory.getLogger(CfClientTest.class);
+
     private static final Target DUMMY_TARGET = new Target().identifier("anyone@anywhere.com").name("unit-test");
 
     static class MockWebServerDispatcher extends Dispatcher {
@@ -167,10 +169,6 @@ public class CfClientTest {
         }
     }
 
-    @Before
-    public void beforeEach() {
-        CfLog.testModeOn();
-    }
 
     @Test
     public void shouldConnectToWebServerWithAbsoluteStreamUrl() throws Exception {
@@ -449,7 +447,7 @@ public class CfClientTest {
                 .heldCertificate(localCert)
                 .build();
 
-        CfLog.OUT.i(logTag, "Using self-signed cert:\n" + localCert.certificatePem());
+        log.debug("Using self-signed cert: {}\n", localCert.certificatePem());
 
         final MockWebServerDispatcher dispatcher = new MockWebServerDispatcher();
         try (MockWebServer mockSvr = new MockWebServer()) {
@@ -457,7 +455,7 @@ public class CfClientTest {
             mockSvr.setDispatcher(dispatcher);
             mockSvr.start();
             final String url = makeSecureServerUrl(mockSvr.getHostName(), mockSvr.getPort());
-            CfLog.OUT.i(logTag, String.format("mock TLS server running on %s:%d", mockSvr.getHostName(), mockSvr.getPort()));
+            log.debug("mock TLS server running on {}:{}", mockSvr.getHostName(), mockSvr.getPort());
 
             final CfClient client = new CfClient();
             client.setNetworkInfoProvider(MockedNetworkInfoProvider.create());
@@ -542,7 +540,7 @@ public class CfClientTest {
             assertTrue(authLatch.await(30, TimeUnit.SECONDS));
             assertEquals(0, cache.getCacheHitCountForEvaluation("anyone@anywhere.com"));
 
-            CfLog.OUT.i(logTag, "Auth completed");
+            log.debug("Auth completed");
 
             if (callback != null) {
                 callback.accept(client);

@@ -8,25 +8,23 @@ import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
-import io.harness.cfsdk.logging.CfLog;
+import io.harness.cfsdk.cloud.repository.FeatureRepositoryImpl;
 import okhttp3.Request;
 import okhttp3.Response;
 
 public class SSEListener implements ServerSentEvent.Listener {
 
-    private final String logTag;
+    private static final Logger log = LoggerFactory.getLogger(SSEListener.class);
+
     private final EventsListener eventsListener;
-
-    {
-
-        logTag = SSEListener.class.getSimpleName();
-    }
 
     public SSEListener(EventsListener eventsListener) {
 
@@ -80,15 +78,7 @@ public class SSEListener implements ServerSentEvent.Listener {
                 // it's not an error case so no need to log it
             }
 
-            CfLog.OUT.v(
-
-                    logTag,
-                    String.format(
-
-                            "onMessage(): domain=%s, eventType=%s, identifier=%s",
-                            domain, eventType, identifier
-                    )
-            );
+            log.debug("onMessage(): domain={}, eventType={}, identifier={}", domain, eventType, identifier);
 
             StatusEvent statusEvent = null;
             if ("target-segment".equals(domain)) {
@@ -112,15 +102,12 @@ public class SSEListener implements ServerSentEvent.Listener {
             if (statusEvent != null) {
                 eventsListener.onEventReceived(statusEvent);
             } else {
-                CfLog.OUT.e(logTag, String.format(
-                        "Unrecognized Status Event received, Ignoring... onMessage(): domain=%s, eventType=%s, identifier=%s",
-                        domain, eventType, identifier
-                ));
+                log.debug("Unrecognized Status Event received, Ignoring... onMessage(): domain={}, eventType={}, identifier={}", domain, eventType, identifier);
             }
 
         } catch (JSONException e) {
 
-            CfLog.OUT.e(logTag, e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
     }
 

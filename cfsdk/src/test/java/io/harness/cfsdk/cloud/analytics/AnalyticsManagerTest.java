@@ -8,6 +8,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -18,7 +20,6 @@ import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
-import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.mock.MockMetricsApiFactoryRecipe;
 import io.harness.cfsdk.mock.MockedAnalyticsManager;
 
@@ -26,15 +27,10 @@ import io.harness.cfsdk.mock.MockedAnalyticsManager;
 @SuppressWarnings("BusyWait")
 public class AnalyticsManagerTest {
 
+    private static final Logger log = LoggerFactory.getLogger(AnalyticsManagerTest.class);
+
     private final long timeout = 30_000L;
-    private final String logTag = AnalyticsManagerTest.class.getSimpleName();
     private final int count = 3;
-
-    @Before
-    public void prepare() {
-
-        CfLog.testModeOn();
-    }
 
     @Test
     public void testHappyPath() {
@@ -215,7 +211,7 @@ public class AnalyticsManagerTest {
 
     private ManagerWrapper getWrapped(final CountDownLatch latch) {
 
-        CfLog.OUT.v(logTag, "Testing: " + AnalyticsManager.class.getSimpleName());
+        log.debug("Testing: {}", AnalyticsManager.class.getSimpleName());
 
         final String test = "Test";
         final String token = UUID.randomUUID().toString();
@@ -257,7 +253,7 @@ public class AnalyticsManagerTest {
         MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(
 
                 (authInfo, authToken, config) -> (environment, cluster, metrics) ->
-                        CfLog.OUT.v(logTag, "Ignore this metrics posting")
+                       log.debug("Ignore this metrics posting")
         );
 
         for (int x = 0; x < count; x++) {

@@ -8,16 +8,17 @@ import io.harness.cfsdk.CfConfiguration
 import io.harness.cfsdk.cloud.events.EvaluationListener
 import io.harness.cfsdk.cloud.model.Target
 import io.harness.cfsdk.cloud.oksse.EventsListener
-import io.harness.cfsdk.logging.CfLog
-import org.json.JSONObject
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
 
+    private val log: Logger = LoggerFactory.getLogger(MainActivity::class.java)
+
     private val clients = mutableListOf<CfClient>()
     private val timers = mutableMapOf<String, Timer>()
-    private val logTag = MainActivity::class.simpleName
 
     companion object {
 
@@ -35,7 +36,7 @@ class MainActivity : AppCompatActivity() {
 
     private var eventsListener = EventsListener { event ->
 
-        CfLog.OUT.v(logTag, "Event: ${event.eventType}")
+        log.debug("Event: ${event.eventType}")
     }
 
     private val flag1Listener: EvaluationListener = EvaluationListener {
@@ -43,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         clients.forEach { client ->
 
             val eval = client.boolVariation("harnessappdemodarkmode", false)
-            CfLog.OUT.v(logTag, "harnessappdemodarkmode value: $eval")
+            log.info("harnessappdemodarkmode value: $eval")
         }
     }
 
@@ -95,7 +96,7 @@ class MainActivity : AppCompatActivity() {
 
                         if (registerEventsOk && registerEvaluationsOk > 0) {
 
-                            CfLog.OUT.i(logTag, "$logPrefix Registrations OK")
+                            log.info("$logPrefix Registrations OK")
                         }
 
                         try {
@@ -118,7 +119,7 @@ class MainActivity : AppCompatActivity() {
 
                         } catch (e:Exception) {
 
-                            CfLog.OUT.e(logTag, "Error", e)
+                            log.error("Error", e)
                         }
 
                     } else {
@@ -130,7 +131,7 @@ class MainActivity : AppCompatActivity() {
                             err.message?.let { errMsg ->
                                 msg = errMsg
                             }
-                            CfLog.OUT.e(logTag, msg, err)
+                           log.error(msg, err)
                         }
 
                         runOnUiThread {
@@ -146,7 +147,7 @@ class MainActivity : AppCompatActivity() {
     private fun readEvaluations(client: CfClient, logPrefix: String) {
 
         val bVal = client.boolVariation("harnessappdemodarkmode", false)
-        CfLog.OUT.v(logTag, "$logPrefix harnessappdemodarkmode: $bVal")
+        log.debug("$logPrefix harnessappdemodarkmode: $bVal")
     }
 
     override fun onDestroy() {
