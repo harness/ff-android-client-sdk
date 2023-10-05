@@ -374,7 +374,10 @@ public class CfClientTest {
 
         runEvaluation_WithClientCallback(dispatcher, cache, MockedNetworkInfoProvider.create(), client -> {
 
-            Evaluation eval = client.getEvaluationById("anyone@anywhere.com", "anyone@anywhere.com", false);
+            Target target = new Target();
+            target.identifier("anyone@anywhere.com");
+
+            Evaluation eval = client.getEvaluationById("anyone@anywhere.com", target, false);
             assertNotNull(eval);
             assertEquals("testFlag", eval.getFlag());
             assertEquals("anyone@anywhere.com", eval.getIdentifier());
@@ -399,7 +402,10 @@ public class CfClientTest {
 
         runEvaluation_WithClientCallback(dispatcher, cache, MockedNetworkInfoProvider.create(), client -> {
 
-            Evaluation eval = client.getEvaluationById("anyone@anywhere.com", "anyone@anywhere.com", DEFAULT_VALUE);
+            Target target = new Target();
+            target.identifier("anyone@anywhere.com");
+
+            Evaluation eval = client.getEvaluationById("anyone@anywhere.com", target, DEFAULT_VALUE);
             assertNotNull(eval);
             assertEquals("anyone@anywhere.com", eval.getFlag());
             assertEquals(DEFAULT_VALUE, eval.getValue());
@@ -421,7 +427,10 @@ public class CfClientTest {
 
         runEvaluation_WithClientCallback(dispatcher, cache, MockedNetworkInfoProvider.create(), client -> {
 
-            Evaluation eval = client.getEvaluationById("anyone@anywhere.com", "anyone@anywhere.com", DEFAULT_VALUE);
+            Target target = new Target();
+            target.identifier("anyone@anywhere.com");
+
+            Evaluation eval = client.getEvaluationById("anyone@anywhere.com", target, DEFAULT_VALUE);
             assertNotNull(eval);
             assertEquals("anyone@anywhere.com", eval.getFlag());
             assertEquals(DEFAULT_VALUE, eval.getValue());
