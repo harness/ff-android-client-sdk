@@ -15,12 +15,16 @@ package io.harness.cfsdk.cloud.core.api;
 
 import com.google.gson.reflect.TypeToken;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.harness.cfsdk.cloud.analytics.AnalyticsPublisherService;
 import io.harness.cfsdk.cloud.core.client.ApiCallback;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
 import io.harness.cfsdk.cloud.core.client.ApiException;
@@ -30,17 +34,12 @@ import io.harness.cfsdk.cloud.core.client.Pair;
 import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
 import io.harness.cfsdk.cloud.core.model.AuthenticationResponse;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
-import io.harness.cfsdk.logging.CfLog;
 
 public class DefaultApi {
 
-    private final String logTag;
+    private static final Logger log = LoggerFactory.getLogger(AnalyticsPublisherService.class);
     private ApiClient localVarApiClient;
 
-    {
-
-        logTag = DefaultApi.class.getSimpleName();
-    }
 
     public DefaultApi() {
 
@@ -124,11 +123,7 @@ public class DefaultApi {
 
         ApiResponse<AuthenticationResponse> response = authenticateWithHttpInfo(authenticationRequest);
 
-        CfLog.OUT.v(
-
-                logTag,
-                String.format("API, authenticate: %s", response.getStatusCode())
-        );
+        log.debug("API, authenticate: {}", response.getStatusCode());
         return response.getData();
     }
 
@@ -272,11 +267,8 @@ public class DefaultApi {
 
                 environmentUUID, feature, target, cluster
         );
-        CfLog.OUT.v(
 
-                logTag,
-                String.format("API, getEvaluationByIdentifier: %s", response.getStatusCode())
-        );
+        log.debug("API, getEvaluationByIdentifier: {}", response.getStatusCode());
         return response.getData();
     }
 
@@ -449,11 +441,7 @@ public class DefaultApi {
                 environmentUUID, target, cluster
         );
 
-        CfLog.OUT.v(
-
-                logTag,
-                String.format("API, getEvaluations: %s", response.getStatusCode())
-        );
+        log.debug("API, getEvaluationByIdentifier: {}", response.getStatusCode());
 
         return response.getData();
     }
@@ -590,11 +578,8 @@ public class DefaultApi {
         okhttp3.Call localVarCall = streamValidateBeforeCall(environmentId, null);
         final ApiResponse<Void> response = localVarApiClient.execute(localVarCall);
 
-        CfLog.OUT.v(
+        log.debug("API, streamWithHttpInfo: {}", response.getStatusCode());
 
-                logTag,
-                String.format("API, streamWithHttpInfo: %s", response.getStatusCode())
-        );
         return response;
     }
 

@@ -19,13 +19,14 @@ package io.harness.cfsdk.cloud.oksse;
 import static io.harness.cfsdk.AndroidSdkVersion.ANDROID_SDK_VERSION;
 
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import io.harness.cfsdk.cloud.model.AuthInfo;
-import io.harness.cfsdk.logging.CfLog;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -36,12 +37,13 @@ import okio.BufferedSource;
 
 class RealServerSentEvent implements ServerSentEvent {
 
+    private static final Logger log = LoggerFactory.getLogger(RealServerSentEvent.class);
+
     private Call call;
     public Listener listener;
     private Reader sseReader;
     private String lastEventId;
     private long reconnectTime = TimeUnit.SECONDS.toMillis(3);
-    private final String logTag = RealServerSentEvent.class.getSimpleName();
     private OkHttpClient client;
     private long readTimeoutMillis;
     private final Request originalRequest;
@@ -92,25 +94,21 @@ class RealServerSentEvent implements ServerSentEvent {
 
     private void enqueue(boolean isRescheduled) {
 
-        CfLog.OUT.v(logTag, "API, SSE starting");
+        log.debug("API, SSE starting");
         call.enqueue(
                 new Callback() {
 
                     @Override
                     public void onFailure(@NotNull Call call, @NotNull IOException e) {
 
-                        CfLog.OUT.e(logTag, "API, SSE failure", e);
+                        log.debug("API, SSE failure", e);
                         notifyFailure(e, null, isRescheduled);
                     }
 
                     @Override
                     public void onResponse(@NotNull Call call, @NotNull Response response) {
 
-                        CfLog.OUT.v(
-
-                                logTag,
-                                String.format("API, SSE Response received: %s", response.code())
-                        );
+                        log.debug("API, SSE Response received: {}", response.code());
                         if (response.isSuccessful()) {
 
                             openSse(response, isRescheduled);
@@ -139,7 +137,7 @@ class RealServerSentEvent implements ServerSentEvent {
 
     private void notifyFailure(Throwable throwable, Response response, boolean isRescheduled) {
 
-        CfLog.OUT.e(logTag, "Error in opening SSE stream", throwable);
+        log.warn("Error in opening SSE stream", throwable);
         if (!retry(throwable, response, isRescheduled)) {
 
             if (listener != null) listener.onClosed(this);
@@ -148,7 +146,7 @@ class RealServerSentEvent implements ServerSentEvent {
     }
 
     private void notifyClosed() {
-        CfLog.OUT.e(logTag, "End of SSE stream encountered");
+        log.warn("End of SSE stream encountered");
         close();
         if (listener != null) listener.onClosed(this);
     }
@@ -243,7 +241,7 @@ class RealServerSentEvent implements ServerSentEvent {
                 processLine(line);
             } catch (IOException e) {
 
-                CfLog.OUT.e(logTag, e.getMessage(), e);
+                log.debug(e.getMessage(), e);
                 notifyFailure(e, null, isRescheduled);
                 return false;
             }

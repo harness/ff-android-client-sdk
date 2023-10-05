@@ -1,5 +1,8 @@
 package io.harness.cfsdk.cloud.analytics;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
@@ -11,20 +14,20 @@ import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.common.Destroyable;
-import io.harness.cfsdk.logging.CfLog;
+import io.harness.cfsdk.common.SdkCodes;
 
 public class AnalyticsManager implements Destroyable {
+
+    private static final Logger log = LoggerFactory.getLogger(AnalyticsManager.class);
 
     protected final BlockingQueue<Analytics> queue;
 
     private final Timer timer;
-    private final String logTag;
     private final AnalyticsPublisherService analyticsPublisherService;
 
     {
 
         timer = new Timer();
-        logTag = AnalyticsManager.class.getSimpleName();
     }
 
     public AnalyticsManager(
@@ -41,7 +44,7 @@ public class AnalyticsManager implements Destroyable {
                 authToken, config, authInfo
         );
 
-        final long frequency = config.getMetricsPublishingIntervalInMillis();
+        final long frequencyMs = config.getMetricsPublishingIntervalInMillis();
 
         timer.schedule(
 
@@ -55,15 +58,10 @@ public class AnalyticsManager implements Destroyable {
                 },
 
                 0L,
-                frequency
+                frequencyMs
         );
 
-        final String msg = String.format(
-
-                "Metrics sending scheduled with frequency of: %s", frequency
-        );
-
-        CfLog.OUT.v(logTag, msg);
+        SdkCodes.infoMetricsThreadStarted((int)frequencyMs/1000);
     }
 
     public boolean pushToQueue(
@@ -78,7 +76,7 @@ public class AnalyticsManager implements Destroyable {
             analyticsPublisherService.sendDataAndResetQueue(queue, getSendingCallback());
         }
 
-        CfLog.OUT.v(logTag, "pushToQueue: Variation=" + variation);
+        log.debug("pushToQueue: Variation={}", variation);
 
         final Analytics analytics = new AnalyticsBuilder()
                 .target(target)
@@ -93,7 +91,7 @@ public class AnalyticsManager implements Destroyable {
 
         } catch (final InterruptedException e) {
 
-            CfLog.OUT.e(logTag, "Error", e);
+            log.warn("metrics queue error", e);
         }
 
         return false;
@@ -102,11 +100,13 @@ public class AnalyticsManager implements Destroyable {
     @Override
     public void destroy() {
 
-        CfLog.OUT.v(logTag, "destroying");
+        log.debug("destroying");
 
         analyticsPublisherService.sendDataAndResetQueue(queue, getSendingCallback());
         timer.cancel();
         timer.purge();
+
+        SdkCodes.infoMetricsThreadExited();
     }
 
     protected AnalyticsPublisherServiceCallback getSendingCallback() {
@@ -115,11 +115,11 @@ public class AnalyticsManager implements Destroyable {
 
             if (success) {
 
-                CfLog.OUT.v(logTag, "Metrics sending success");
+                log.debug("Metrics sending success");
 
             } else {
 
-                CfLog.OUT.w(logTag, "Metrics sending failure");
+                log.debug("Metrics sending failure");
             }
         };
     }

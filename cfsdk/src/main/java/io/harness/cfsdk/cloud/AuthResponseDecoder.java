@@ -6,17 +6,14 @@ import androidx.annotation.Nullable;
 
 import com.google.gson.Gson;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.harness.cfsdk.cloud.model.AuthInfo;
-import io.harness.cfsdk.logging.CfLog;
 
 public class AuthResponseDecoder {
 
-    private final String logTag;
-
-    {
-
-        logTag = AuthResponseDecoder.class.getSimpleName();
-    }
+    private static final Logger log = LoggerFactory.getLogger(AuthResponseDecoder.class);
 
     public @Nullable
     AuthInfo extractInfo(String token) {
@@ -37,7 +34,7 @@ public class AuthResponseDecoder {
             }
         } catch (Exception e) {
 
-            CfLog.OUT.e(logTag, e.getMessage(), e);
+            log.warn("auth token decode failed: {}", e.getMessage(), e);
         }
         return null;
     }

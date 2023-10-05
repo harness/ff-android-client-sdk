@@ -1,5 +1,8 @@
 package io.harness.cfsdk.cloud;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
@@ -10,15 +13,15 @@ import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.oksse.SSEAuthentication;
 import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
-import io.harness.cfsdk.logging.CfLog;
 import io.harness.cfsdk.utils.TlsUtils;
 
 public class Cloud implements ICloud {
 
+    private static final Logger log = LoggerFactory.getLogger(Cloud.class);
+
     private final String key;
     private String authToken;
     private AuthInfo authInfo;
-    private final String logTag = Cloud.class.getSimpleName();
     private final Target target;
     private DefaultApi defaultApi;
     private final String streamUrl;
@@ -65,8 +68,7 @@ public class Cloud implements ICloud {
             );
 
         } catch (ApiException e) {
-
-            CfLog.OUT.e(logTag, "API, Error: " + e.getMessage(), e);
+            log.warn("API, Error: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -89,7 +91,7 @@ public class Cloud implements ICloud {
             );
         } catch (ApiException e) {
 
-            CfLog.OUT.e(logTag, e.getMessage() + " - httpCode: " + e.getCode(), e);
+            log.warn("{} - httpCode: {}", e.getMessage(),  e.getCode(), e);
         }
         return null;
     }

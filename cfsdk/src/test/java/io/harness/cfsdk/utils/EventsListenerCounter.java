@@ -5,6 +5,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -16,10 +19,10 @@ import io.harness.cfsdk.CfClientTest;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.oksse.EventsListener;
 import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
-import io.harness.cfsdk.logging.CfLog;
+import io.harness.cfsdk.cloud.repository.FeatureRepositoryImpl;
 
 public class EventsListenerCounter implements EventsListener {
-    private static final String logTag = CfClientTest.class.getSimpleName().toUpperCase();
+    private static final Logger log = LoggerFactory.getLogger(EventsListenerCounter.class);
     private final CountDownLatch latch;
     private final int numOfValidEventsToWaitFor;
     private final Map<String, Long> map = new ConcurrentHashMap<>();
@@ -41,7 +44,7 @@ public class EventsListenerCounter implements EventsListener {
     public void onEventReceived(StatusEvent statusEvent) {
         final String name = statusEvent.getEventType().name();
         final String payloadInfo = (statusEvent.extractPayload() == null) ? "NULL" : statusEvent.extractPayload().getClass().getSimpleName();
-        CfLog.OUT.i(logTag, String.format("onEventReceived  ----------> type=%s payload=%s", name, payloadInfo));
+        log.debug("onEventReceived  ----------> type={} payload={}", name, payloadInfo);
 
         switch (statusEvent.getEventType()) {
             case EVALUATION_RELOAD:

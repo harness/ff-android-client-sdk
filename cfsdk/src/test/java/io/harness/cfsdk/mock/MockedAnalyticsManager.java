@@ -1,5 +1,8 @@
 package io.harness.cfsdk.mock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -9,15 +12,14 @@ import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
 import io.harness.cfsdk.cloud.analytics.AnalyticsPublisherServiceCallback;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
 import io.harness.cfsdk.cloud.model.AuthInfo;
-import io.harness.cfsdk.logging.CfLog;
 
 public class MockedAnalyticsManager extends AnalyticsManager {
 
+    private static final Logger log = LoggerFactory.getLogger(MockedAnalyticsManager.class);
     private final CountDownLatch latch;
     private int successCountValue;
     private int failureCountValue;
 
-    private final String logTag = MockedAnalyticsManager.class.getSimpleName();
     private final AtomicInteger successCount = new AtomicInteger();
     private final AtomicInteger failureCount = new AtomicInteger();
 
@@ -43,7 +45,7 @@ public class MockedAnalyticsManager extends AnalyticsManager {
 
         return success -> {
 
-            CfLog.OUT.v(logTag, "Sending result: " + success);
+            log.debug("Sending result: {}", success);
 
             if (success) {
 

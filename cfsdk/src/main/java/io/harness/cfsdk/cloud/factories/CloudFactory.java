@@ -4,6 +4,9 @@ import static io.harness.cfsdk.AndroidSdkVersion.ANDROID_SDK_VERSION;
 
 import android.content.Context;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
@@ -32,11 +35,11 @@ import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.repository.FeatureRepositoryImpl;
 import io.harness.cfsdk.cloud.sse.SSEController;
 import io.harness.cfsdk.cloud.sse.SSEControlling;
-import io.harness.cfsdk.logging.CfLog;
 
 public class CloudFactory implements ICloudFactory {
 
-    private final String logTag = CloudFactory.class.getSimpleName();
+    private static final Logger log = LoggerFactory.getLogger(CloudFactory.class);
+
     private TokenProvider tokenProvider;
 
     @Override
@@ -99,10 +102,10 @@ public class CloudFactory implements ICloudFactory {
         try {
 
             hostname = InetAddress.getLocalHost().getHostName();
-            CfLog.OUT.v(logTag, "Hostname: " + hostname);
+            log.debug("Hostname: {}", hostname);
         } catch (UnknownHostException e) {
 
-            CfLog.OUT.w(logTag, "Unable to get hostname");
+            log.warn("Unable to get hostname", e);
         }
         apiClient.addDefaultHeader("Hostname", hostname);
         apiClient.addDefaultHeader("Harness-SDK-Info", "Android " + ANDROID_SDK_VERSION + " Client");

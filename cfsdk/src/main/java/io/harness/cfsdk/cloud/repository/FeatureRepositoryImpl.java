@@ -1,5 +1,8 @@
 package io.harness.cfsdk.cloud.repository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -8,19 +11,16 @@ import io.harness.cfsdk.cloud.FeatureService;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
-import io.harness.cfsdk.logging.CfLog;
 
 public class FeatureRepositoryImpl implements FeatureRepository {
 
-    private final String tag;
+    private static final Logger log = LoggerFactory.getLogger(FeatureRepositoryImpl.class);
+
     private final CloudCache cloudCache;
     private final FeatureService featureService;
     private final NetworkInfoProviding networkInfoProvider;
 
-    {
 
-        tag = FeatureRepositoryImpl.class.getSimpleName();
-    }
 
     public FeatureRepositoryImpl(
 
@@ -84,11 +84,11 @@ public class FeatureRepositoryImpl implements FeatureRepository {
 
         final String envKey = environment + "_" + target;
 
-        CfLog.OUT.v(tag, "getAllEvaluations(): " + envKey);
+        log.debug("getAllEvaluations(): {}", envKey);
 
         if (!networkInfoProvider.isNetworkAvailable()) {
 
-            CfLog.OUT.v(tag, "getAllEvaluations(), returning from the cache: " + envKey);
+            log.debug("getAllEvaluations(), returning from the cache: {}", envKey);
 
             return this.cloudCache.getAllEvaluations(envKey);
         }
@@ -99,12 +99,7 @@ public class FeatureRepositoryImpl implements FeatureRepository {
             final List<Evaluation> evaluationList = apiResponse.body();
             cloudCache.saveAllEvaluations(envKey, evaluationList);
 
-            CfLog.OUT.v(
-
-                    tag,
-                    "getAllEvaluations(), returning from the cloud, size: " +
-                            evaluationList.size()
-            );
+            log.debug("getAllEvaluations(), returning from the cloud, size: {}", evaluationList.size());
 
             return evaluationList;
         }
@@ -113,25 +108,17 @@ public class FeatureRepositoryImpl implements FeatureRepository {
 
             if (apiResponse!=null) {
 
-                CfLog.OUT.e(
-
-                        tag,
-                        "Get all evaluations, API error code: " + apiResponse.getCode()
-                );
+                log.debug("Get all evaluations, API error code: {}", apiResponse.getCode());
 
             } else {
 
-                CfLog.OUT.e(
-
-                        tag,
-                        "Get all evaluations, got null API response"
-                );
+                log.debug("Get all evaluations, got null API response");
             }
 
             return this.cloudCache.getAllEvaluations(environment + "_" + target);
         }
 
-        CfLog.OUT.w(tag, "Got no evaluations");
+        log.warn("Got no evaluations");
         return Collections.emptyList();
 
     }

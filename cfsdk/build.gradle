@@ -48,6 +48,8 @@ apply from: "${rootProject.projectDir}/cfsdk/publish-mavencentral.gradle"
 
 dependencies {
 
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+
     implementation 'androidx.annotation:annotation:1.3.0'
     implementation 'org.apache.commons:commons-lang3:3.11'
 
@@ -67,5 +69,6 @@ dependencies {
     testImplementation "com.squareup.okhttp3:okhttp-tls:$okhttp3_version"
     testImplementation 'org.json:json:20180813'
     testImplementation 'com.google.guava:guava:31.1-android'
-
+    testImplementation 'ch.qos.logback:logback-classic:1.2.11'
+    testImplementation 'com.github.tony19:logback-android:3.0.0'
 }

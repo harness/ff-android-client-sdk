@@ -1,5 +1,8 @@
 package io.harness.cfsdk.cloud.analytics.api;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,18 +15,12 @@ import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.client.ApiResponse;
 import io.harness.cfsdk.cloud.core.client.Configuration;
 import io.harness.cfsdk.cloud.core.client.Pair;
-import io.harness.cfsdk.logging.CfLog;
 import okhttp3.Call;
 
 public class DefaultApi implements MetricsApi {
 
-    private final String logTag;
+    private static final Logger log = LoggerFactory.getLogger(DefaultApi.class);
     private ApiClient localVarApiClient;
-
-    {
-
-        logTag = DefaultApi.class.getSimpleName();
-    }
 
     public DefaultApi() {
 
@@ -105,7 +102,7 @@ public class DefaultApi implements MetricsApi {
                 _callback
         );
 
-        CfLog.OUT.v(logTag, "Metrics API, url: " + call.request().url().url());
+        log.debug("Metrics API, url: {}", call.request().url().url());
 
         return call;
     }
@@ -140,16 +137,9 @@ public class DefaultApi implements MetricsApi {
         final ApiResponse<Void> response = postMetricsWithHttpInfo(environment, cluster, metrics);
 
         if (response != null) {
-
-            CfLog.OUT.v(
-
-                    logTag,
-                    String.format("Metrics API, response code: %s", response.getStatusCode())
-            );
-
+            log.debug("Metrics API, response code: {}", response.getStatusCode());
         } else {
-
-            CfLog.OUT.e(logTag, "Metrics API, got null response");
+            log.debug("Metrics API, got null response");
         }
     }
 

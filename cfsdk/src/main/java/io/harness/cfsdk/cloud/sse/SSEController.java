@@ -8,6 +8,7 @@ import io.harness.cfsdk.cloud.oksse.OkSse;
 import io.harness.cfsdk.cloud.oksse.SSEListener;
 import io.harness.cfsdk.cloud.oksse.ServerSentEvent;
 import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
+import io.harness.cfsdk.common.SdkCodes;
 import io.harness.cfsdk.utils.TlsUtils;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -62,6 +63,7 @@ public class SSEController implements SSEControlling {
             return;
         }
         serverSentEvent.close();
+        SdkCodes.infoStreamStopped();
     }
 
 

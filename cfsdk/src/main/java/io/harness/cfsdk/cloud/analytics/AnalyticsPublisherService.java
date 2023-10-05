@@ -3,6 +3,9 @@ package io.harness.cfsdk.cloud.analytics;
 
 import static io.harness.cfsdk.AndroidSdkVersion.ANDROID_SDK_VERSION;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -18,12 +21,14 @@ import io.harness.cfsdk.cloud.analytics.model.Metrics;
 import io.harness.cfsdk.cloud.analytics.model.MetricsData;
 import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.model.AuthInfo;
-import io.harness.cfsdk.logging.CfLog;
+import io.harness.cfsdk.common.SdkCodes;
 
 /**
  * This class prepares the message body for metrics and posts it to the server
  */
 public class AnalyticsPublisherService {
+
+    private static final Logger log = LoggerFactory.getLogger(AnalyticsPublisherService.class);
 
     private static final String CLIENT;
     private static final String SDK_TYPE;
@@ -50,7 +55,6 @@ public class AnalyticsPublisherService {
         VARIATION_VALUE_ATTRIBUTE = "variationValue";
     }
 
-    private final String logTag = AnalyticsPublisherService.class.getSimpleName();
     private final String authToken;
     private final CfConfiguration config;
     private final AuthInfo authInfo;
@@ -79,7 +83,7 @@ public class AnalyticsPublisherService {
             final AnalyticsPublisherServiceCallback callback
     ) {
 
-        CfLog.OUT.d(logTag, "Reading from queue and building cache");
+        log.debug("Reading from queue and building cache");
 
         final Map<Analytics, Integer> all = new HashMap<>();
 
@@ -99,37 +103,17 @@ public class AnalyticsPublisherService {
                     all.put(analytics, count);
                 }
 
-                CfLog.OUT.v(
-
-                        logTag,
-                        String.format(
-
-                                Locale.getDefault(),
-                                "Preparing metrics: metric='%s', count=%d",
-                                analytics.getEvaluationId(),
-                                count
-                        )
-                );
+                log.debug("Preparing metrics: metric='{}', count={}", analytics.getEvaluationId(), count);
             }
         }
 
         if (all.isEmpty()) {
 
-            CfLog.OUT.d(logTag, "Cache is empty");
+            log.debug("Cache is empty");
             callback.onAnalyticsSent(true);
 
         } else {
-
-            CfLog.OUT.d(
-
-                    logTag,
-                    String.format(
-
-                            Locale.getDefault(),
-                            "Cache contains the metrics data, size=%d",
-                            all.size()
-                    )
-            );
+            log.debug("Cache contains the metrics data, size={}", all.size());
 
             try {
 
@@ -138,7 +122,7 @@ public class AnalyticsPublisherService {
 
                     long startTime = System.currentTimeMillis();
 
-                    CfLog.OUT.v(logTag, "Sending metrics");
+                    log.debug("Sending metrics");
 
                     final MetricsApi metricsAPI = MetricsApiFactory.create(authToken, config, authInfo);
                     metricsAPI.postMetrics(authInfo.getEnvironment(), authInfo.getCluster(), metrics);
@@ -147,14 +131,14 @@ public class AnalyticsPublisherService {
 
                     if ((endTime - startTime) > config.getMetricsServiceAcceptableDurationInMillis()) {
 
-                        CfLog.OUT.w(logTag, "Metrics service API duration=" + (endTime - startTime));
+                        log.debug("Metrics service API duration={}", endTime - startTime);
                     }
 
-                    CfLog.OUT.v(logTag, "Successfully sent analytics data to the server");
+                    log.debug("Successfully sent analytics data to the server");
 
                 } else {
 
-                    CfLog.OUT.v(logTag, "No analytics data to send the server");
+                    log.debug("No analytics data to send the server");
                 }
 
                 boolean queueCleared = true;
@@ -163,38 +147,23 @@ public class AnalyticsPublisherService {
                     while (queue.contains(analytics)) {
 
                         if (queue.remove(analytics)) {
-
-                            CfLog.OUT.v(
-
-                                    logTag,
-                                    "Metrics item was removed from the queue: "
-                                            + analytics.getEvaluationId()
-                            );
-
+                            log.debug("Metrics item was removed from the queue: {}", analytics.getEvaluationId());
                         } else {
-
-                            CfLog.OUT.e(
-
-                                    logTag,
-                                    "Metrics item was not removed from the queue: "
-                                            + analytics.getEvaluationId()
-                            );
-
+                            log.debug("Metrics item was not removed from the queue: {}", analytics.getEvaluationId());
                             queueCleared = false;
                         }
                     }
                 }
 
                 if (queueCleared) {
-
-                    CfLog.OUT.v(logTag, "Queue is cleared, size=" + queue.size());
+                    log.debug("Queue is cleared, size={}", queue.size());
                 }
 
                 callback.onAnalyticsSent(true);
 
             } catch (ApiException e) {
 
-                CfLog.OUT.e(logTag, "Error sending metrics", e);
+                SdkCodes.warnPostMetricsFailed(e.getMessage());
                 callback.onAnalyticsSent(false);
             }
         }
@@ -203,7 +172,7 @@ public class AnalyticsPublisherService {
 
     private Metrics prepareSummaryMetricsBody(Map<Analytics, Integer> data) {
 
-        CfLog.OUT.v(logTag, "Data size: " + data.size());
+        log.debug("Data size: {}", data.size());
 
         final Metrics metrics = new Metrics();
         final Map<SummaryMetrics, Integer> summaryMetricsData = new HashMap<>();
@@ -228,19 +197,10 @@ public class AnalyticsPublisherService {
                 summaryMetricsData.put(summaryMetrics, summaryCount + count);
             }
 
-            CfLog.OUT.v(
-
-                    logTag,
-                    String.format(
-
-                            "Summary metrics appended: %s, %s",
-                            summaryMetrics,
-                            summaryMetricsData.get(summaryMetrics)
-                    )
-            );
+            log.debug("Summary metrics appended: {}, {}", summaryMetrics, summaryMetricsData.get(summaryMetrics));
         }
 
-        CfLog.OUT.v(logTag, "Summary metrics size: " + summaryMetricsData.size());
+        log.debug("Summary metrics size: {}", summaryMetricsData.size());
 
         final Set<Map.Entry<SummaryMetrics, Integer>> summaryEntrySet = summaryMetricsData.entrySet();
 
@@ -266,12 +226,9 @@ public class AnalyticsPublisherService {
         final List<MetricsData> mData = metrics.getMetricsData();
 
         if (mData != null) {
-
-            CfLog.OUT.v(logTag, "Metrics data size: " + mData.size());
-
+            log.debug("Metrics data size: {}", mData.size());
         } else {
-
-            CfLog.OUT.w(logTag, "Metrics data size: no data");
+            log.warn("Metrics data size: no data");
         }
 
         return metrics;
