@@ -21,6 +21,7 @@ import io.harness.cfsdk.cloud.analytics.model.Metrics;
 import io.harness.cfsdk.cloud.analytics.model.MetricsData;
 import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.model.AuthInfo;
+import io.harness.cfsdk.common.SdkCodes;
 
 /**
  * This class prepares the message body for metrics and posts it to the server
@@ -162,7 +163,7 @@ public class AnalyticsPublisherService {
 
             } catch (ApiException e) {
 
-                log.debug("Error sending metrics", e);
+                SdkCodes.warnPostMetricsFailed(e.getMessage());
                 callback.onAnalyticsSent(false);
             }
         }

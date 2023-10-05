@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
 import io.harness.cfsdk.cloud.repository.FeatureRepositoryImpl;
+import io.harness.cfsdk.common.SdkCodes;
 import okhttp3.Request;
 import okhttp3.Response;
 
@@ -46,6 +47,7 @@ public class SSEListener implements ServerSentEvent.Listener {
             this.eventsListener.onEventReceived(
                     new StatusEvent(StatusEvent.EVENT_TYPE.SSE_START, serverSentEvent)
             );
+            SdkCodes.infoStreamConnected();
         }
     }
 
@@ -55,6 +57,7 @@ public class SSEListener implements ServerSentEvent.Listener {
 
         JSONObject jsonObject;
         try {
+            SdkCodes.infoStreamEventReceived(message);
 
             jsonObject = new JSONObject(message);
 
@@ -124,6 +127,7 @@ public class SSEListener implements ServerSentEvent.Listener {
     @Override
     public boolean onRetryError(
             ServerSentEvent serverSentEvent, Throwable throwable, Response response) {
+        SdkCodes.warnStreamDisconnected(throwable != null ? throwable.getMessage() : "unknown");
         return false;
     }
 

@@ -14,6 +14,7 @@ import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.common.Destroyable;
+import io.harness.cfsdk.common.SdkCodes;
 
 public class AnalyticsManager implements Destroyable {
 
@@ -43,7 +44,7 @@ public class AnalyticsManager implements Destroyable {
                 authToken, config, authInfo
         );
 
-        final long frequency = config.getMetricsPublishingIntervalInMillis();
+        final long frequencyMs = config.getMetricsPublishingIntervalInMillis();
 
         timer.schedule(
 
@@ -57,10 +58,10 @@ public class AnalyticsManager implements Destroyable {
                 },
 
                 0L,
-                frequency
+                frequencyMs
         );
 
-        log.debug("Metrics sending scheduled with frequency of: {}", frequency);
+        SdkCodes.infoMetricsThreadStarted((int)frequencyMs/1000);
     }
 
     public boolean pushToQueue(
@@ -104,6 +105,8 @@ public class AnalyticsManager implements Destroyable {
         analyticsPublisherService.sendDataAndResetQueue(queue, getSendingCallback());
         timer.cancel();
         timer.purge();
+
+        SdkCodes.infoMetricsThreadExited();
     }
 
     protected AnalyticsPublisherServiceCallback getSendingCallback() {

@@ -36,6 +36,10 @@ public class SdkCodes {
     log.info(sdkErrMsg(5000));
   }
 
+  public static void infoStreamStopped() {
+    log.info(sdkErrMsg(5004));
+  }
+
   public static void infoStreamEventReceived(String eventJson) {
     log.info(sdkErrMsg(5002, eventJson));
   }
@@ -86,6 +90,7 @@ public class SdkCodes {
     put(5001, "SSE stream disconnected, reason:");
     put(5002, "SSE event received:");
     put(5003, "SSE retrying to connect in");
+    put(5004, "SSE stopped");
 
     put(6000, "Evaluated variation successfully");
     put(6001, "Default variation was served");

@@ -48,6 +48,7 @@ import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.sse.SSEControlling;
 import io.harness.cfsdk.common.Destroyable;
+import io.harness.cfsdk.common.SdkCodes;
 import io.harness.cfsdk.utils.GuardObjectWrapper;
 
 /**
@@ -556,6 +557,11 @@ public class CfClient implements Destroyable {
         this.configuration = configuration;
         this.target = target;
 
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            SdkCodes.errorMissingSdkKey();
+            throw new IllegalArgumentException("missing sdk key");
+        }
+
         if (target == null || configuration == null) {
             if (authCallback != null) {
 
@@ -645,6 +651,7 @@ public class CfClient implements Destroyable {
 
                     if (authCallback != null) {
 
+                        SdkCodes.infoSdkAuthOk();
                         final AuthResult result = new AuthResult(true);
                         authCallback.authorizationSuccess(authInfo, result);
                     }
@@ -742,7 +749,7 @@ public class CfClient implements Destroyable {
     <T> Evaluation getEvaluationById(
 
             String evaluationId,
-            String target,
+            Target target,
             T defaultValue
     ) {
 
@@ -755,7 +762,7 @@ public class CfClient implements Destroyable {
 
             result = featureRepository.getEvaluation(
 
-                    identifier, target, evaluationId, cluster
+                    identifier, target.getIdentifier(), evaluationId, cluster
             );
 
         } else {
@@ -767,7 +774,7 @@ public class CfClient implements Destroyable {
         if (result == null) {
 
             log.warn("Result is null, creating the default one");
-
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
             result = new Evaluation()
                     .value(defaultValue)
                     .flag(evaluationId);
@@ -794,7 +801,7 @@ public class CfClient implements Destroyable {
         final Evaluation evaluation = getEvaluationById(
 
                 evaluationId,
-                target.getIdentifier(),
+                target,
                 defaultValue
         );
 
@@ -807,12 +814,14 @@ public class CfClient implements Destroyable {
 
             return "true".equals(value);
         }
+
+        SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
         return defaultValue;
     }
 
     public String stringVariation(String evaluationId, String defaultValue) {
 
-        return getEvaluationById(evaluationId, target.getIdentifier(), defaultValue).getValue();
+        return getEvaluationById(evaluationId, target, defaultValue).getValue();
     }
 
     public double numberVariation(String evaluationId, double defaultValue) {
@@ -820,7 +829,7 @@ public class CfClient implements Destroyable {
         final Evaluation evaluation = getEvaluationById(
 
                 evaluationId,
-                target.getIdentifier(),
+                target,
                 defaultValue
         );
 
@@ -840,6 +849,7 @@ public class CfClient implements Destroyable {
                 log.error(e.getMessage(), e);
             }
         }
+        SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
         return defaultValue;
     }
 
@@ -850,7 +860,7 @@ public class CfClient implements Destroyable {
             final Evaluation e = getEvaluationById(
 
                     evaluationId,
-                    target.getIdentifier(),
+                    target,
                     defaultValue
             );
 
@@ -874,7 +884,8 @@ public class CfClient implements Destroyable {
 
             log.error(e.getMessage(), e);
         }
-        return null;
+        SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+        return defaultValue;
     }
 
 
