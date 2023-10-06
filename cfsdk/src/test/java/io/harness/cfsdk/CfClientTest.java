@@ -20,12 +20,12 @@ import static io.harness.cfsdk.TestUtils.makeSingleEvaluationJson;
 import static io.harness.cfsdk.TestUtils.makeSuccessResponse;
 import static io.harness.cfsdk.TestUtils.makeTargetSegmentCreateEvent;
 import static io.harness.cfsdk.TestUtils.makeTargetSegmentPatchEvent;
-import static io.harness.cfsdk.cloud.oksse.model.StatusEvent.EVENT_TYPE.EVALUATION_CHANGE;
-import static io.harness.cfsdk.cloud.oksse.model.StatusEvent.EVENT_TYPE.EVALUATION_RELOAD;
-import static io.harness.cfsdk.cloud.oksse.model.StatusEvent.EVENT_TYPE.EVALUATION_REMOVE;
-import static io.harness.cfsdk.cloud.oksse.model.StatusEvent.EVENT_TYPE.SSE_END;
-import static io.harness.cfsdk.cloud.oksse.model.StatusEvent.EVENT_TYPE.SSE_RESUME;
-import static io.harness.cfsdk.cloud.oksse.model.StatusEvent.EVENT_TYPE.SSE_START;
+import static io.harness.cfsdk.cloud.sse.StatusEvent.EVENT_TYPE.EVALUATION_CHANGE;
+import static io.harness.cfsdk.cloud.sse.StatusEvent.EVENT_TYPE.EVALUATION_RELOAD;
+import static io.harness.cfsdk.cloud.sse.StatusEvent.EVENT_TYPE.EVALUATION_REMOVE;
+import static io.harness.cfsdk.cloud.sse.StatusEvent.EVENT_TYPE.SSE_END;
+import static io.harness.cfsdk.cloud.sse.StatusEvent.EVENT_TYPE.SSE_RESUME;
+import static io.harness.cfsdk.cloud.sse.StatusEvent.EVENT_TYPE.SSE_START;
 
 import android.content.Context;
 
@@ -33,7 +33,6 @@ import androidx.annotation.NonNull;
 
 import com.google.common.util.concurrent.AtomicLongMap;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,8 +48,8 @@ import java.util.function.Consumer;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
-import io.harness.cfsdk.cloud.oksse.EventsListener;
-import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
+import io.harness.cfsdk.cloud.sse.EventsListener;
+import io.harness.cfsdk.cloud.sse.StatusEvent;
 import io.harness.cfsdk.mock.MockedCache;
 import io.harness.cfsdk.mock.MockedNetworkInfoProvider;
 import io.harness.cfsdk.utils.EventsListenerCounter;

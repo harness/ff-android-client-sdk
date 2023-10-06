@@ -41,12 +41,11 @@ import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
 import io.harness.cfsdk.cloud.network.NetworkStatus;
-import io.harness.cfsdk.cloud.oksse.EventsListener;
-import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
-import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
+import io.harness.cfsdk.cloud.sse.EventSource;
+import io.harness.cfsdk.cloud.sse.EventsListener;
+import io.harness.cfsdk.cloud.sse.StatusEvent;
 import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
-import io.harness.cfsdk.cloud.sse.SSEControlling;
 import io.harness.cfsdk.common.Destroyable;
 import io.harness.cfsdk.common.SdkCodes;
 import io.harness.cfsdk.utils.GuardObjectWrapper;
@@ -60,6 +59,9 @@ public class CfClient implements Destroyable {
 
     private static final Logger log = LoggerFactory.getLogger(CfClient.class);
 
+    private static final String HARNESS_SDK_INFO =
+            String.format("Android %s Client", AndroidSdkVersion.ANDROID_SDK_VERSION);
+
     protected ICloud cloud;
     protected Target target;
     protected static CfClient instance;
@@ -70,7 +72,7 @@ public class CfClient implements Destroyable {
     private boolean useStream;
     private final Executor executor;
     private final AtomicBoolean ready;
-    private SSEControlling sseController;
+    private EventSource sseController;
     private CfConfiguration configuration;
     private final CloudFactory cloudFactory;
     private AnalyticsManager analyticsManager;
@@ -108,15 +110,12 @@ public class CfClient implements Destroyable {
         switch (statusEvent.getEventType()) {
 
             case SSE_START:
-
                 evaluationPolling.stop();
                 break;
 
             case SSE_RESUME:
-
                 evaluationPolling.stop();
                 log.debug("SSE connection resumed, reloading all evaluations");
-
 
                 final List<Evaluation> resumedEvaluations = featureRepository.getAllEvaluations(
 
@@ -126,7 +125,6 @@ public class CfClient implements Destroyable {
                 );
 
                 statusEvent = new StatusEvent(statusEvent.getEventType(), resumedEvaluations);
-
 
             case SSE_END:
 
@@ -144,7 +142,7 @@ public class CfClient implements Destroyable {
                 break;
 
             case EVALUATION_CHANGE:
-                List<Evaluation> evaluations = statusEvent.extractPayload();
+                List<Evaluation> evaluations = statusEvent.extractEvaluationListPayload();
 
                 // if evaluations are present in sse event save it directly, else fetch from server
                 if(areEvaluationsValid(evaluations)) {
@@ -176,13 +174,13 @@ public class CfClient implements Destroyable {
 
             case EVALUATION_REMOVE:
 
-                final Evaluation eval = statusEvent.extractPayload();
+                final Evaluation eval = statusEvent.extractEvaluationPayload();
                 featureRepository.remove(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), eval.getFlag());
                 break;
 
             case EVALUATION_RELOAD:
                 // TODO - add a try around this payload - possibly triggered by other things too
-                evaluations = statusEvent.extractPayload();
+                evaluations = statusEvent.extractEvaluationListPayload();
 
                 // if evaluations are present in sse event save it directly, else fetch from server
                 if(areEvaluationsValid(evaluations)) {
@@ -249,26 +247,14 @@ public class CfClient implements Destroyable {
     }
 
     void sendEvent(StatusEvent statusEvent) {
-
-        log.debug("sendEvent(): {}", statusEvent.getEventType());
-
         listenerUpdateExecutor.execute(() -> {
+            Thread.currentThread().setName("RegisteredListenersThread");
+            log.debug("send event {} to registered listeners", statusEvent.getEventType());
 
             for (final EventsListener listener : eventsListenerSet) {
-                if (checkForInvalidEvent(statusEvent)) {
-                    continue;
-                }
                 listener.onEventReceived(statusEvent);
             }
         });
-    }
-
-    private boolean checkForInvalidEvent(StatusEvent statusEvent) {
-        if (statusEvent.getEventType() == StatusEvent.EVENT_TYPE.EVALUATION_RELOAD) {
-            Object payload = statusEvent.extractPayload();
-            return payload != null && !(payload instanceof List);
-        }
-        return false;
     }
 
     private void notifyListeners(final Evaluation evaluation) {
@@ -342,7 +328,6 @@ public class CfClient implements Destroyable {
 
 
                 if (useStream) {
-                    final boolean isRescheduled = true;
                     startSSE(true);
 
                 } else {
@@ -387,24 +372,14 @@ public class CfClient implements Destroyable {
     }
 
     private synchronized void startSSE(boolean isRescheduled) {
-
         log.debug("Start SSE");
-
-        final SSEConfig config = cloud.getConfig();
-
-        if (config.isValid()) {
-
-            sseController.start(config, eventsListener, isRescheduled);
-        }
+        sseController.start(isRescheduled);
     }
 
     private synchronized void stopSSE() {
-
         log.debug("Stop SSE");
-
         this.useStream = false;
         if (sseController != null) {
-
             sseController.stop();
         }
     }
@@ -545,6 +520,19 @@ public class CfClient implements Destroyable {
         );
     }
 
+
+    private Map<String, String> makeHeadersFrom(String token, String apiKey, AuthInfo authInfo) {
+        return new HashMap<String, String>() {{
+            put("Authorization", "Bearer " + token);
+            put("API-Key", apiKey);
+            put("Harness-SDK-Info", HARNESS_SDK_INFO);
+            if (authInfo.getEnvironmentIdentifier() != null)
+                put("Harness-EnvironmentID", authInfo.getEnvironmentIdentifier());
+            if (authInfo.getAccountID() != null)
+                put("Harness-AccountID", authInfo.getAccountID());
+        }};
+    }
+
     protected void doInitialize(
 
             final String apiKey,
@@ -618,7 +606,7 @@ public class CfClient implements Destroyable {
                 if (success) {
 
                     this.authInfo = cloud.getAuthInfo();
-                    this.sseController = cloudFactory.sseController(cloud, this.authInfo);
+                    this.sseController = new EventSource(configuration.getStreamURL() + "?cluster=" + authInfo.getCluster(), makeHeadersFrom(cloud.getAuthToken(), apiKey, authInfo), eventsListener, 1, 2_000, configuration.getTlsTrustedCAs());
 
                     final String environmentID = authInfo.getEnvironment();
                     final String cluster = authInfo.getCluster();
@@ -637,8 +625,7 @@ public class CfClient implements Destroyable {
                         sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
 
                         if (useStream) {
-                            final boolean isRescheduled = false;
-                            startSSE(isRescheduled);
+                            startSSE(false);
                         } else {
 
                             evaluationPolling.start(this::reschedule);

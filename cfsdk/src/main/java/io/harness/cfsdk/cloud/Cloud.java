@@ -11,8 +11,6 @@ import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
-import io.harness.cfsdk.cloud.oksse.SSEAuthentication;
-import io.harness.cfsdk.cloud.oksse.model.SSEConfig;
 import io.harness.cfsdk.utils.TlsUtils;
 
 public class Cloud implements ICloud {
@@ -120,12 +118,6 @@ public class Cloud implements ICloud {
     public String getAuthToken() {
 
         return tokenProvider.getToken(key);
-    }
-
-    @Override
-    public SSEConfig getConfig() {
-
-        return new SSEConfig(buildSSEUrl(), new SSEAuthentication(this.authToken, this.key), config);
     }
 
     private void authenticate() throws ApiException {
