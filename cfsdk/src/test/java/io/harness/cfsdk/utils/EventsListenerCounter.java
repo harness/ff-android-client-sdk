@@ -53,8 +53,8 @@ public class EventsListenerCounter implements EventsListener {
                 break;
             case EVALUATION_CHANGE:
             case EVALUATION_REMOVE:
-                assertNotNull(statusEvent.extractEvaluation());
-                assertThat(statusEvent.extractEvaluation(), instanceOf(Evaluation.class));
+                assertNotNull(statusEvent.extractEvaluationPayload());
+                assertThat(statusEvent.extractEvaluationPayload(), instanceOf(Evaluation.class));
                 map.merge(name, 1L, Long::sum);
                 latch.countDown();
                 break;
