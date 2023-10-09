@@ -25,7 +25,6 @@ import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.cache.DefaultCache;
 import io.harness.cfsdk.cloud.core.api.DefaultApi;
 import io.harness.cfsdk.cloud.core.client.ApiClient;
-import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkInfoProvider;
 import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
@@ -33,8 +32,6 @@ import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.polling.ShortTermPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.repository.FeatureRepositoryImpl;
-import io.harness.cfsdk.cloud.sse.SSEController;
-import io.harness.cfsdk.cloud.sse.SSEControlling;
 
 public class CloudFactory implements ICloudFactory {
 
@@ -63,16 +60,6 @@ public class CloudFactory implements ICloudFactory {
     ) {
 
         return new FeatureRepositoryImpl(featureService, cloudCache, networkInfoProvider);
-    }
-
-    @Override
-    public SSEControlling sseController(
-
-            ICloud cloud,
-            AuthInfo authInfo
-    ) {
-
-        return new SSEController(authInfo);
     }
 
     @Override

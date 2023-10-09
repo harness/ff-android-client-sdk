@@ -15,11 +15,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import io.harness.cfsdk.CfClientTest;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
-import io.harness.cfsdk.cloud.oksse.EventsListener;
-import io.harness.cfsdk.cloud.oksse.model.StatusEvent;
-import io.harness.cfsdk.cloud.repository.FeatureRepositoryImpl;
+import io.harness.cfsdk.cloud.sse.EventsListener;
+import io.harness.cfsdk.cloud.sse.StatusEvent;
 
 public class EventsListenerCounter implements EventsListener {
     private static final Logger log = LoggerFactory.getLogger(EventsListenerCounter.class);
@@ -42,21 +40,21 @@ public class EventsListenerCounter implements EventsListener {
 
     @Override
     public void onEventReceived(StatusEvent statusEvent) {
+
         final String name = statusEvent.getEventType().name();
-        final String payloadInfo = (statusEvent.extractPayload() == null) ? "NULL" : statusEvent.extractPayload().getClass().getSimpleName();
-        log.debug("onEventReceived  ----------> type={} payload={}", name, payloadInfo);
+        log.debug("onEventReceived  ----------> type={}", name);
 
         switch (statusEvent.getEventType()) {
             case EVALUATION_RELOAD:
-                assertNotNull(statusEvent.extractPayload());
-                assertThat(statusEvent.extractPayload(), instanceOf(List.class)); // Fail the test if the payload has the wrong type
+                assertNotNull(statusEvent.extractEvaluationListPayload());
+                assertThat(statusEvent.extractEvaluationListPayload(), instanceOf(List.class)); // Fail the test if the payload has the wrong type
                 map.merge(name, 1L, Long::sum);
                 latch.countDown();
                 break;
             case EVALUATION_CHANGE:
             case EVALUATION_REMOVE:
-                assertNotNull(statusEvent.extractPayload());
-                assertThat(statusEvent.extractPayload(), instanceOf(Evaluation.class));
+                assertNotNull(statusEvent.extractEvaluationPayload());
+                assertThat(statusEvent.extractEvaluationPayload(), instanceOf(Evaluation.class));
                 map.merge(name, 1L, Long::sum);
                 latch.countDown();
                 break;
