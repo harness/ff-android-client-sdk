@@ -35,7 +35,6 @@ public class DefaultMetricsApiFactoryRecipe implements MetricsApiFactoryRecipe {
             String hostname = "UnknownHost";
 
             try {
-
                 hostname = InetAddress.getLocalHost().getHostName();
                 log.debug("Hostname: {}", hostname);
 

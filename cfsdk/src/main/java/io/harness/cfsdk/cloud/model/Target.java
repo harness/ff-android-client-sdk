@@ -10,12 +10,7 @@ public class Target {
 
     private String name;
     private String identifier;
-    private final Map<String, Object> attributes;
-
-    {
-
-        attributes = new HashMap<>();
-    }
+    private final Map<String, Object> attributes = new HashMap<>();
 
     public String getName() {
 

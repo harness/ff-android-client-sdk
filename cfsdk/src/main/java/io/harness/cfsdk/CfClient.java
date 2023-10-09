@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,7 +46,6 @@ import io.harness.cfsdk.cloud.sse.EventsListener;
 import io.harness.cfsdk.cloud.sse.StatusEvent;
 import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
-import io.harness.cfsdk.common.Destroyable;
 import io.harness.cfsdk.common.SdkCodes;
 import io.harness.cfsdk.utils.GuardObjectWrapper;
 
@@ -54,44 +54,34 @@ import io.harness.cfsdk.utils.GuardObjectWrapper;
  * observing changes in state of SDK.
  * Before it can be used, one of the {@link CfClient#initialize} methods <strong>must be</strong>  called
  */
-public class CfClient implements Destroyable {
+public class CfClient implements Closeable {
 
     private static final Logger log = LoggerFactory.getLogger(CfClient.class);
 
     private static final String HARNESS_SDK_INFO =
             String.format("Android %s Client", AndroidSdkVersion.ANDROID_SDK_VERSION);
 
-    protected ICloud cloud;
-    protected Target target;
-    protected static CfClient instance;
-    protected boolean analyticsEnabled;
-    protected NetworkInfoProviding networkInfoProvider;
+    private static CfClient instance;
 
-    private AuthInfo authInfo;
-    private boolean useStream;
-    private final Executor executor;
-    private final AtomicBoolean ready;
+    private final Executor executor = Executors.newSingleThreadExecutor();
+    private final AtomicBoolean ready = new AtomicBoolean();
+    private final CloudFactory cloudFactory;
+    private final Executor listenerUpdateExecutor = Executors.newSingleThreadExecutor();
+    private final Set<EventsListener> eventsListenerSet = Collections.synchronizedSet(new LinkedHashSet<>());
+    private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet = new ConcurrentHashMap<>();
+    private final GuardObjectWrapper evaluationPollingLock = new GuardObjectWrapper();
+
+    private ICloud cloud;
+    private Target target;
+    private NetworkInfoProviding networkInfoProvider;
     private EventSource sseController;
     private CfConfiguration configuration;
-    private final CloudFactory cloudFactory;
     private AnalyticsManager analyticsManager;
     private FeatureRepository featureRepository;
     private EvaluationPolling evaluationPolling;
-    private final Executor listenerUpdateExecutor;
-    private final Set<EventsListener> eventsListenerSet;
-    private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet;
-    private GuardObjectWrapper evaluationPollingLock;
-
-    {
-
-        ready = new AtomicBoolean();
-        executor = Executors.newSingleThreadExecutor();
-        evaluationListenerSet = new ConcurrentHashMap<>();
-        listenerUpdateExecutor = Executors.newSingleThreadExecutor();
-        eventsListenerSet = Collections.synchronizedSet(new LinkedHashSet<>());
-        evaluationPollingLock = new GuardObjectWrapper();
-
-    }
+    private AuthInfo authInfo;
+    private boolean useStream;
+    private boolean analyticsEnabled;
 
     private final EventsListener eventsListener = statusEvent -> {
 
@@ -219,9 +209,6 @@ public class CfClient implements Destroyable {
         this.cloudFactory = cloudFactory;
     }
 
-    /**
-     * Base constructor.
-     */
     public CfClient() {
 
         cloudFactory = new CloudFactory();
@@ -295,7 +282,7 @@ public class CfClient implements Destroyable {
 
                         if (analyticsEnabled) {
 
-                            this.analyticsManager.destroy();
+                            this.analyticsManager.close();
                             this.analyticsManager = getAnalyticsManager(
 
                                     configuration, authInfo
@@ -661,7 +648,7 @@ public class CfClient implements Destroyable {
                 authCallback.authorizationSuccess(authInfo, result);
             }
 
-            destroy();
+            close();
         }
     }
 
@@ -905,11 +892,10 @@ public class CfClient implements Destroyable {
      * remove any registered event listeners.
      */
     @Override
-    public void destroy() {
+    public void close() {
 
         if (analyticsManager != null) {
-
-            analyticsManager.destroy();
+            analyticsManager.close();
         }
 
         unregister();

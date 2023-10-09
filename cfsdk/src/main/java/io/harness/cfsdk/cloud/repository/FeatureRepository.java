@@ -23,7 +23,6 @@ public interface FeatureRepository {
      * If network is online and evaluation is found, local cache will be updated
      */
     default Evaluation getEvaluationFromServer(
-
             String environment,
             String target,
             String evaluationId,
@@ -32,7 +31,6 @@ public interface FeatureRepository {
     ) { return null; }
 
     List<Evaluation> getAllEvaluations(
-
             String environment,
             String target,
             String cluster

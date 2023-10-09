@@ -2,10 +2,10 @@ package io.harness.cfsdk.cloud.analytics;
 
 public class SummaryMetrics {
 
-    private String featureName;
-    private String variationValue;
-    private String variationIdentifier;
-    private String target;
+    private final String featureName;
+    private final String variationValue;
+    private final String variationIdentifier;
+    private final String target;
 
     public SummaryMetrics(String featureName, String variationValue, String variationIdentifier, String target) {
 
@@ -16,42 +16,21 @@ public class SummaryMetrics {
     }
 
     public String getFeatureName() {
-
         return featureName;
     }
 
-    public void setFeatureName(String featureName) {
-
-        this.featureName = featureName;
-    }
-
     public String getVariationIdentifier() {
-
         return variationIdentifier;
     }
 
-    public void setVariationIdentifier(String variationIdentifier) {
-
-        this.variationIdentifier = variationIdentifier;
-    }
-
     public String getVariationValue() {
-
         return variationValue;
-    }
-
-    public void setVariationValue(String variationValue) {
-
-        this.variationValue = variationValue;
     }
 
     public String getTarget() {
         return target;
     }
 
-    public void setTarget(String target) {
-        this.target = target;
-    }
 
     @Override
     public String toString() {

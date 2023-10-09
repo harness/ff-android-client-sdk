@@ -8,9 +8,6 @@ public class AuthResult {
     private boolean success;
     private Throwable error;
 
-    /**
-     * Constructor.
-     */
     public AuthResult() {
     }
 
@@ -44,16 +41,6 @@ public class AuthResult {
     public boolean isSuccess() {
 
         return success;
-    }
-
-    /**
-     * Set authentication success.
-     *
-     * @param success True == Authentication is successful.
-     */
-    public void setSuccess(boolean success) {
-
-        this.success = success;
     }
 
     /**

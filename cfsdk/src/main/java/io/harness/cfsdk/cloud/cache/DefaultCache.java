@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.harness.cfsdk.AndroidSdkVersion;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
 
 public class DefaultCache implements CloudCache {

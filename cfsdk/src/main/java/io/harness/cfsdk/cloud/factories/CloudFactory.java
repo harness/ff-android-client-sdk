@@ -7,12 +7,8 @@ import android.content.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.security.cert.X509Certificate;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.harness.cfsdk.CfConfiguration;
