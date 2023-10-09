@@ -16,10 +16,10 @@ subprojects {
 }
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
     defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 31
+        minSdkVersion 21
+        targetSdkVersion 33
         versionCode 12
         versionName "1.1.4"
         consumerProguardFiles "consumer-rules.pro"
