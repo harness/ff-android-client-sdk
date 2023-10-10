@@ -83,6 +83,327 @@ public class CfClient implements Closeable {
     private boolean useStream;
     private boolean analyticsEnabled;
 
+    /**
+     * Base constructor.
+     *
+     * @param cloudFactory Cloud factory responsible for handling API.
+     */
+    public CfClient(CloudFactory cloudFactory) {
+
+        this.cloudFactory = cloudFactory;
+    }
+
+    public CfClient() {
+
+        cloudFactory = new CloudFactory();
+    }
+
+    /**
+     * Retrieves the single instance of {@link CfClient} to be used for SDK operation
+     *
+     * @return single instance used as entry point of SDK
+     */
+    public static CfClient getInstance() {
+
+        if (instance == null) {
+            synchronized (CfClient.class) {
+
+                if (instance == null) {
+                    instance = new CfClient(new CloudFactory());
+                }
+            }
+        }
+        return instance;
+    }
+
+    /**
+     * Initialize the client and sets up needed dependencies. Upon called, it is dispatched to another thread and result is returned trough
+     * provided {@link AuthCallback} instance.
+     *
+     * @param context       Context of application
+     * @param apiKey        API key used for authentication
+     * @param configuration Collection of different configuration flags, which defined the behaviour of SDK
+     * @param target        Desired target against which we want features to be evaluated
+     * @param cloudCache    Custom {@link CloudCache} implementation. If non provided, the default implementation will be used
+     * @param authCallback  The callback that will be invoked when initialization is finished
+     * @throws IllegalStateException If already initialized
+     */
+    public void initialize(
+            final Context context,
+            final String apiKey,
+            final CfConfiguration configuration,
+            final Target target,
+            final CloudCache cloudCache,
+            @Nullable final AuthCallback authCallback
+
+    ) throws IllegalStateException {
+
+        if (ready.get()) {
+            throw new IllegalStateException("Already initialized");
+        }
+
+        setupNetworkInfo(context);
+
+        doInitialize(apiKey, configuration, target, cloudCache, authCallback);
+    }
+
+    /**
+     * Initialize the client and sets up needed dependencies. Upon called, it is dispatched to another thread and result is returned trough
+     * provided {@link AuthCallback} instance.
+     *
+     * @param context       Context of application
+     * @param apiKey        API key used for authentication
+     * @param configuration Collection of different configuration flags, which defined the behaviour of SDK
+     * @param target        Desired target against which we want features to be evaluated
+     * @param authCallback  The callback that will be invoked when initialization is finished
+     * @throws IllegalStateException If already initialized
+     */
+    public void initialize(
+
+            final Context context,
+            final String apiKey,
+            final CfConfiguration configuration,
+            final Target target,
+            final AuthCallback authCallback
+
+    ) throws IllegalStateException {
+
+        initialize(context, apiKey, configuration, target, cloudFactory.defaultCache(context), authCallback);
+    }
+
+    /**
+     * Initialize the client and sets up needed dependencies. Upon called, it is dispatched to another thread and result is returned trough
+     * provided {@link AuthCallback} instance.
+     *
+     * @param context       Context of application
+     * @param apiKey        API key used for authentication
+     * @param configuration Collection of different configuration flags, which defined the behaviour of SDK
+     * @param target        Desired target against which we want features to be evaluated
+     * @param cloudCache    Custom {@link CloudCache} implementation. If non provided, the default implementation will be used
+     * @throws IllegalStateException If already initialized
+     */
+    public void initialize(
+
+            final Context context,
+            final String apiKey,
+            final CfConfiguration configuration,
+            final Target target,
+            final CloudCache cloudCache
+
+    ) throws IllegalStateException {
+
+        initialize(context, apiKey, configuration, target, cloudCache, null);
+    }
+
+    /**
+     * Initialize the client and sets up needed dependencies. Upon called, it is dispatched to another thread and result is returned trough
+     * provided {@link AuthCallback} instance.
+     *
+     * @param context       Context of application
+     * @param apiKey        API key used for authentication
+     * @param configuration Collection of different configuration flags, which defined the behaviour of SDK
+     * @param target        Desired target against which we want features to be evaluated
+     * @throws IllegalStateException If already initialized
+     */
+    public void initialize(
+
+            final Context context,
+            final String apiKey,
+            final CfConfiguration configuration,
+            final Target target
+
+    ) throws IllegalStateException {
+
+        initialize(context, apiKey, configuration, target, cloudFactory.defaultCache(context));
+    }
+
+    /**
+     * Register a listener to observe changes on a evaluation with given id. The change <strong>will not</strong> be triggered
+     * in case of reloading all evaluations, but only when single evaluation is changed.
+     * It is possible to register multiple observers for a single evaluatio.
+     *
+     * @param evaluationId Evaluation identifier we would like to observe.
+     * @param listener     {@link EvaluationListener} instance that will be invoked when evaluation is changed
+     * @return Was evaluation registered with success?
+     */
+    public boolean registerEvaluationListener(String evaluationId, EvaluationListener listener) {
+
+        if (listener != null) {
+
+            Set<EvaluationListener> set = evaluationListenerSet.get(evaluationId);
+            if (set == null) {
+
+                set = new HashSet<>();
+            }
+            boolean success = set.add(listener);
+            evaluationListenerSet.put(evaluationId, set);
+            return success;
+        }
+        return false;
+    }
+
+    /**
+     * Removes specified listener for an evaluation with given id.
+     *
+     * @param evaluationId Evaluation identifier.
+     * @param listener     {@link EvaluationListener} instance we want to remove
+     * @return Was evaluation un-registered with success?
+     */
+    public boolean unregisterEvaluationListener(String evaluationId, EvaluationListener listener) {
+
+        if (listener != null) {
+
+            Set<EvaluationListener> set = this.evaluationListenerSet.get(evaluationId);
+            if (set != null) {
+
+                return set.remove(listener);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Adds new listener for various SDK events. See {@link StatusEvent.EVENT_TYPE} for possible types.
+     *
+     * @param observer {@link EventsListener} implementation that will be triggered when there is a change in state of SDK
+     * @return Was listener registered with success?
+     */
+    public boolean registerEventsListener(final EventsListener observer) {
+
+        if (observer != null) {
+
+            return eventsListenerSet.add(observer);
+        }
+        return false;
+    }
+
+    /**
+     * Removes registered listener from list of registered events listener
+     *
+     * @param observer {@link EventsListener} implementation that needs to be removed
+     * @return Was listener un-registered with success?
+     */
+    public boolean unregisterEventsListener(final EventsListener observer) {
+
+        return eventsListenerSet.remove(observer);
+    }
+
+    public boolean boolVariation(String evaluationId, boolean defaultValue) {
+
+        final Evaluation evaluation = getEvaluationById(
+
+                evaluationId,
+                target,
+                defaultValue
+        );
+
+        final Object value = evaluation.getValue();
+        if (value instanceof Boolean) {
+
+            return (Boolean) value;
+        }
+        if (value instanceof String) {
+
+            return "true".equals(value);
+        }
+
+        SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+        return defaultValue;
+    }
+
+    public String stringVariation(String evaluationId, String defaultValue) {
+
+        return getEvaluationById(evaluationId, target, defaultValue).getValue();
+    }
+
+    public double numberVariation(String evaluationId, double defaultValue) {
+
+        final Evaluation evaluation = getEvaluationById(
+
+                evaluationId,
+                target,
+                defaultValue
+        );
+
+        final Object value = evaluation.getValue();
+        if (value instanceof Number) {
+
+            return ((Number) value).doubleValue();
+        }
+        if (value instanceof String) {
+
+            final String strValue = (String) value;
+            try {
+
+                return Double.parseDouble(strValue);
+            } catch (NumberFormatException e) {
+
+                log.error(e.getMessage(), e);
+            }
+        }
+        SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+        return defaultValue;
+    }
+
+    public JSONObject jsonVariation(String evaluationId, JSONObject defaultValue) {
+
+        try {
+
+            final Evaluation e = getEvaluationById(
+
+                    evaluationId,
+                    target,
+                    defaultValue
+            );
+
+            if (e.getValue() == null) {
+
+                Map<String, Object> resultMap = new HashMap<>();
+                resultMap.put(evaluationId, null);
+                return new JSONObject(resultMap);
+
+            } else {
+
+                if (e.getValue() instanceof JSONObject) {
+
+                    return e.getValue();
+                }
+                return new JSONObject(e.getValue().toString());
+            }
+        } catch (JSONException e) {
+
+            log.error(e.getMessage(), e);
+        }
+        SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+        return defaultValue;
+    }
+
+
+    /**
+     * Clears the occupied resources and shut's down the sdk.
+     * After calling this method, the {@link #initialize} must be called again. It will also
+     * remove any registered event listeners.
+     */
+    @Override
+    public void close() {
+
+        if (analyticsManager != null) {
+            analyticsManager.close();
+        }
+
+        unregister();
+
+        eventsListenerSet.clear();
+        evaluationListenerSet.clear();
+
+        if (networkInfoProvider != null) {
+
+            networkInfoProvider.unregisterAll();
+        }
+
+        instance = null;
+    }
+
     private final EventsListener eventsListener = statusEvent -> {
 
         log.debug("SSE event received: {}", statusEvent.getEventType());
@@ -199,39 +520,6 @@ public class CfClient implements Closeable {
 
         sendEvent(statusEvent);
     };
-
-    /**
-     * Base constructor.
-     *
-     * @param cloudFactory Cloud factory responsible for handling API.
-     */
-    public CfClient(CloudFactory cloudFactory) {
-
-        this.cloudFactory = cloudFactory;
-    }
-
-    public CfClient() {
-
-        cloudFactory = new CloudFactory();
-    }
-
-    /**
-     * Retrieves the single instance of {@link CfClient} to be used for SDK operation
-     *
-     * @return single instance used as entry point of SDK
-     */
-    public static CfClient getInstance() {
-
-        if (instance == null) {
-            synchronized (CfClient.class) {
-
-                if (instance == null) {
-                    instance = new CfClient(new CloudFactory());
-                }
-            }
-        }
-        return instance;
-    }
 
     void sendEvent(StatusEvent statusEvent) {
         listenerUpdateExecutor.execute(() -> {
@@ -357,141 +645,6 @@ public class CfClient implements Closeable {
         }
     }
 
-
-    /**
-     * Initialize the client and sets up needed dependencies. Upon called, it is dispatched to another thread and result is returned trough
-     * provided {@link AuthCallback} instance.
-     *
-     * @param context       Context of application
-     * @param apiKey        API key used for authentication
-     * @param configuration Collection of different configuration flags, which defined the behaviour of SDK
-     * @param target        Desired target against which we want features to be evaluated
-     * @param cloudCache    Custom {@link CloudCache} implementation. If non provided, the default implementation will be used
-     * @param authCallback  The callback that will be invoked when initialization is finished
-     * @throws IllegalStateException If already initialized
-     */
-    public void initialize(
-            final Context context,
-            final String apiKey,
-            final CfConfiguration configuration,
-            final Target target,
-            final CloudCache cloudCache,
-            @Nullable final AuthCallback authCallback
-
-    ) throws IllegalStateException {
-
-        if (ready.get()) {
-            throw new IllegalStateException("Already initialized");
-        }
-
-        setupNetworkInfo(context);  // evaluationPoll.stop()
-
-        doInitialize(       // evaluationPoll - defined.
-
-                apiKey,
-                configuration,
-                target,
-                cloudCache,
-                authCallback
-        );
-
-
-    }
-
-    /**
-     * Initialize the client and sets up needed dependencies. Upon called, it is dispatched to another thread and result is returned trough
-     * provided {@link AuthCallback} instance.
-     *
-     * @param context       Context of application
-     * @param apiKey        API key used for authentication
-     * @param configuration Collection of different configuration flags, which defined the behaviour of SDK
-     * @param target        Desired target against which we want features to be evaluated
-     * @param authCallback  The callback that will be invoked when initialization is finished
-     * @throws IllegalStateException If already initialized
-     */
-    public void initialize(
-
-            final Context context,
-            final String apiKey,
-            final CfConfiguration configuration,
-            final Target target,
-            final AuthCallback authCallback
-
-    ) throws IllegalStateException {
-
-        initialize(
-
-                context,
-                apiKey,
-                configuration,
-                target,
-                cloudFactory.defaultCache(context),
-                authCallback
-        );
-    }
-
-    /**
-     * Initialize the client and sets up needed dependencies. Upon called, it is dispatched to another thread and result is returned trough
-     * provided {@link AuthCallback} instance.
-     *
-     * @param context       Context of application
-     * @param apiKey        API key used for authentication
-     * @param configuration Collection of different configuration flags, which defined the behaviour of SDK
-     * @param target        Desired target against which we want features to be evaluated
-     * @param cloudCache    Custom {@link CloudCache} implementation. If non provided, the default implementation will be used
-     * @throws IllegalStateException If already initialized
-     */
-    public void initialize(
-
-            final Context context,
-            final String apiKey,
-            final CfConfiguration configuration,
-            final Target target,
-            final CloudCache cloudCache
-
-    ) throws IllegalStateException {
-
-        initialize(
-
-                context,
-                apiKey,
-                configuration,
-                target,
-                cloudCache,
-                null
-        );
-    }
-
-    /**
-     * Initialize the client and sets up needed dependencies. Upon called, it is dispatched to another thread and result is returned trough
-     * provided {@link AuthCallback} instance.
-     *
-     * @param context       Context of application
-     * @param apiKey        API key used for authentication
-     * @param configuration Collection of different configuration flags, which defined the behaviour of SDK
-     * @param target        Desired target against which we want features to be evaluated
-     * @throws IllegalStateException If already initialized
-     */
-    public void initialize(
-
-            final Context context,
-            final String apiKey,
-            final CfConfiguration configuration,
-            final Target target
-
-    ) throws IllegalStateException {
-
-        initialize(
-
-                context,
-                apiKey,
-                configuration,
-                target,
-                cloudFactory.defaultCache(context)
-        );
-    }
-
-
     private Map<String, String> makeHeadersFrom(String token, String apiKey, AuthInfo authInfo) {
         return new HashMap<String, String>() {{
             put("Authorization", "Bearer " + token);
@@ -614,51 +767,44 @@ public class CfClient implements Closeable {
         }
     }
 
-    /**
-     * Register a listener to observe changes on a evaluation with given id. The change <strong>will not</strong> be triggered
-     * in case of reloading all evaluations, but only when single evaluation is changed.
-     * It is possible to register multiple observers for a single evaluatio.
-     *
-     * @param evaluationId Evaluation identifier we would like to observe.
-     * @param listener     {@link EvaluationListener} instance that will be invoked when evaluation is changed
-     * @return Was evaluation registered with success?
-     */
-    public boolean registerEvaluationListener(String evaluationId, EvaluationListener listener) {
+    @NotNull
+    protected AnalyticsManager getAnalyticsManager(CfConfiguration configuration, AuthInfo authInfo) {
 
-        if (listener != null) {
+        return new AnalyticsManager(
 
-            Set<EvaluationListener> set = evaluationListenerSet.get(evaluationId);
-            if (set == null) {
-
-                set = new HashSet<>();
-            }
-            boolean success = set.add(listener);
-            evaluationListenerSet.put(evaluationId, set);
-            return success;
-        }
-        return false;
+                authInfo,
+                cloud.getAuthToken(),
+                configuration
+        );
     }
 
+    protected boolean canPushToMetrics(Evaluation result) {
 
-    /**
-     * Removes specified listener for an evaluation with given id.
-     *
-     * @param evaluationId Evaluation identifier.
-     * @param listener     {@link EvaluationListener} instance we want to remove
-     * @return Was evaluation un-registered with success?
-     */
-    public boolean unregisterEvaluationListener(String evaluationId, EvaluationListener listener) {
-
-        if (listener != null) {
-
-            Set<EvaluationListener> set = this.evaluationListenerSet.get(evaluationId);
-            if (set != null) {
-
-                return set.remove(listener);
-            }
-        }
-        return false;
+        return this.target.isValid() &&
+                result.isValid() &&
+                analyticsEnabled &&
+                analyticsManager != null;
     }
+
+    private void unregister() {
+
+        ready.set(false);
+
+        stopSSE();
+
+        if (evaluationPolling != null) {
+
+            evaluationPolling.stop();
+        }
+
+        if (featureRepository != null) {
+
+            featureRepository.clear();
+        }
+    }
+
+    /* Package private */
+
 
     /**
      * Retrieves single {@link Evaluation instance} based on provided id. If no such evaluation is found,
@@ -717,190 +863,6 @@ public class CfClient implements Closeable {
 
         return result;
     }
-
-    public boolean boolVariation(String evaluationId, boolean defaultValue) {
-
-        final Evaluation evaluation = getEvaluationById(
-
-                evaluationId,
-                target,
-                defaultValue
-        );
-
-        final Object value = evaluation.getValue();
-        if (value instanceof Boolean) {
-
-            return (Boolean) value;
-        }
-        if (value instanceof String) {
-
-            return "true".equals(value);
-        }
-
-        SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
-        return defaultValue;
-    }
-
-    public String stringVariation(String evaluationId, String defaultValue) {
-
-        return getEvaluationById(evaluationId, target, defaultValue).getValue();
-    }
-
-    public double numberVariation(String evaluationId, double defaultValue) {
-
-        final Evaluation evaluation = getEvaluationById(
-
-                evaluationId,
-                target,
-                defaultValue
-        );
-
-        final Object value = evaluation.getValue();
-        if (value instanceof Number) {
-
-            return ((Number) value).doubleValue();
-        }
-        if (value instanceof String) {
-
-            final String strValue = (String) value;
-            try {
-
-                return Double.parseDouble(strValue);
-            } catch (NumberFormatException e) {
-
-                log.error(e.getMessage(), e);
-            }
-        }
-        SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
-        return defaultValue;
-    }
-
-    public JSONObject jsonVariation(String evaluationId, JSONObject defaultValue) {
-
-        try {
-
-            final Evaluation e = getEvaluationById(
-
-                    evaluationId,
-                    target,
-                    defaultValue
-            );
-
-            if (e.getValue() == null) {
-
-                Map<String, Object> resultMap = new HashMap<>();
-                resultMap.put(evaluationId, null);
-                return new JSONObject(resultMap);
-
-            } else {
-
-                if (e.getValue() instanceof JSONObject) {
-
-                    return e.getValue();
-                }
-                return new JSONObject(e.getValue().toString());
-            }
-        } catch (JSONException e) {
-
-            log.error(e.getMessage(), e);
-        }
-        SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
-        return defaultValue;
-    }
-
-
-    /**
-     * Adds new listener for various SDK events. See {@link StatusEvent.EVENT_TYPE} for possible types.
-     *
-     * @param observer {@link EventsListener} implementation that will be triggered when there is a change in state of SDK
-     * @return Was listener registered with success?
-     */
-    public boolean registerEventsListener(final EventsListener observer) {
-
-        if (observer != null) {
-
-            return eventsListenerSet.add(observer);
-        }
-        return false;
-    }
-
-    /**
-     * Removes registered listener from list of registered events listener
-     *
-     * @param observer {@link EventsListener} implementation that needs to be removed
-     * @return Was listener un-registered with success?
-     */
-    public boolean unregisterEventsListener(final EventsListener observer) {
-
-        return eventsListenerSet.remove(observer);
-    }
-
-    /**
-     * Clears the occupied resources and shut's down the sdk.
-     * After calling this method, the {@link #initialize} must be called again. It will also
-     * remove any registered event listeners.
-     */
-    @Override
-    public void close() {
-
-        if (analyticsManager != null) {
-            analyticsManager.close();
-        }
-
-        unregister();
-
-        eventsListenerSet.clear();
-        evaluationListenerSet.clear();
-
-        if (networkInfoProvider != null) {
-
-            networkInfoProvider.unregisterAll();
-        }
-
-        instance = null;
-    }
-
-    @NotNull
-    protected AnalyticsManager getAnalyticsManager(
-
-            CfConfiguration configuration,
-            AuthInfo authInfo
-    ) {
-
-        return new AnalyticsManager(
-
-                authInfo,
-                cloud.getAuthToken(),
-                configuration
-        );
-    }
-
-    protected boolean canPushToMetrics(Evaluation result) {
-
-        return this.target.isValid() &&
-                result.isValid() &&
-                analyticsEnabled &&
-                analyticsManager != null;
-    }
-
-    private void unregister() {
-
-        ready.set(false);
-
-        stopSSE();
-
-        if (evaluationPolling != null) {
-
-            evaluationPolling.stop();
-        }
-
-        if (featureRepository != null) {
-
-            featureRepository.clear();
-        }
-    }
-
-    /* Package private */
 
     void setNetworkInfoProvider(NetworkInfoProviding networkInfoProvider) {
         this.networkInfoProvider = networkInfoProvider;
