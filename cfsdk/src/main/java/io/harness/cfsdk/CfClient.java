@@ -114,6 +114,7 @@ public class CfClient implements Closeable {
                 );
 
                 statusEvent = new StatusEvent(statusEvent.getEventType(), resumedEvaluations);
+                break;
 
             case SSE_END:
 
