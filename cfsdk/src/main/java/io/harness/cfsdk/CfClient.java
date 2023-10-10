@@ -521,135 +521,99 @@ public class CfClient implements Closeable {
     }
 
     protected void doInitialize(
-
             final String apiKey,
             final CfConfiguration configuration,
             final Target target,
             final CloudCache cloudCache,
             @Nullable final AuthCallback authCallback
     ) {
-
         this.configuration = configuration;
         this.target = target;
 
-        if (apiKey == null || apiKey.trim().isEmpty()) {
-            SdkCodes.errorMissingSdkKey();
-            throw new IllegalArgumentException("missing sdk key");
-        }
-
-        if (target == null || configuration == null) {
-            if (authCallback != null) {
-
-                final String message = "Target and configuration must not be null!";
-                final IllegalArgumentException error = new IllegalArgumentException(message);
-                final AuthResult result = new AuthResult(false, error);
-                authCallback.authorizationSuccess(authInfo, result);
-            }
-            return;
-        }
-
         try {
+            if (apiKey == null || apiKey.trim().isEmpty()) {
+                SdkCodes.errorMissingSdkKey();
+                throw new IllegalArgumentException("missing sdk key");
+            }
+
+            if (target == null || configuration == null) {
+                throw new IllegalArgumentException("Target and configuration must not be null!");
+            }
+
             setTargetDefaults(target);
-        } catch (IllegalArgumentException e) {
-            final AuthResult result = new AuthResult(false, e);
-            if (authCallback != null) {
-                authCallback.authorizationSuccess(null, result);
-            }
-            return;
-        }
-        try {
 
-            executor.execute(() -> {
+            executor.execute(() -> runInitThreadWrapEx(apiKey, cloudCache, authCallback));
 
-                unregister();
-                this.cloud = cloudFactory.cloud(
-
-                        configuration.getStreamURL(),
-                        configuration.getBaseURL(),
-                        apiKey,
-                        target,
-                        configuration
-                );
-
-                featureRepository = cloudFactory.getFeatureRepository(cloud, cloudCache, networkInfoProvider);
-                evaluationPolling = cloudFactory.evaluationPolling(configuration.getPollingInterval(), TimeUnit.SECONDS);
-                // release the lock.
-                evaluationPollingLock.set(evaluationPolling);
-
-                this.useStream = configuration.getStreamEnabled();
-                this.analyticsEnabled = configuration.isAnalyticsEnabled();
-
-                boolean success = false;
-                try {
-                    success = cloud.initialize();
-                } catch (ApiException e) {
-                    log.warn(e.getMessage(), e);
-                    final AuthResult result = new AuthResult(false, e);
-                    if (authCallback != null) {
-                        authCallback.authorizationSuccess(null, result);
-                    }
-                    return;
-                }
-                if (success) {
-
-                    this.authInfo = cloud.getAuthInfo();
-                    this.sseController = new EventSource(configuration.getStreamURL() + "?cluster=" + authInfo.getCluster(), makeHeadersFrom(cloud.getAuthToken(), apiKey, authInfo), eventsListener, 1, 2_000, configuration.getTlsTrustedCAs());
-
-                    final String environmentID = authInfo.getEnvironment();
-                    final String cluster = authInfo.getCluster();
-
-                    ready.set(true);
-
-                    if (networkInfoProvider.isNetworkAvailable()) {
-
-                        List<Evaluation> evaluations = featureRepository.getAllEvaluations(
-
-                                this.authInfo.getEnvironmentIdentifier(),
-                                target.getIdentifier(),
-                                cluster
-                        );
-
-                        sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
-
-                        if (useStream) {
-                            startSSE(false);
-                        } else {
-
-                            evaluationPolling.start(this::reschedule);
-                        }
-                    }
-
-                    if (analyticsEnabled) {
-                        this.analyticsManager = getAnalyticsManager(configuration, authInfo);
-                    }
-
-                    if (authCallback != null) {
-
-                        SdkCodes.infoSdkAuthOk();
-                        final AuthResult result = new AuthResult(true);
-                        authCallback.authorizationSuccess(authInfo, result);
-                    }
-                } else {
-
-                    if (authCallback != null) {
-
-                        final String message = "Authorization was not successful";
-                        final Exception error = new Exception(message);
-                        final AuthResult result = new AuthResult(false, error);
-                        authCallback.authorizationSuccess(authInfo, result);
-                    }
-                }
-            });
-        } catch (RejectedExecutionException e) {
-
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
-            if (authCallback != null) {
 
-                final AuthResult result = new AuthResult(false, e);
+            if (authCallback != null) {
+                final Throwable cause = e instanceof RejectedExecutionException ? e.getCause() : e;
+                final AuthResult result = new AuthResult(false, cause);
                 authCallback.authorizationSuccess(authInfo, result);
             }
 
             close();
+        }
+    }
+
+    private void runInitThread(final String apiKey, final CloudCache cloudCache, final AuthCallback authCallback) throws ApiException {
+
+        unregister();
+        cloud = cloudFactory.cloud(configuration.getStreamURL(), configuration.getBaseURL(), apiKey, target, configuration);
+
+        featureRepository = cloudFactory.getFeatureRepository(cloud, cloudCache, networkInfoProvider);
+        evaluationPolling = cloudFactory.evaluationPolling(configuration.getPollingInterval(), TimeUnit.SECONDS);
+        // release the lock.
+        evaluationPollingLock.set(evaluationPolling);
+
+        this.useStream = configuration.getStreamEnabled();
+        this.analyticsEnabled = configuration.isAnalyticsEnabled();
+
+        if (!cloud.initialize() && (authCallback != null)) {
+            final String message = "Authorization was not successful - cloudFactory.initialize() failed";
+            final Exception error = new Exception(message);
+            final AuthResult result = new AuthResult(false, error);
+            authCallback.authorizationSuccess(authInfo, result);
+        }
+
+        authInfo = cloud.getAuthInfo();
+        final String streamUrl = configuration.getStreamURL() + "?cluster=" + authInfo.getCluster();
+        sseController = new EventSource(streamUrl, makeHeadersFrom(cloud.getAuthToken(), apiKey, authInfo), eventsListener, 1, 2_000, configuration.getTlsTrustedCAs());
+
+        ready.set(true);
+
+        if (networkInfoProvider.isNetworkAvailable()) {
+
+            final List<Evaluation> evaluations = featureRepository.getAllEvaluations(
+                    authInfo.getEnvironmentIdentifier(), target.getIdentifier(), authInfo.getCluster()
+            );
+
+            sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
+
+            if (useStream) {
+                startSSE(false);
+            } else {
+                evaluationPolling.start(this::reschedule);
+            }
+        }
+
+        if (analyticsEnabled) {
+            this.analyticsManager = getAnalyticsManager(configuration, authInfo);
+        }
+
+        if (authCallback != null) {
+            SdkCodes.infoSdkAuthOk();
+            final AuthResult result = new AuthResult(true);
+            authCallback.authorizationSuccess(authInfo, result);
+        }
+    }
+
+    private void runInitThreadWrapEx(final String apiKey, final CloudCache cloudCache, final AuthCallback authCallback) {
+        try {
+            runInitThread(apiKey, cloudCache, authCallback);
+        } catch (ApiException e) {
+            throw new RejectedExecutionException(e);
         }
     }
 
