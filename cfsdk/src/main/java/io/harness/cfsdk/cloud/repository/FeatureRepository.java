@@ -6,7 +6,7 @@ import io.harness.cfsdk.cloud.core.model.Evaluation;
 
 public interface FeatureRepository {
 
-    /**
+    /*
      * Check cache first for evaluation, if not found then calls getEvaluationFromServer()
      * Returns null if evaluation not found in cache nor on server.
      */
@@ -18,7 +18,7 @@ public interface FeatureRepository {
             String cluster
     );
 
-    /**
+    /*
      * Bypass the cache and go directly to the ff-server for the evaluation.
      * If network is online and evaluation is found, local cache will be updated
      */

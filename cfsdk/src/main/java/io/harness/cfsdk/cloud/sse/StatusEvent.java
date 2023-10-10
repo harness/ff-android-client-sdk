@@ -107,6 +107,7 @@ public class StatusEvent {
      * @deprecated
      * Since 1.2.0, use type-safe  {@link #extractEvaluationListPayload()} or {@link #extractEvaluationPayload()} ()} instead.
      * Will be removed in a future release
+     * @return a list of Evaluations or a single Evaluation depending on {@link #getEventType()}
      */
     @Deprecated
     public Object extractPayload() {
