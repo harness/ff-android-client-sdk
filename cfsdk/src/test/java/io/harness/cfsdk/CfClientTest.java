@@ -33,6 +33,8 @@ import androidx.annotation.NonNull;
 
 import com.google.common.util.concurrent.AtomicLongMap;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -555,6 +557,34 @@ public class CfClientTest {
             }
         }
 
+    }
+
+    @Test
+    public void variationMethodsShouldNotReturnDefaults() throws JSONException {
+
+        CfClient client = new CfClient() {
+            @Override
+            <T> Evaluation getEvaluationById( String evaluationId, Target target, T defaultValue ) {
+                switch (evaluationId) {
+                    case "boolflag": return new Evaluation().flag("bool1").kind("boolean").value("true").identifier("b1");
+                    case "strflag": return new Evaluation().flag("string1").kind("string").value("str").identifier("s1");
+                    case "numflag": return new Evaluation().flag("number1").kind("number").value("123").identifier("n1");
+                    case "jsonflag": return new Evaluation().flag("json1").kind("json").value("{'flag':'on'}").identifier("j1");
+                    default: throw new RuntimeException("unknown eval id " + evaluationId);
+                }
+            }
+        };
+
+        boolean boolResult = client.boolVariation("boolflag", false);
+        String strResult = client.stringVariation("strflag", "");
+        double numResult = client.numberVariation("numflag", 0);
+        JSONObject jsonResult = client.jsonVariation("jsonflag", new JSONObject("{}"));
+
+        assertTrue(boolResult);
+        assertEquals("str", strResult);
+        assertEquals(123, numResult, .0);
+        assertNotNull("default (or wrong) json returned", jsonResult.get("flag"));
+        assertEquals("on", jsonResult.get("flag"));
     }
 
 }
