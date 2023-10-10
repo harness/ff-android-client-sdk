@@ -6,7 +6,6 @@ import android.content.Context;
 
 import androidx.annotation.Nullable;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -863,9 +862,7 @@ public class CfClient implements Destroyable {
 
                     return e.getValue();
                 }
-                String eval = StringEscapeUtils.unescapeJava(e.getValue().toString());
-                eval = eval.substring(1, eval.length() - 1);
-                return new JSONObject(eval);
+                return new JSONObject(e.getValue().toString());
             }
         } catch (JSONException e) {
 
