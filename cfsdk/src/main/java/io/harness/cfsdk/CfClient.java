@@ -266,89 +266,75 @@ public class CfClient implements Closeable {
     }
 
     private void reschedule() {
-
         log.debug("Reschedule");
+        executor.execute(this::runRescheduleThreadWrapEx);
+    }
 
-        executor.execute(() -> {
+    private void runRescheduleThreadWrapEx() {
+        try {
+            runRescheduleThread();
+        } catch (Exception ex) {
+            log.error("Failed to call reschedule() " + ex.getMessage(), ex);
 
-            try {
+            if (networkInfoProvider.isNetworkAvailable()) {
+                evaluationPolling.start(this::reschedule);
+            }
 
-                if (!ready.get()) {
+            throw new RejectedExecutionException(ex);
+        }
+    }
 
-                    boolean success = cloud.initialize();
-                    if (success) {
+    private void runRescheduleThread() throws ApiException {
 
-                        ready.set(true);
-                        this.authInfo = cloud.getAuthInfo();
+        if (!ready.get()) {
+            if (cloud.initialize()) {
+                ready.set(true);
+                this.authInfo = cloud.getAuthInfo();
 
-                        if (analyticsEnabled) {
-
-                            this.analyticsManager.close();
-                            this.analyticsManager = getAnalyticsManager(
-
-                                    configuration, authInfo
-                            );
-                        }
-                    }
-                }
-
-                if (!ready.get()) {
-
-                    return;
-                }
-
-                final String environmentID = authInfo.getEnvironmentIdentifier();
-                final String cluster = authInfo.getCluster();
-
-                final List<Evaluation> evaluations = this.featureRepository.getAllEvaluations(
-
-                        environmentID,
-                        target.getIdentifier(),
-                        cluster
-                );
-
-                log.debug("Evaluations count: {}", evaluations.size());
-
-                // Notify users that evaluations have been reloaded. This happens first on client init,
-                // then if polling is enabled, on each interval.
-                sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
-
-
-                if (useStream) {
-                    startSSE(true);
-
-                } else {
-
-                    evaluationPolling.start(this::reschedule);
-                }
-
-            } catch (Exception e) {
-
-               log.error(e.getMessage(), e);
-
-                if (networkInfoProvider.isNetworkAvailable()) {
-
-                    evaluationPolling.start(this::reschedule);
+                if (analyticsEnabled) {
+                    this.analyticsManager.close();
+                    this.analyticsManager = getAnalyticsManager(configuration, authInfo);
                 }
             }
-        });
+        }
+
+        if (!ready.get()) {
+            return;
+        }
+
+        final String environmentID = authInfo.getEnvironmentIdentifier();
+        final String cluster = authInfo.getCluster();
+
+        final List<Evaluation> evaluations = this.featureRepository.getAllEvaluations(
+
+                environmentID,
+                target.getIdentifier(),
+                cluster
+        );
+
+        log.debug("Evaluations count: {}", evaluations.size());
+
+        // Notify users that evaluations have been reloaded. This happens first on client init,
+        // then if polling is enabled, on each interval.
+        sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
+
+        if (useStream) {
+            startSSE(true);
+        } else {
+            evaluationPolling.start(this::reschedule);
+        }
     }
 
     protected void setupNetworkInfo(Context context) {
 
         if (networkInfoProvider != null) {
-
             networkInfoProvider.unregisterAll();
-
         } else {
-
             networkInfoProvider = cloudFactory.networkInfoProvider(context);
         }
 
         networkInfoProvider.register(status -> {
-
             if (status == NetworkStatus.CONNECTED) {
-
                 reschedule();
             } else {
                 // waiting for the lock to be release.
@@ -385,7 +371,6 @@ public class CfClient implements Closeable {
      * @throws IllegalStateException If already initialized
      */
     public void initialize(
-
             final Context context,
             final String apiKey,
             final CfConfiguration configuration,
@@ -396,7 +381,6 @@ public class CfClient implements Closeable {
     ) throws IllegalStateException {
 
         if (ready.get()) {
-
             throw new IllegalStateException("Already initialized");
         }
 
