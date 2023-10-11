@@ -37,7 +37,6 @@ public class AnalyticsPublisherService {
     private static final String FEATURE_IDENTIFIER_ATTRIBUTE = "featureIdentifier";
     private static final String FEATURE_NAME_ATTRIBUTE = "featureName";
     private static final String VARIATION_IDENTIFIER_ATTRIBUTE = "variationIdentifier";
-    private static final String VARIATION_VALUE_ATTRIBUTE = "variationValue";
 
     private final String authToken;
     private final CfConfiguration config;
@@ -185,7 +184,6 @@ public class AnalyticsPublisherService {
             setMetricsAttributes(metricsData, FEATURE_IDENTIFIER_ATTRIBUTE, entry.getKey().getFeatureName());
             setMetricsAttributes(metricsData, FEATURE_NAME_ATTRIBUTE, entry.getKey().getFeatureName());
             setMetricsAttributes(metricsData, VARIATION_IDENTIFIER_ATTRIBUTE, entry.getKey().getVariationIdentifier());
-            setMetricsAttributes(metricsData, VARIATION_VALUE_ATTRIBUTE, entry.getKey().getVariationValue());
             setMetricsAttributes(metricsData, TARGET_ATTRIBUTE, entry.getKey().getTarget());
             setMetricsAttributes(metricsData, SDK_TYPE, CLIENT);
             setMetricsAttributes(metricsData, SDK_LANGUAGE, "android");
