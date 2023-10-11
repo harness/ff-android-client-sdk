@@ -404,6 +404,15 @@ public class CfClient implements Closeable {
         instance = null;
     }
 
+    /**
+     * Deprecated since 1.2.0 use close() instead as this will be removed in the future
+     * @deprecated since 1.2.0
+     */
+    @Deprecated
+    public void destroy() {
+        close();
+    }
+
     private final EventsListener eventsListener = statusEvent -> {
 
         log.debug("SSE event received: {}", statusEvent.getEventType());
