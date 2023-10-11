@@ -78,6 +78,7 @@ public class NewRetryInterceptor implements Interceptor {
   }
 
   private boolean shouldRetryException(Exception ex) {
+    log.info("should retry exception check: {}", ex.getMessage());
     return true;
   }
 

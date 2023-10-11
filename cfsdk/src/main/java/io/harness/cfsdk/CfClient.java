@@ -583,15 +583,13 @@ public class CfClient implements Closeable {
 
     private void runRescheduleThread() throws ApiException {
 
-        if (!ready.get()) {
-            if (cloud.initialize()) {
-                ready.set(true);
-                this.authInfo = cloud.getAuthInfo();
+        if (!ready.get() && cloud.initialize()) {
+            ready.set(true);
+            this.authInfo = cloud.getAuthInfo();
 
-                if (analyticsEnabled) {
-                    this.analyticsManager.close();
-                    this.analyticsManager = getAnalyticsManager(configuration, authInfo);
-                }
+            if (analyticsEnabled) {
+                this.analyticsManager.close();
+                this.analyticsManager = getAnalyticsManager(configuration, authInfo);
             }
         }
 
@@ -771,8 +769,8 @@ public class CfClient implements Closeable {
 
         if (target.getIdentifier() == null || target.getIdentifier().isEmpty()) {
             // TargetIDs cannot have spaces in them.
-            String StrippedName = target.getName().replace(" ", "_");
-            target.identifier(StrippedName);
+            String strippedName = target.getName().replace(" ", "_");
+            target.identifier(strippedName);
         }
     }
 

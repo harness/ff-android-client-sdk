@@ -16,7 +16,7 @@ import io.harness.cfsdk.cloud.core.model.Evaluation;
 
 public class DefaultCache implements CloudCache {
 
-    private final String KEY_ALL = "all_evaluations_v2";
+    private static final String KEY_ALL = "all_evaluations_v2";
     private final Map<String, Evaluation> evaluations;
     private final InternalCache internalCache;
 

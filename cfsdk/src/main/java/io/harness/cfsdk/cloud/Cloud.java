@@ -22,12 +22,10 @@ public class Cloud implements ICloud {
     private AuthInfo authInfo;
     private final Target target;
     private DefaultApi defaultApi;
-    private final String streamUrl;
     private final ApiClient apiClient;
     private final CloudFactory cloudFactory;
     private final TokenProvider tokenProvider;
     private final AuthResponseDecoder authResponseDecoder;
-    private final CfConfiguration config;
 
     public Cloud(
 
@@ -41,11 +39,9 @@ public class Cloud implements ICloud {
 
         this.key = key;
         this.target = target;
-        this.streamUrl = sseUrl;
         this.cloudFactory = cloudFactory;
         this.tokenProvider = cloudFactory.tokenProvider();
         this.authResponseDecoder = cloudFactory.getAuthResponseDecoder();
-        this.config = config;
 
         apiClient = cloudFactory.apiClient();
         apiClient.setBasePath(baseUrl);
@@ -123,28 +119,24 @@ public class Cloud implements ICloud {
     private void authenticate() throws ApiException {
 
         defaultApi = cloudFactory.defaultApi(apiClient);
-        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-        authenticationRequest.apiKey(this.key);
-        authenticationRequest.setTarget(this.target);
+        final AuthenticationRequest authenticationRequest = new AuthenticationRequest();
+        authenticationRequest.apiKey(key);
+        authenticationRequest.setTarget(target);
         authToken = defaultApi.authenticate(authenticationRequest).getAuthToken();
-        this.tokenProvider.addToken(this.key, authToken);
-        this.authToken = this.tokenProvider.getToken(this.key);
+        tokenProvider.addToken(key, authToken);
+        authToken = tokenProvider.getToken(key);
         apiClient.addDefaultHeader("Authorization", "Bearer " + authToken);
-        this.authInfo = authResponseDecoder.extractInfo(authToken);
+        authInfo = authResponseDecoder.extractInfo(authToken);
 
         if (authInfo != null) {
-            String environmentHeader = authInfo.getEnvironmentTrackingHeader();
+            final String environmentHeader = authInfo.getEnvironmentTrackingHeader();
 
             apiClient.addDefaultHeader("Harness-EnvironmentID", environmentHeader);
 
-            String accountID = authInfo.getAccountID();
+            final String accountID = authInfo.getAccountID();
             if (accountID != null) {
                 apiClient.addDefaultHeader("Harness-AccountID", accountID);
             }
         }
-    }
-
-    private String buildSSEUrl() {
-        return this.streamUrl;
     }
 }

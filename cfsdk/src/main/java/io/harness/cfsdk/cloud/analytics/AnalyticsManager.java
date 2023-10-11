@@ -64,6 +64,7 @@ public class AnalyticsManager implements Closeable {
 
         } catch (final InterruptedException e) {
             log.warn("metrics queue error", e);
+            Thread.currentThread().interrupt();
         }
 
         return false;
