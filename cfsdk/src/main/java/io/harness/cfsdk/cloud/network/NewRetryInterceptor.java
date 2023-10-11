@@ -1,6 +1,7 @@
 package io.harness.cfsdk.cloud.network;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.*;
@@ -38,7 +39,7 @@ public class NewRetryInterceptor implements Interceptor {
         response = chain.proceed(chain.request());
         successful = response.isSuccessful();
         if (!successful) {
-          msg = String.format("httpCode=%d %s", response.code(), response.message());
+          msg = String.format(Locale.getDefault(),"httpCode=%d %s", response.code(), response.message());
           if (!shouldRetryHttpErrorCode(response.code())) {
             return response;
           }
@@ -65,7 +66,7 @@ public class NewRetryInterceptor implements Interceptor {
             msg,
             limitReached
                 ? ", retry limited reached"
-                : String.format(", retrying in %dms", retryBackoffDelay * tryCount));
+                : String.format(Locale.getDefault(),", retrying in %dms", retryBackoffDelay * tryCount));
 
         if (!limitReached) {
           sleep(retryBackoffDelay * tryCount);
@@ -77,6 +78,7 @@ public class NewRetryInterceptor implements Interceptor {
   }
 
   private boolean shouldRetryException(Exception ex) {
+    log.info("should retry exception check: {}", ex.getMessage());
     return true;
   }
 

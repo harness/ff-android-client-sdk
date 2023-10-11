@@ -9,13 +9,12 @@ import java.util.List;
  */
 public class CfConfiguration {
 
-    public static final int DEFAULT_METRICS_CAPACITY;
-    public static final int MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS;
-    public static final int DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS;
+    public static final int DEFAULT_METRICS_CAPACITY = 1024;
+    public static final int MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS = 60;
+    public static final int DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS = 10;
 
-    private static final String BASE_URL;
-    private static final String EVENT_URL;
-    private static final String STREAM_URL;
+    private static final String BASE_URL = "https://config.ff.harness.io/api/1.0";
+    private static final String EVENT_URL = "https://events.ff.harness.io/api/1.0";
 
     private final String baseURL;
     private final String eventURL;
@@ -30,20 +29,6 @@ public class CfConfiguration {
 
     private long metricsPublishingIntervalInMillis;
     private long metricsServiceAcceptableDurationInMillis;
-
-    static {
-
-        DEFAULT_METRICS_CAPACITY = 1024;
-        MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS = 60;
-        DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS = 10;
-    }
-
-    static {
-
-        BASE_URL = "https://config.ff.harness.io/api/1.0";
-        STREAM_URL = BASE_URL + "/stream";
-        EVENT_URL = "https://events.ff.harness.io/api/1.0";
-    }
 
     protected CfConfiguration(
 

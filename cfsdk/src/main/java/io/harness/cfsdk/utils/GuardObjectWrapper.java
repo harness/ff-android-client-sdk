@@ -17,6 +17,7 @@ public class GuardObjectWrapper {
             log.debug("Awaiting for lock release");
             countDownLatch.await(); // wait for 0
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         }
         return object;

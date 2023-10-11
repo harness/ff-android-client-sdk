@@ -13,12 +13,9 @@ import io.harness.cfsdk.cloud.model.AuthInfo;
  */
 public class MetricsApiFactory {
 
-    private static MetricsApiFactoryRecipe recipe;
+    private static MetricsApiFactoryRecipe recipe = new DefaultMetricsApiFactoryRecipe();
 
-    static {
-
-        recipe = new DefaultMetricsApiFactoryRecipe();
-    }
+    private MetricsApiFactory() {}
 
     public static MetricsApi create(
 

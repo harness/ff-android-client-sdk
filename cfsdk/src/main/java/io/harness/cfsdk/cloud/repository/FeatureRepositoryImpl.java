@@ -20,8 +20,6 @@ public class FeatureRepositoryImpl implements FeatureRepository {
     private final FeatureService featureService;
     private final NetworkInfoProviding networkInfoProvider;
 
-
-
     public FeatureRepositoryImpl(
 
             final FeatureService featureService,
@@ -138,7 +136,6 @@ public class FeatureRepositoryImpl implements FeatureRepository {
 
     @Override
     public void clear() {
-
         cloudCache.clear();
     }
 

@@ -163,7 +163,7 @@ class MainActivity : AppCompatActivity() {
 
         clients.forEach { client ->
 
-            client.destroy()
+            client.close()
         }
     }
 }

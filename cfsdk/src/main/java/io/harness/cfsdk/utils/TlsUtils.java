@@ -25,6 +25,8 @@ public class TlsUtils {
 
     private static final Logger log = LoggerFactory.getLogger(TlsUtils.class);
 
+    private TlsUtils() {}
+
     public static void setupTls(ApiClient apiClient, CfConfiguration config) {
         if (config == null) {
             return;

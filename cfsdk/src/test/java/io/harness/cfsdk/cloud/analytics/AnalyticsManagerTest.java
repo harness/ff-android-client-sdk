@@ -3,11 +3,8 @@ package io.harness.cfsdk.cloud.analytics;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +19,7 @@ import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.mock.MockMetricsApiFactoryRecipe;
 import io.harness.cfsdk.mock.MockedAnalyticsManager;
-
+import static org.junit.Assert.*;
 
 @SuppressWarnings("BusyWait")
 public class AnalyticsManagerTest {
@@ -51,12 +48,12 @@ public class AnalyticsManagerTest {
 
         try {
 
-            Assert.assertTrue(sendingLatch.await(timeout, TimeUnit.MILLISECONDS));
-            Assert.assertTrue(successLatch.await(timeout, TimeUnit.MILLISECONDS));
+            assertTrue(sendingLatch.await(timeout, TimeUnit.MILLISECONDS));
+            assertTrue(successLatch.await(timeout, TimeUnit.MILLISECONDS));
 
         } catch (InterruptedException e) {
 
-            Assert.fail(e.getMessage());
+            fail(e.getMessage());
         }
 
         long start = System.currentTimeMillis();
@@ -68,16 +65,16 @@ public class AnalyticsManagerTest {
 
                 if (System.currentTimeMillis() - start >= timeout) {
 
-                    Assert.fail("Timeout after " + timeout);
+                    fail("Timeout after " + timeout);
                 }
 
             } catch (InterruptedException e) {
 
-                Assert.fail(e.getMessage());
+                fail(e.getMessage());
             }
         }
 
-        Assert.assertTrue(manager.getQueue().isEmpty());
+        assertTrue(manager.getQueue().isEmpty());
 
         start = System.currentTimeMillis();
         while (manager.getSuccessCount() == 0 && manager.getFailureCount() == 0) {
@@ -88,19 +85,19 @@ public class AnalyticsManagerTest {
 
                 if (System.currentTimeMillis() - start >= timeout) {
 
-                    Assert.fail("Timeout after " + timeout);
+                    fail("Timeout after " + timeout);
                 }
 
             } catch (InterruptedException e) {
 
-                Assert.fail(e.getMessage());
+                fail(e.getMessage());
             }
         }
 
-        Assert.assertTrue(manager.getSuccessCount() >= 1);
-        Assert.assertEquals(0, manager.getFailureCount());
+        assertTrue(manager.getSuccessCount() >= 1);
+        assertEquals(0, manager.getFailureCount());
 
-        manager.destroy();
+        manager.close();
 
         start = System.currentTimeMillis();
         while (!manager.queue.isEmpty()) {
@@ -111,18 +108,18 @@ public class AnalyticsManagerTest {
 
                 if (System.currentTimeMillis() - start >= timeout) {
 
-                    Assert.fail("Timeout after 3 seconds");
+                    fail("Timeout after 3 seconds");
                 }
 
             } catch (InterruptedException e) {
 
-                Assert.fail(e.getMessage());
+                fail(e.getMessage());
             }
         }
 
-        Assert.assertTrue(manager.getQueue().isEmpty());
-        Assert.assertTrue(manager.getSuccessCount() > 1);
-        Assert.assertEquals(0, manager.getFailureCount());
+        assertTrue(manager.getQueue().isEmpty());
+        assertTrue(manager.getSuccessCount() > 1);
+        assertEquals(0, manager.getFailureCount());
     }
 
     @Ignore("Tracked by FFM-8570")
@@ -143,12 +140,12 @@ public class AnalyticsManagerTest {
 
         try {
 
-            Assert.assertTrue(sendingLatch.await(timeout, TimeUnit.MILLISECONDS));
-            Assert.assertTrue(successLatch.await(timeout, TimeUnit.MILLISECONDS));
+            assertTrue(sendingLatch.await(timeout, TimeUnit.MILLISECONDS));
+            assertTrue(successLatch.await(timeout, TimeUnit.MILLISECONDS));
 
         } catch (InterruptedException e) {
 
-            Assert.fail(e.getMessage());
+            fail(e.getMessage());
         }
 
         long start = System.currentTimeMillis();
@@ -160,30 +157,30 @@ public class AnalyticsManagerTest {
 
                 if (System.currentTimeMillis() - start >= timeout) {
 
-                    Assert.fail("Timeout after 30 seconds");
+                    fail("Timeout after 30 seconds");
                 }
 
             } catch (InterruptedException e) {
 
-                Assert.fail(e.getMessage());
+                fail(e.getMessage());
             }
         }
 
-        Assert.assertEquals(count * count, manager.getQueue().size());
+        assertEquals(count * count, manager.getQueue().size());
 
         sendingLatch = new CountDownLatch(1);
         MockMetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(sendingLatch, true);
         MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
 
-        manager.destroy();
+        manager.close();
 
         try {
 
-            Assert.assertTrue(sendingLatch.await(timeout, TimeUnit.MILLISECONDS));
+            assertTrue(sendingLatch.await(timeout, TimeUnit.MILLISECONDS));
 
         } catch (InterruptedException e) {
 
-            Assert.fail(e.getMessage());
+            fail(e.getMessage());
         }
 
         start = System.currentTimeMillis();
@@ -195,18 +192,18 @@ public class AnalyticsManagerTest {
 
                 if (System.currentTimeMillis() - start >= timeout) {
 
-                    Assert.fail("Timeout after 3 seconds");
+                    fail("Timeout after 3 seconds");
                 }
 
             } catch (InterruptedException e) {
 
-                Assert.fail(e.getMessage());
+                fail(e.getMessage());
             }
         }
 
-        Assert.assertTrue(manager.getQueue().isEmpty());
-        Assert.assertEquals(1, manager.getFailureCount());
-        Assert.assertTrue(manager.getSuccessCount() >= 1);
+        assertTrue(manager.getQueue().isEmpty());
+        assertEquals(1, manager.getFailureCount());
+        assertTrue(manager.getSuccessCount() >= 1);
     }
 
     private ManagerWrapper getWrapped(final CountDownLatch latch) {
@@ -233,10 +230,9 @@ public class AnalyticsManagerTest {
         when(configuration.getMetricsServiceAcceptableDurationInMillis()).thenReturn(publishingAcceptableDurationInMillis);
 
         final MockedAnalyticsManager manager =
-                new MockedAnalyticsManager(Mockito.mock(AuthInfo.class), token, configuration, latch);
+                new MockedAnalyticsManager(mock(AuthInfo.class), token, configuration, latch);
 
-        Assert.assertEquals(
-
+        assertEquals(
                 metricsCapacity,
                 manager.getQueue().remainingCapacity()
         );
@@ -251,7 +247,6 @@ public class AnalyticsManagerTest {
     ) {
 
         MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(
-
                 (authInfo, authToken, config) -> (environment, cluster, metrics) ->
                        log.debug("Ignore this metrics posting")
         );
@@ -268,7 +263,7 @@ public class AnalyticsManagerTest {
                 variation.setValue(String.valueOf(result));
                 variation.setIdentifier(result.getIdentifier());
 
-                Assert.assertTrue(manager.pushToQueue(target, flag, variation));
+                assertTrue(manager.pushToQueue(target, flag, variation));
             }
         }
 
@@ -281,16 +276,16 @@ public class AnalyticsManagerTest {
 
                 if (System.currentTimeMillis() - start >= timeout) {
 
-                    Assert.fail("Timeout after 3 seconds");
+                    fail("Timeout after 3 seconds");
                 }
 
             } catch (InterruptedException e) {
 
-                Assert.fail(e.getMessage());
+                fail(e.getMessage());
             }
         }
 
-        Assert.assertEquals(count * count, manager.getQueue().size());
+        assertEquals(count * count, manager.getQueue().size());
     }
 
     private String getFlag(int iteration) {

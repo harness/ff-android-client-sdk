@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -30,42 +29,24 @@ public class AnalyticsPublisherService {
 
     private static final Logger log = LoggerFactory.getLogger(AnalyticsPublisherService.class);
 
-    private static final String CLIENT;
-    private static final String SDK_TYPE;
-    private static final String SDK_VERSION;
-    private static final String SDK_LANGUAGE;
-    private static final String GLOBAL_TARGET;
-    private static final String TARGET_ATTRIBUTE;
-    private static final String FEATURE_IDENTIFIER_ATTRIBUTE;
-    private static final String FEATURE_NAME_ATTRIBUTE;
-    private static final String VARIATION_IDENTIFIER_ATTRIBUTE;
-    private static final String VARIATION_VALUE_ATTRIBUTE;
-
-    static {
-
-        CLIENT = "client";
-        SDK_TYPE = "SDK_TYPE";
-        TARGET_ATTRIBUTE = "target";
-        SDK_VERSION = "SDK_VERSION";
-        SDK_LANGUAGE = "SDK_LANGUAGE";
-        GLOBAL_TARGET = "__global__cf_target";
-        FEATURE_IDENTIFIER_ATTRIBUTE = "featureIdentifier";
-        FEATURE_NAME_ATTRIBUTE = "featureName";
-        VARIATION_IDENTIFIER_ATTRIBUTE = "variationIdentifier";
-        VARIATION_VALUE_ATTRIBUTE = "variationValue";
-    }
+    private static final String CLIENT = "client";
+    private static final String SDK_TYPE = "SDK_TYPE";
+    private static final String SDK_VERSION = "SDK_VERSION";
+    private static final String SDK_LANGUAGE = "SDK_LANGUAGE";
+    private static final String TARGET_ATTRIBUTE = "target";
+    private static final String FEATURE_IDENTIFIER_ATTRIBUTE = "featureIdentifier";
+    private static final String FEATURE_NAME_ATTRIBUTE = "featureName";
+    private static final String VARIATION_IDENTIFIER_ATTRIBUTE = "variationIdentifier";
 
     private final String authToken;
     private final CfConfiguration config;
     private final AuthInfo authInfo;
 
     public AnalyticsPublisherService(
-
             final String authToken,
             final CfConfiguration config,
             final AuthInfo authInfo
     ) {
-
         this.config = config;
         this.authToken = authToken;
         this.authInfo = authInfo;
@@ -82,23 +63,17 @@ public class AnalyticsPublisherService {
             final BlockingQueue<Analytics> queue,
             final AnalyticsPublisherServiceCallback callback
     ) {
-
         log.debug("Reading from queue and building cache");
-
         final Map<Analytics, Integer> all = new HashMap<>();
 
         for (Analytics analytics : queue) {
-
             if (analytics != null) {
 
                 Integer count = all.get(analytics);
                 if (count == null) {
-
                     count = 0;
                     all.put(analytics, count);
-
                 } else {
-
                     count++;
                     all.put(analytics, count);
                 }
@@ -108,7 +83,6 @@ public class AnalyticsPublisherService {
         }
 
         if (all.isEmpty()) {
-
             log.debug("Cache is empty");
             callback.onAnalyticsSent(true);
 
@@ -119,7 +93,6 @@ public class AnalyticsPublisherService {
 
                 final Metrics metrics = prepareSummaryMetricsBody(all);
                 if (metrics.getMetricsData() != null && !metrics.getMetricsData().isEmpty()) {
-
                     long startTime = System.currentTimeMillis();
 
                     log.debug("Sending metrics");
@@ -130,14 +103,11 @@ public class AnalyticsPublisherService {
                     long endTime = System.currentTimeMillis();
 
                     if ((endTime - startTime) > config.getMetricsServiceAcceptableDurationInMillis()) {
-
                         log.debug("Metrics service API duration={}", endTime - startTime);
                     }
-
                     log.debug("Successfully sent analytics data to the server");
 
                 } else {
-
                     log.debug("No analytics data to send the server");
                 }
 
@@ -214,7 +184,6 @@ public class AnalyticsPublisherService {
             setMetricsAttributes(metricsData, FEATURE_IDENTIFIER_ATTRIBUTE, entry.getKey().getFeatureName());
             setMetricsAttributes(metricsData, FEATURE_NAME_ATTRIBUTE, entry.getKey().getFeatureName());
             setMetricsAttributes(metricsData, VARIATION_IDENTIFIER_ATTRIBUTE, entry.getKey().getVariationIdentifier());
-            setMetricsAttributes(metricsData, VARIATION_VALUE_ATTRIBUTE, entry.getKey().getVariationValue());
             setMetricsAttributes(metricsData, TARGET_ATTRIBUTE, entry.getKey().getTarget());
             setMetricsAttributes(metricsData, SDK_TYPE, CLIENT);
             setMetricsAttributes(metricsData, SDK_LANGUAGE, "android");
