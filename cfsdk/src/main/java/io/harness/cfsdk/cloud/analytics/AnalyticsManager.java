@@ -78,8 +78,22 @@ public class AnalyticsManager implements Closeable {
         this.config = config;
 
         final long frequencyMs = config.getMetricsPublishingIntervalInMillis();
-        scheduledExecutorService.scheduleAtFixedRate(() -> analyticsPublisherService.sendData(frequencyMap.drainToMap(), getSendingCallback()),  frequencyMs/2, frequencyMs, TimeUnit.MILLISECONDS);
+        scheduledExecutorService.schedule(() -> Thread.currentThread().setName("Metrics Thread"), 0, TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleAtFixedRate(this::postMetricsThread,frequencyMs/2, frequencyMs, TimeUnit.MILLISECONDS);
         SdkCodes.infoMetricsThreadStarted((int)frequencyMs/1000);
+    }
+
+    private void postMetricsThread() {
+        long startTime = System.currentTimeMillis();
+        int mapSizeBefore = frequencyMap.size();
+
+        analyticsPublisherService.sendData(frequencyMap.drainToMap(), getSendingCallback());
+
+        long timeTakenMs = (System.currentTimeMillis() - startTime);
+        if (timeTakenMs > config.getMetricsServiceAcceptableDurationInMillis())
+            log.warn("Metrics service API duration={}", timeTakenMs);
+
+        log.debug("Metrics thread completed in {}ms, previousMapSize={} newMapSize={}", timeTakenMs, mapSizeBefore, frequencyMap.size());
     }
 
     public void registerEvaluation(
@@ -91,13 +105,12 @@ public class AnalyticsManager implements Closeable {
 
         if (freqMapSize > config.getMetricsCapacity()) {
             if (log.isWarnEnabled()) {
-                log.warn(
-                        "Metric frequency map exceeded buffer size ({} > {}), force flushing",
+                log.warn("Metric frequency map exceeded buffer size ({} > {}), force flushing",
                         freqMapSize,
                         config.getMetricsCapacity());
             }
             // If the map is starting to grow too much then push the events now and reset the counters
-            analyticsPublisherService.sendData(frequencyMap.drainToMap(), getSendingCallback());
+            scheduledExecutorService.schedule(this::postMetricsThread, 0, TimeUnit.SECONDS);
         }
 
         final Analytics analytics = new AnalyticsBuilder()
@@ -122,13 +135,7 @@ public class AnalyticsManager implements Closeable {
     }
 
     protected AnalyticsPublisherServiceCallback getSendingCallback() {
-        return success -> {
-            if (success) {
-                log.debug("Metrics sending success");
-            } else {
-                log.debug("Metrics sending failure");
-            }
-        };
+        return success -> log.trace("callback result success={}", success);
     }
 
     void flush() {

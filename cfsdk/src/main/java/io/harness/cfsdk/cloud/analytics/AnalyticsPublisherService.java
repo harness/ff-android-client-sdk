@@ -38,7 +38,6 @@ public class AnalyticsPublisherService {
     private static final String FEATURE_NAME_ATTRIBUTE = "featureName";
     private static final String VARIATION_IDENTIFIER_ATTRIBUTE = "variationIdentifier";
 
-    private final CfConfiguration config;
     private final AuthInfo authInfo;
     private final MetricsApi metricsApi;
     private final AtomicLong metricsSent = new AtomicLong();
@@ -48,16 +47,13 @@ public class AnalyticsPublisherService {
             final AuthInfo authInfo,
             final String authToken
     ) {
-        this.config = config;
         this.authInfo = authInfo;
         this.metricsApi = MetricsApiFactory.create(authToken, config, authInfo);
     }
 
     public AnalyticsPublisherService(
-            final CfConfiguration config,
             final AuthInfo authInfo,
             final MetricsApi metricsAPI) {
-        this.config = config;
         this.authInfo = authInfo;
         this.metricsApi = metricsAPI;
     }
@@ -69,70 +65,62 @@ public class AnalyticsPublisherService {
      * @param callback Sending results callback.
      */
     public void sendData(
-
             final Map<Analytics, Long> freqMap,
-            final AnalyticsPublisherServiceCallback callback
-    ) {
+            final AnalyticsPublisherServiceCallback callback) {
+
         if (log.isDebugEnabled())
             log.debug("Preparing to send metric payload mapSize={} totalMapSum={}", freqMap.size(), sumOfValuesInMap(freqMap));
 
         if (freqMap.isEmpty()) {
 
-            if (log.isDebugEnabled())
-                log.debug("freqMap is empty");
+            log.debug("freqMap is empty");
 
             callback.onAnalyticsSent(true);
-        } else {
+            return;
+        }
 
-            try {
+        try {
+            final Metrics metrics = prepareSummaryMetricsBody(freqMap);
 
-                final Metrics metrics = prepareSummaryMetricsBody(freqMap);
-                if (metrics.getMetricsData() != null && !metrics.getMetricsData().isEmpty()) {
-                    long startTime = System.currentTimeMillis();
+            if (metrics.getMetricsData() != null && !metrics.getMetricsData().isEmpty()) {
+                log.debug("Posting metrics");
 
-                    log.debug("Sending metrics");
+                if (log.isTraceEnabled())
+                    log.trace("metrics payload: {}", metrics);
 
-                    metricsApi.postMetrics(authInfo.getEnvironment(), authInfo.getCluster(), metrics);
-                    metricsSent.addAndGet(sumOfValuesInMap(freqMap));
+                final long evalSum = sumOfValuesInMap(freqMap);
+                metricsApi.postMetrics(authInfo.getEnvironment(), authInfo.getCluster(), metrics);
+                metricsSent.addAndGet(evalSum);
 
-                    long endTime = System.currentTimeMillis();
+                log.debug("Successfully sent analytics data to the server");
 
-                    if ((endTime - startTime) > config.getMetricsServiceAcceptableDurationInMillis()) {
-                        log.debug("Metrics service API duration={}", endTime - startTime);
-                    }
-                    log.debug("Successfully sent analytics data to the server");
-
-                } else {
-                    log.debug("No analytics data to send the server");
-                }
-
-                callback.onAnalyticsSent(true);
-
-            } catch (ApiException e) {
-
-                SdkCodes.warnPostMetricsFailed(e.getMessage());
-                callback.onAnalyticsSent(false);
+            } else {
+                log.debug("No analytics data to send the server");
             }
+
+            callback.onAnalyticsSent(true);
+
+        } catch (ApiException e) {
+
+            SdkCodes.warnPostMetricsFailed(e.getMessage());
+            callback.onAnalyticsSent(false);
         }
     }
 
-
-    private Metrics prepareSummaryMetricsBody(Map<Analytics, Long> data) {
-
-        log.debug("prepare summary size: {}", data.size());
-
-        final Metrics metrics = new Metrics();
+    private Map<SummaryMetrics, Long> rollUpMetrics(Map<Analytics, Long> detailedMetrics) {
         final Map<SummaryMetrics, Long> summaryMetricsData = new HashMap<>();
 
-        for (Analytics analytics : data.keySet()) {
+        log.debug("roll up: detailed metrics size {}", detailedMetrics.size());
 
-            Long count = data.get(analytics);
+        for (Map.Entry<Analytics, Long> analytic : detailedMetrics.entrySet()) {
+
+            Long count = analytic.getValue();
 
             if (count == null) {
                 count = 0L;
             }
 
-            final SummaryMetrics summaryMetrics = prepareSummaryMetricsKey(analytics);
+            final SummaryMetrics summaryMetrics = prepareSummaryMetricsKey(analytic.getKey());
             final Long summaryCount = summaryMetricsData.get(summaryMetrics);
 
             if (summaryCount == null) {
@@ -145,10 +133,19 @@ public class AnalyticsPublisherService {
                 log.trace("Summary metrics appended: {}, {}", summaryMetrics, summaryMetricsData.get(summaryMetrics));
         }
 
-        log.debug("Summary metrics size: {}", summaryMetricsData.size());
+        log.debug("roll up: summarised metrics size {}", summaryMetricsData.size());
+
+        return summaryMetricsData;
+    }
+
+
+    private Metrics prepareSummaryMetricsBody(Map<Analytics, Long> data) {
+
+        final Map<SummaryMetrics, Long> summaryMetricsData = rollUpMetrics(data);
 
         final Set<Map.Entry<SummaryMetrics, Long>> summaryEntrySet = summaryMetricsData.entrySet();
 
+        final Metrics metrics = new Metrics();
         for (Map.Entry<SummaryMetrics, Long> entry : summaryEntrySet) {
 
             MetricsData metricsData = new MetricsData();
@@ -179,9 +176,7 @@ public class AnalyticsPublisherService {
     }
 
     private SummaryMetrics prepareSummaryMetricsKey(Analytics key) {
-
         return new SummaryMetrics(
-
                 key.getVariation().getName(),
                 key.getVariation().getValue(),
                 key.getVariation().getIdentifier(),
@@ -190,12 +185,10 @@ public class AnalyticsPublisherService {
     }
 
     private void setMetricsAttributes(
-
             final MetricsData metricsData,
             final String key,
             final String value
     ) {
-
         KeyValue metricsAttributes = new KeyValue();
         metricsAttributes.setKey(key);
         metricsAttributes.setValue(value);

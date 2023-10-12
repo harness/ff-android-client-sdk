@@ -27,12 +27,11 @@ public class AnalyticsPublisherServiceTest {
     @Test
     public void shouldCallUnhappyPathWhenPostMetricsFails() throws ApiException {
         final AuthInfo authInfo = Mockito.mock(AuthInfo.class);
-        final CfConfiguration config = CfConfiguration.builder().metricsCapacity(100).build();
         final MetricsApi metricsApi = Mockito.mock(MetricsApi.class);
 
         doThrow(new ApiException("dummy")).when(metricsApi).postMetrics(any(), any(), any());
 
-        final AnalyticsPublisherService service = new AnalyticsPublisherService(config, authInfo, metricsApi);
+        final AnalyticsPublisherService service = new AnalyticsPublisherService(authInfo, metricsApi);
         final AtomicBoolean result = new AtomicBoolean(true);
 
         final Analytics analytics = new AnalyticsBuilder()
@@ -51,12 +50,11 @@ public class AnalyticsPublisherServiceTest {
     @Test
     public void shouldCallHappyPathWhenPostMetricsHasNoData() throws ApiException {
         final AuthInfo authInfo = Mockito.mock(AuthInfo.class);
-        final CfConfiguration config = CfConfiguration.builder().metricsCapacity(100).build();
         final MetricsApi metricsApi = Mockito.mock(MetricsApi.class);
 
         doThrow(new ApiException("dummy")).when(metricsApi).postMetrics(anyString(), anyString(), any(Metrics.class));
 
-        final AnalyticsPublisherService service = new AnalyticsPublisherService(config, authInfo, metricsApi);
+        final AnalyticsPublisherService service = new AnalyticsPublisherService(authInfo, metricsApi);
         final AtomicBoolean result = new AtomicBoolean(false);
 
         service.sendData(new HashMap<>(), result::set);
