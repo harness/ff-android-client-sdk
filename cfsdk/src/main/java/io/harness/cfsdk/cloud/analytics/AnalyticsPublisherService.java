@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicLong;
 
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.api.MetricsApi;
@@ -38,67 +38,62 @@ public class AnalyticsPublisherService {
     private static final String FEATURE_NAME_ATTRIBUTE = "featureName";
     private static final String VARIATION_IDENTIFIER_ATTRIBUTE = "variationIdentifier";
 
-    private final String authToken;
     private final CfConfiguration config;
     private final AuthInfo authInfo;
+    private final MetricsApi metricsApi;
+    private final AtomicLong metricsSent = new AtomicLong();
 
     public AnalyticsPublisherService(
-            final String authToken,
             final CfConfiguration config,
-            final AuthInfo authInfo
+            final AuthInfo authInfo,
+            final String authToken
     ) {
         this.config = config;
-        this.authToken = authToken;
         this.authInfo = authInfo;
+        this.metricsApi = MetricsApiFactory.create(authToken, config, authInfo);
+    }
+
+    public AnalyticsPublisherService(
+            final CfConfiguration config,
+            final AuthInfo authInfo,
+            final MetricsApi metricsAPI) {
+        this.config = config;
+        this.authInfo = authInfo;
+        this.metricsApi = metricsAPI;
     }
 
     /**
      * This method sends the metrics data to the analytics server and resets the cache
      *
-     * @param queue    Queue that contains data to be sent.
+     * @param freqMap    Map that contains counters to be sent.
      * @param callback Sending results callback.
      */
-    public void sendDataAndResetQueue(
+    public void sendData(
 
-            final BlockingQueue<Analytics> queue,
+            final Map<Analytics, Long> freqMap,
             final AnalyticsPublisherServiceCallback callback
     ) {
-        log.debug("Reading from queue and building cache");
-        final Map<Analytics, Integer> all = new HashMap<>();
+        if (log.isDebugEnabled())
+            log.debug("Preparing to send metric payload mapSize={} totalMapSum={}", freqMap.size(), sumOfValuesInMap(freqMap));
 
-        for (Analytics analytics : queue) {
-            if (analytics != null) {
+        if (freqMap.isEmpty()) {
 
-                Integer count = all.get(analytics);
-                if (count == null) {
-                    count = 0;
-                    all.put(analytics, count);
-                } else {
-                    count++;
-                    all.put(analytics, count);
-                }
+            if (log.isDebugEnabled())
+                log.debug("freqMap is empty");
 
-                log.debug("Preparing metrics: metric='{}', count={}", analytics.getEvaluationId(), count);
-            }
-        }
-
-        if (all.isEmpty()) {
-            log.debug("Cache is empty");
             callback.onAnalyticsSent(true);
-
         } else {
-            log.debug("Cache contains the metrics data, size={}", all.size());
 
             try {
 
-                final Metrics metrics = prepareSummaryMetricsBody(all);
+                final Metrics metrics = prepareSummaryMetricsBody(freqMap);
                 if (metrics.getMetricsData() != null && !metrics.getMetricsData().isEmpty()) {
                     long startTime = System.currentTimeMillis();
 
                     log.debug("Sending metrics");
 
-                    final MetricsApi metricsAPI = MetricsApiFactory.create(authToken, config, authInfo);
-                    metricsAPI.postMetrics(authInfo.getEnvironment(), authInfo.getCluster(), metrics);
+                    metricsApi.postMetrics(authInfo.getEnvironment(), authInfo.getCluster(), metrics);
+                    metricsSent.addAndGet(sumOfValuesInMap(freqMap));
 
                     long endTime = System.currentTimeMillis();
 
@@ -109,24 +104,6 @@ public class AnalyticsPublisherService {
 
                 } else {
                     log.debug("No analytics data to send the server");
-                }
-
-                boolean queueCleared = true;
-                for (final Analytics analytics : all.keySet()) {
-
-                    while (queue.contains(analytics)) {
-
-                        if (queue.remove(analytics)) {
-                            log.debug("Metrics item was removed from the queue: {}", analytics.getEvaluationId());
-                        } else {
-                            log.debug("Metrics item was not removed from the queue: {}", analytics.getEvaluationId());
-                            queueCleared = false;
-                        }
-                    }
-                }
-
-                if (queueCleared) {
-                    log.debug("Queue is cleared, size={}", queue.size());
                 }
 
                 callback.onAnalyticsSent(true);
@@ -140,45 +117,43 @@ public class AnalyticsPublisherService {
     }
 
 
-    private Metrics prepareSummaryMetricsBody(Map<Analytics, Integer> data) {
+    private Metrics prepareSummaryMetricsBody(Map<Analytics, Long> data) {
 
-        log.debug("Data size: {}", data.size());
+        log.debug("prepare summary size: {}", data.size());
 
         final Metrics metrics = new Metrics();
-        final Map<SummaryMetrics, Integer> summaryMetricsData = new HashMap<>();
+        final Map<SummaryMetrics, Long> summaryMetricsData = new HashMap<>();
 
         for (Analytics analytics : data.keySet()) {
 
-            Integer count = data.get(analytics);
+            Long count = data.get(analytics);
 
             if (count == null) {
-
-                count = 0;
+                count = 0L;
             }
 
             final SummaryMetrics summaryMetrics = prepareSummaryMetricsKey(analytics);
-            final Integer summaryCount = summaryMetricsData.get(summaryMetrics);
+            final Long summaryCount = summaryMetricsData.get(summaryMetrics);
 
             if (summaryCount == null) {
-
                 summaryMetricsData.put(summaryMetrics, count + 1);
             } else {
-
                 summaryMetricsData.put(summaryMetrics, summaryCount + count);
             }
 
-            log.debug("Summary metrics appended: {}, {}", summaryMetrics, summaryMetricsData.get(summaryMetrics));
+            if (log.isTraceEnabled())
+                log.trace("Summary metrics appended: {}, {}", summaryMetrics, summaryMetricsData.get(summaryMetrics));
         }
 
         log.debug("Summary metrics size: {}", summaryMetricsData.size());
 
-        final Set<Map.Entry<SummaryMetrics, Integer>> summaryEntrySet = summaryMetricsData.entrySet();
+        final Set<Map.Entry<SummaryMetrics, Long>> summaryEntrySet = summaryMetricsData.entrySet();
 
-        for (Map.Entry<SummaryMetrics, Integer> entry : summaryEntrySet) {
+        for (Map.Entry<SummaryMetrics, Long> entry : summaryEntrySet) {
 
             MetricsData metricsData = new MetricsData();
             metricsData.setTimestamp(System.currentTimeMillis());
-            metricsData.count(entry.getValue());
+            metricsData.count(entry.getValue().intValue());
             metricsData.setMetricsType(MetricsData.MetricsTypeEnum.FFMETRICS);
 
             setMetricsAttributes(metricsData, FEATURE_IDENTIFIER_ATTRIBUTE, entry.getKey().getFeatureName());
@@ -225,5 +200,13 @@ public class AnalyticsPublisherService {
         metricsAttributes.setKey(key);
         metricsAttributes.setValue(value);
         metricsData.addAttributesItem(metricsAttributes);
+    }
+
+    private long sumOfValuesInMap(Map<?, Long> map) {
+        return map.values().stream().mapToLong(l -> l).sum();
+    }
+
+    long getMetricsSent() {
+        return metricsSent.get();
     }
 }

@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.harness.cfsdk.cloud.ICloud;
 import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
+import io.harness.cfsdk.cloud.analytics.AnalyticsPublisherService;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.core.client.ApiException;
 import io.harness.cfsdk.cloud.core.model.Evaluation;
@@ -778,10 +779,7 @@ public class CfClient implements Closeable {
     protected AnalyticsManager getAnalyticsManager(CfConfiguration configuration, AuthInfo authInfo) {
 
         return new AnalyticsManager(
-
-                authInfo,
-                cloud.getAuthToken(),
-                configuration
+                configuration, new AnalyticsPublisherService(configuration, authInfo, cloud.getAuthToken())
         );
     }
 
@@ -862,10 +860,7 @@ public class CfClient implements Closeable {
             variation.setValue(String.valueOf(result.value));
             variation.setIdentifier(result.getIdentifier());
 
-            if (!analyticsManager.pushToQueue(this.target, evaluationId, variation)) {
-
-                log.warn("Error adding into the metrics queue");
-            }
+            analyticsManager.registerEvaluation(this.target, evaluationId, variation);
         }
 
         return result;

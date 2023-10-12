@@ -4,16 +4,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.util.concurrent.BlockingQueue;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
 import io.harness.cfsdk.cloud.core.model.Variation;
-import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.common.SdkCodes;
 
@@ -23,34 +22,83 @@ public class AnalyticsManager implements Closeable {
 
     private final AnalyticsPublisherService analyticsPublisherService;
     private final ScheduledExecutorService scheduledExecutorService;
-    protected final BlockingQueue<Analytics> queue;
+    private final FrequencyMap<Analytics> frequencyMap;
+    private final CfConfiguration config;
+
+    private static class FrequencyMap<K> {
+
+        private final ConcurrentHashMap<K, Long> freqMap;
+
+        FrequencyMap() {
+            freqMap = new ConcurrentHashMap<>();
+        }
+
+        void increment(K key) {
+            freqMap.compute(key, (k, v) -> (v == null) ? 1L : v + 1L);
+        }
+
+        int size() {
+            return freqMap.size();
+        }
+
+        long sum() {
+            return freqMap.values().stream().mapToLong(Long::longValue).sum();
+        }
+
+        Map<K, Long> drainToMap() {
+            // ConcurrentHashMap doesn't have a function to atomically drain an AtomicLongMap.
+            // Here we need to atomically set each key to zero as we transfer it to the new map else we
+            // see missed evaluations
+            final ConcurrentHashMap<K, Long> snapshotMap = new ConcurrentHashMap<>();
+            freqMap.forEach((k, v) -> transferValueIntoMapAtomicallyAndUpdateTo(k, snapshotMap, 0));
+            snapshotMap.forEach((k, v) -> freqMap.remove(k, 0L));
+
+            if (log.isTraceEnabled()) {
+                log.trace("snapshot got {} events",
+                        snapshotMap.values().stream().mapToLong(Long::longValue).sum());
+            }
+            return snapshotMap;
+        }
+
+        private void transferValueIntoMapAtomicallyAndUpdateTo(K key, Map<K, Long> targetMap, long newValue) {
+            freqMap.computeIfPresent(key,
+                    (k, v) -> {
+                        targetMap.put(k, v);
+                        return newValue;
+                    });
+        }
+    }
 
     public AnalyticsManager(
-            final AuthInfo authInfo,
-            final String authToken,
-            final CfConfiguration config
-    ) {
-        queue = new LinkedBlockingQueue<>(config.getMetricsCapacity());
-        scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        analyticsPublisherService = new AnalyticsPublisherService(authToken, config, authInfo);
+            final CfConfiguration config,
+            final AnalyticsPublisherService analyticsPublisherService) {
+        this.frequencyMap = new FrequencyMap<>();
+        this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        this.analyticsPublisherService = analyticsPublisherService;
+        this.config = config;
 
         final long frequencyMs = config.getMetricsPublishingIntervalInMillis();
-
-        scheduledExecutorService.scheduleAtFixedRate(() -> analyticsPublisherService.sendDataAndResetQueue(queue, getSendingCallback()),  frequencyMs/2, frequencyMs, TimeUnit.MILLISECONDS);
+        scheduledExecutorService.scheduleAtFixedRate(() -> analyticsPublisherService.sendData(frequencyMap.drainToMap(), getSendingCallback()),  frequencyMs/2, frequencyMs, TimeUnit.MILLISECONDS);
         SdkCodes.infoMetricsThreadStarted((int)frequencyMs/1000);
     }
 
-    public boolean pushToQueue(
+    public void registerEvaluation(
             final Target target,
             final String evaluationId,
             final Variation variation
     ) {
+        final int freqMapSize = frequencyMap.size();
 
-        if (queue.remainingCapacity() == 0) {
-            analyticsPublisherService.sendDataAndResetQueue(queue, getSendingCallback());
+        if (freqMapSize > config.getMetricsCapacity()) {
+            if (log.isWarnEnabled()) {
+                log.warn(
+                        "Metric frequency map exceeded buffer size ({} > {}), force flushing",
+                        freqMapSize,
+                        config.getMetricsCapacity());
+            }
+            // If the map is starting to grow too much then push the events now and reset the counters
+            analyticsPublisherService.sendData(frequencyMap.drainToMap(), getSendingCallback());
         }
-
-        log.debug("pushToQueue: Variation={}", variation);
 
         final Analytics analytics = new AnalyticsBuilder()
                 .target(target)
@@ -58,23 +106,17 @@ public class AnalyticsManager implements Closeable {
                 .variation(variation)
                 .build();
 
-        try {
-            queue.put(analytics);
-            return queue.contains(analytics);
+        frequencyMap.increment(analytics);
 
-        } catch (final InterruptedException e) {
-            log.warn("metrics queue error", e);
-            Thread.currentThread().interrupt();
-        }
-
-        return false;
+        if (log.isTraceEnabled())
+            log.trace("registerEvaluation: Variation={} NewMapSize={} NewTotalEvaluations={}", variation.getIdentifier(), frequencyMap.size(), frequencyMap.sum());
     }
 
     @Override
     public void close() {
         log.debug("destroying");
 
-        analyticsPublisherService.sendDataAndResetQueue(queue, getSendingCallback());
+        analyticsPublisherService.sendData(frequencyMap.drainToMap(), getSendingCallback());
         scheduledExecutorService.shutdown();
         SdkCodes.infoMetricsThreadExited();
     }
@@ -87,5 +129,21 @@ public class AnalyticsManager implements Closeable {
                 log.debug("Metrics sending failure");
             }
         };
+    }
+
+    void flush() {
+        analyticsPublisherService.sendData(frequencyMap.drainToMap(), getSendingCallback());
+    }
+
+    long getMetricsSent() {
+        return analyticsPublisherService.getMetricsSent();
+    }
+
+    long getPendingMetricsToBeSent() {
+        return frequencyMap.sum();
+    }
+
+    long getQueueSize() {
+        return frequencyMap.size();
     }
 }
