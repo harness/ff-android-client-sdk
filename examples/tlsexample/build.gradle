@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace 'io.harness.cfsdk.tlsexample'
-    compileSdk 33
+    compileSdkVersion 33
 
     defaultConfig {
         applicationId "io.harness.cfsdk.tlsexample"

@@ -34,6 +34,11 @@ android {
     }
 
     compileOptions {
+        // Desugaring options allow us to get access to Java 8 APIs that aren't available on our
+        // minSdkVersion 21, in particular atomic compute functions in ConcurrentHashMap<>
+        // see https://developer.android.com/studio/write/java8-support#library-desugaring
+        coreLibraryDesugaringEnabled = true
+
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
@@ -47,6 +52,8 @@ android {
 apply from: "${rootProject.projectDir}/cfsdk/publish-mavencentral.gradle"
 
 dependencies {
+
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.2.3")
 
     implementation 'org.slf4j:slf4j-api:2.0.9'
     implementation 'androidx.annotation:annotation:1.7.0'

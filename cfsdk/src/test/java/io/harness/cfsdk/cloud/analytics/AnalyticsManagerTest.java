@@ -1,311 +1,135 @@
 package io.harness.cfsdk.cloud.analytics;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import io.harness.cfsdk.CfConfiguration;
-import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.analytics.api.MetricsApi;
 import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
-import io.harness.cfsdk.mock.MockMetricsApiFactoryRecipe;
-import io.harness.cfsdk.mock.MockedAnalyticsManager;
 import static org.junit.Assert.*;
 
 @SuppressWarnings("BusyWait")
 public class AnalyticsManagerTest {
-
     private static final Logger log = LoggerFactory.getLogger(AnalyticsManagerTest.class);
-
-    private final long timeout = 30_000L;
-    private final int count = 3;
+    private final int BUFFER_SIZE = 100;
 
     @Test
-    public void testHappyPath() {
+    public void testPushToQueue() throws InterruptedException {
 
-        final CountDownLatch sendingLatch = new CountDownLatch(1);
-        final CountDownLatch successLatch = new CountDownLatch(1);
+        final CountDownLatch latch = new CountDownLatch(BUFFER_SIZE * BUFFER_SIZE);
+        final AuthInfo authInfo = Mockito.mock(AuthInfo.class);
+        final CfConfiguration config = CfConfiguration.builder().metricsCapacity(BUFFER_SIZE).build();
+        final MetricsApi metricsApi = Mockito.mock(MetricsApi.class);
+        final AnalyticsPublisherService aps = new AnalyticsPublisherService(authInfo, metricsApi);
 
-        final ManagerWrapper wrapper = getWrapped(successLatch);
-        final Target target = wrapper.target;
-        final MockedAnalyticsManager manager = wrapper.manager;
-
-        populate(target, manager);
-
-        final MetricsApiFactoryRecipe successFactory =
-                new MockMetricsApiFactoryRecipe(sendingLatch, true);
-
-        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
-
-        try {
-
-            assertTrue(sendingLatch.await(timeout, TimeUnit.MILLISECONDS));
-            assertTrue(successLatch.await(timeout, TimeUnit.MILLISECONDS));
-
-        } catch (InterruptedException e) {
-
-            fail(e.getMessage());
-        }
-
-        long start = System.currentTimeMillis();
-        while (!manager.queue.isEmpty()) {
-
-            try {
-
-                Thread.sleep(50);
-
-                if (System.currentTimeMillis() - start >= timeout) {
-
-                    fail("Timeout after " + timeout);
-                }
-
-            } catch (InterruptedException e) {
-
-                fail(e.getMessage());
+        final AnalyticsManager processor = new AnalyticsManager(config, aps) {
+            @Override
+            protected AnalyticsPublisherServiceCallback getSendingCallback() {
+                return (success) -> {
+                    if (success)
+                        latch.countDown();
+                };
             }
+        };
+
+        final ExecutorService WORKER_THREAD_POOL = Executors.newFixedThreadPool(BUFFER_SIZE);
+        final Target target = new Target().identifier("harness");
+        final Variation variation = new Variation().identifier("true").value("true");
+
+        for (int i = 1; i <= BUFFER_SIZE; i++) {
+            final String name = "TEST THREAD " + i;
+            WORKER_THREAD_POOL.submit(() -> {
+                    Thread.currentThread().setName(name);
+                    for (int j = 1; j <= BUFFER_SIZE; j++) {
+                        processor.registerEvaluation(target, "bool-flag", variation);
+
+                        processor.flush();
+                    }
+                });
         }
 
-        assertTrue(manager.getQueue().isEmpty());
+        processor.flush();
 
-        start = System.currentTimeMillis();
-        while (manager.getSuccessCount() == 0 && manager.getFailureCount() == 0) {
-
-            try {
-
-                Thread.sleep(50);
-
-                if (System.currentTimeMillis() - start >= timeout) {
-
-                    fail("Timeout after " + timeout);
-                }
-
-            } catch (InterruptedException e) {
-
-                fail(e.getMessage());
-            }
-        }
-
-        assertTrue(manager.getSuccessCount() >= 1);
-        assertEquals(0, manager.getFailureCount());
-
-        manager.close();
-
-        start = System.currentTimeMillis();
-        while (!manager.queue.isEmpty()) {
-
-            try {
-
-                Thread.sleep(50);
-
-                if (System.currentTimeMillis() - start >= timeout) {
-
-                    fail("Timeout after 3 seconds");
-                }
-
-            } catch (InterruptedException e) {
-
-                fail(e.getMessage());
-            }
-        }
-
-        assertTrue(manager.getQueue().isEmpty());
-        assertTrue(manager.getSuccessCount() > 1);
-        assertEquals(0, manager.getFailureCount());
+        waitForAllMetricEventsToArrive(processor, BUFFER_SIZE * BUFFER_SIZE);
+        assertEquals(BUFFER_SIZE * BUFFER_SIZE, processor.getMetricsSent());
     }
 
-    @Ignore("Tracked by FFM-8570")
+    private void waitForAllMetricEventsToArrive(AnalyticsManager processor, int totalMetricCount)
+            throws InterruptedException {
+        final int delayMs = 100;
+        int maxWaitTime = 30_000 / delayMs;
+        while (processor.getMetricsSent() < totalMetricCount && maxWaitTime > 0) {
+
+            System.out.printf(
+                    "Waiting for all metric events to arrive... totalMetricCount=%d metricsSent=%d mapSize=%d pending=%d\n",
+                    totalMetricCount,
+                    processor.getMetricsSent(),
+                    processor.getQueueSize(),
+                    processor.getPendingMetricsToBeSent());
+
+            Thread.sleep(delayMs);
+            maxWaitTime--;
+        }
+
+        if (maxWaitTime == 0) {
+            fail("Timed out");
+        }
+    }
+
     @Test
-    public void testFaultyPath() {
+    public void shouldNotThrowOutOfMemoryErrorWhenCreatingThreads() throws InterruptedException {
 
-        CountDownLatch sendingLatch = new CountDownLatch(1);
-        final CountDownLatch successLatch = new CountDownLatch(1);
+        final AuthInfo authInfo = Mockito.mock(AuthInfo.class);
+        final CfConfiguration config = CfConfiguration.builder().metricsCapacity(BUFFER_SIZE).build();
+        final MetricsApi metricsApi = Mockito.mock(MetricsApi.class);
+        final AnalyticsPublisherService aps = new AnalyticsPublisherService(authInfo, metricsApi);
+        final AnalyticsManager processor = new AnalyticsManager(config, aps);
 
-        final ManagerWrapper wrapper = getWrapped(successLatch);
-        final Target target = wrapper.target;
-        final MockedAnalyticsManager manager = wrapper.manager;
+        final int TARGET_COUNT = 100;
+        final int FLAG_COUNT = 500;
+        final int VARIATION_COUNT = 4;
 
-        populate(target, manager);
+        long maxQueueMapSize = 0;
 
-        final MetricsApiFactoryRecipe factory = new MockMetricsApiFactoryRecipe(sendingLatch, false);
-        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(factory);
+        for (int t = 0; t < TARGET_COUNT; t++) {
+            Target target = new Target().identifier("harness" + t);
+            for (int f = 0; f < FLAG_COUNT; f++) {
+                Variation feature = new Variation().identifier("bool-flag" + f);
+                for (int v = 0; v < VARIATION_COUNT; v++) {
+                    Variation variation =
+                            new Variation().identifier("true" + v).name("name" + v).value("true");
 
-        try {
+                    processor.registerEvaluation(target, feature.getIdentifier(), variation);
 
-            assertTrue(sendingLatch.await(timeout, TimeUnit.MILLISECONDS));
-            assertTrue(successLatch.await(timeout, TimeUnit.MILLISECONDS));
-
-        } catch (InterruptedException e) {
-
-            fail(e.getMessage());
-        }
-
-        long start = System.currentTimeMillis();
-        while (count * count != manager.getQueue().size()) {
-
-            try {
-
-                Thread.sleep(50);
-
-                if (System.currentTimeMillis() - start >= timeout) {
-
-                    fail("Timeout after 30 seconds");
+                    maxQueueMapSize = Math.max(maxQueueMapSize, processor.getQueueSize());
                 }
+            }
 
-            } catch (InterruptedException e) {
+            if (t % 10 == 0) {
+                log.info(
+                        "Metrics frequency map (cur: {} max: {}) Events sent ({}) Events pending ({})",
+                        processor.getQueueSize(),
+                        maxQueueMapSize,
+                        processor.getMetricsSent(),
+                        processor.getPendingMetricsToBeSent());
 
-                fail(e.getMessage());
+                processor.flush(); // mimic scheduled job
             }
         }
 
-        assertEquals(count * count, manager.getQueue().size());
+        processor.flush();
 
-        sendingLatch = new CountDownLatch(1);
-        MockMetricsApiFactoryRecipe successFactory = new MockMetricsApiFactoryRecipe(sendingLatch, true);
-        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(successFactory);
+        int waitingForCount = TARGET_COUNT * FLAG_COUNT * VARIATION_COUNT;
+        waitForAllMetricEventsToArrive(processor, waitingForCount);
 
-        manager.close();
-
-        try {
-
-            assertTrue(sendingLatch.await(timeout, TimeUnit.MILLISECONDS));
-
-        } catch (InterruptedException e) {
-
-            fail(e.getMessage());
-        }
-
-        start = System.currentTimeMillis();
-        while (!manager.queue.isEmpty()) {
-
-            try {
-
-                Thread.sleep(50);
-
-                if (System.currentTimeMillis() - start >= timeout) {
-
-                    fail("Timeout after 3 seconds");
-                }
-
-            } catch (InterruptedException e) {
-
-                fail(e.getMessage());
-            }
-        }
-
-        assertTrue(manager.getQueue().isEmpty());
-        assertEquals(1, manager.getFailureCount());
-        assertTrue(manager.getSuccessCount() >= 1);
-    }
-
-    private ManagerWrapper getWrapped(final CountDownLatch latch) {
-
-        log.debug("Testing: {}", AnalyticsManager.class.getSimpleName());
-
-        final String test = "Test";
-        final String token = UUID.randomUUID().toString();
-
-        final Target target = new Target();
-        target.identifier(test);
-        target.name(test);
-
-        int metricsCapacity = 100;
-        long publishingAcceptableDurationInMillis = 500;
-
-        long publishingIntervalInMillis = 100;
-
-        final CfConfiguration configuration = mock(CfConfiguration.class);
-        when(configuration.isAnalyticsEnabled()).thenReturn(true);
-        when(configuration.getStreamEnabled()).thenReturn(false);
-        when(configuration.getMetricsPublishingIntervalInMillis()).thenReturn(publishingIntervalInMillis);
-        when(configuration.getMetricsCapacity()).thenReturn(metricsCapacity);
-        when(configuration.getMetricsServiceAcceptableDurationInMillis()).thenReturn(publishingAcceptableDurationInMillis);
-
-        final MockedAnalyticsManager manager =
-                new MockedAnalyticsManager(mock(AuthInfo.class), token, configuration, latch);
-
-        assertEquals(
-                metricsCapacity,
-                manager.getQueue().remainingCapacity()
-        );
-
-        return new ManagerWrapper(manager, target);
-    }
-
-    private void populate(
-
-            final Target target,
-            final MockedAnalyticsManager manager
-    ) {
-
-        MetricsApiFactory.setDefaultMetricsApiFactoryRecipe(
-                (authInfo, authToken, config) -> (environment, cluster, metrics) ->
-                       log.debug("Ignore this metrics posting")
-        );
-
-        for (int x = 0; x < count; x++) {
-            for (int y = 0; y < count; y++) {
-
-                final String flag = getFlag(x);
-                final boolean value = x % 2 == 0;
-                final Evaluation result = new Evaluation().value(value).flag(flag);
-
-                final Variation variation = new Variation();
-                variation.setName(flag);
-                variation.setValue(String.valueOf(result));
-                variation.setIdentifier(result.getIdentifier());
-
-                assertTrue(manager.pushToQueue(target, flag, variation));
-            }
-        }
-
-        long start = System.currentTimeMillis();
-        while (manager.queue.size() != count * count) {
-
-            try {
-
-                Thread.sleep(50);
-
-                if (System.currentTimeMillis() - start >= timeout) {
-
-                    fail("Timeout after 3 seconds");
-                }
-
-            } catch (InterruptedException e) {
-
-                fail(e.getMessage());
-            }
-        }
-
-        assertEquals(count * count, manager.getQueue().size());
-    }
-
-    private String getFlag(int iteration) {
-
-        return "Test_Flag_" + iteration;
-    }
-
-    private static class ManagerWrapper {
-
-        MockedAnalyticsManager manager;
-        Target target;
-
-        public ManagerWrapper(
-
-                final MockedAnalyticsManager manager,
-                final Target target
-        ) {
-
-            this.manager = manager;
-            this.target = target;
-        }
+        assertEquals(waitingForCount, processor.getMetricsSent());
     }
 }
