@@ -73,3 +73,10 @@ dependencies {
     testImplementation 'ch.qos.logback:logback-classic:1.2.11'
     testImplementation 'com.github.tony19:logback-android:3.0.0'
 }
+
+tasks.withType(Javadoc) {
+    failOnError false // openapi generated code has errors
+    options.addStringOption('Xdoclint:none', '-quiet')
+    options.addStringOption('encoding', 'UTF-8')
+    options.addStringOption('charSet', 'UTF-8')
+}

@@ -10,10 +10,10 @@ import io.harness.cfsdk.cloud.FeatureService;
 import io.harness.cfsdk.cloud.ICloud;
 import io.harness.cfsdk.cloud.TokenProvider;
 import io.harness.cfsdk.cloud.cache.CloudCache;
-import io.harness.cfsdk.cloud.core.api.DefaultApi;
-import io.harness.cfsdk.cloud.core.client.ApiClient;
+import io.harness.cfsdk.cloud.openapi.client.ApiClient;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
+import io.harness.cfsdk.cloud.openapi.client.api.ClientApi;
 import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
 
@@ -38,7 +38,7 @@ public interface ICloudFactory {
 
     ApiClient apiClient();
 
-    DefaultApi defaultApi(ApiClient apiClient);
+    ClientApi defaultApi(ApiClient apiClient);
 
     TokenProvider tokenProvider();
 }

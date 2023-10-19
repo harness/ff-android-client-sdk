@@ -13,12 +13,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import io.harness.cfsdk.CfConfiguration;
-import io.harness.cfsdk.cloud.analytics.api.MetricsApi;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
-import io.harness.cfsdk.cloud.analytics.model.KeyValue;
-import io.harness.cfsdk.cloud.analytics.model.Metrics;
-import io.harness.cfsdk.cloud.analytics.model.MetricsData;
-import io.harness.cfsdk.cloud.core.client.ApiException;
+import io.harness.cfsdk.cloud.openapi.metric.api.MetricsApi;
+import io.harness.cfsdk.cloud.openapi.metric.model.KeyValue;
+import io.harness.cfsdk.cloud.openapi.metric.model.Metrics;
+import io.harness.cfsdk.cloud.openapi.metric.model.MetricsData;
+import io.harness.cfsdk.cloud.openapi.metric.ApiException;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.common.SdkCodes;
 
@@ -89,7 +89,7 @@ public class AnalyticsPublisherService {
                     log.trace("metrics payload: {}", metrics);
 
                 final long evalSum = sumOfValuesInMap(freqMap);
-                metricsApi.postMetrics(authInfo.getEnvironment(), authInfo.getCluster(), metrics);
+                metricsApi.postMetrics(authInfo.getEnvironment(), metrics);
                 metricsSent.addAndGet(evalSum);
 
                 log.debug("Successfully sent analytics data to the server");

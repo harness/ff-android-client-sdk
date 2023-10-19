@@ -10,10 +10,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import io.harness.cfsdk.CfConfiguration;
-import io.harness.cfsdk.cloud.analytics.api.MetricsApi;
-import io.harness.cfsdk.cloud.core.model.Variation;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
+import io.harness.cfsdk.cloud.openapi.client.model.Variation;
+import io.harness.cfsdk.cloud.openapi.metric.api.MetricsApi;
+
 import static org.junit.Assert.*;
 
 @SuppressWarnings("BusyWait")

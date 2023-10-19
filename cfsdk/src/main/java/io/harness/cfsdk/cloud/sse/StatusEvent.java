@@ -3,7 +3,7 @@ package io.harness.cfsdk.cloud.sse;
 
 import java.util.List;
 
-import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 
 /**
  * Base class describing events that can be triggered via {@link EventsListener}.

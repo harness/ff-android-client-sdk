@@ -1,7 +1,7 @@
 package io.harness.cfsdk.cloud.analytics;
 
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
-import io.harness.cfsdk.cloud.core.model.Variation;
+import io.harness.cfsdk.cloud.openapi.client.model.Variation;
 import io.harness.cfsdk.cloud.model.Target;
 
 public class AnalyticsBuilder {

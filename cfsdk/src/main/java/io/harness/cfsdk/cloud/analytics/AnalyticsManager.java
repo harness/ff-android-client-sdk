@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
-import io.harness.cfsdk.cloud.core.model.Variation;
+import io.harness.cfsdk.cloud.openapi.client.model.Variation;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.common.SdkCodes;
 

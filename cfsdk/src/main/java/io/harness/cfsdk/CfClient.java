@@ -31,9 +31,9 @@ import io.harness.cfsdk.cloud.ICloud;
 import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
 import io.harness.cfsdk.cloud.analytics.AnalyticsPublisherService;
 import io.harness.cfsdk.cloud.cache.CloudCache;
-import io.harness.cfsdk.cloud.core.client.ApiException;
-import io.harness.cfsdk.cloud.core.model.Evaluation;
-import io.harness.cfsdk.cloud.core.model.Variation;
+import io.harness.cfsdk.cloud.openapi.client.ApiException;
+import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
+import io.harness.cfsdk.cloud.openapi.client.model.Variation;
 import io.harness.cfsdk.cloud.events.AuthCallback;
 import io.harness.cfsdk.cloud.events.AuthResult;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
@@ -365,11 +365,7 @@ public class CfClient implements Closeable {
 
             } else {
 
-                if (e.getValue() instanceof JSONObject) {
-
-                    return e.getValue();
-                }
-                return new JSONObject(e.getValue().toString());
+                return new JSONObject(e.getValue());
             }
         } catch (JSONException e) {
 
@@ -786,7 +782,6 @@ public class CfClient implements Closeable {
     protected boolean canPushToMetrics(Evaluation result) {
 
         return this.target.isValid() &&
-                result.isValid() &&
                 analyticsEnabled &&
                 analyticsManager != null;
     }
@@ -840,7 +835,7 @@ public class CfClient implements Closeable {
 
         } else {
 
-            result.value(defaultValue)
+            result.value((String)defaultValue)
                     .flag(evaluationId);
         }
 
@@ -849,7 +844,7 @@ public class CfClient implements Closeable {
             log.warn("Result is null, creating the default one");
             SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
             result = new Evaluation()
-                    .value(defaultValue)
+                    .value((String)defaultValue)
                     .flag(evaluationId);
         }
 
@@ -857,7 +852,7 @@ public class CfClient implements Closeable {
 
             final Variation variation = new Variation();
             variation.setName(evaluationId);
-            variation.setValue(String.valueOf(result.value));
+            variation.setValue(result.getValue());
             variation.setIdentifier(result.getIdentifier());
 
             analyticsManager.registerEvaluation(this.target, evaluationId, variation);

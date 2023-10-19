@@ -9,10 +9,9 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import io.harness.cfsdk.CfConfiguration;
-import io.harness.cfsdk.cloud.analytics.api.DefaultApi;
-import io.harness.cfsdk.cloud.analytics.api.MetricsApi;
-import io.harness.cfsdk.cloud.core.client.ApiClient;
+import io.harness.cfsdk.cloud.openapi.metric.ApiClient;
 import io.harness.cfsdk.cloud.model.AuthInfo;
+import io.harness.cfsdk.cloud.openapi.metric.api.MetricsApi;
 import io.harness.cfsdk.utils.CfUtils;
 import io.harness.cfsdk.utils.TlsUtils;
 
@@ -23,7 +22,7 @@ public class DefaultMetricsApiFactoryRecipe implements MetricsApiFactoryRecipe {
     @Override
     public MetricsApi create(String authToken, CfConfiguration config, AuthInfo authInfo) {
 
-        final DefaultApi metricsAPI = new DefaultApi();
+        final MetricsApi metricsAPI = new MetricsApi();
 
         if (!CfUtils.Text.isEmpty(config.getEventURL())) {
 

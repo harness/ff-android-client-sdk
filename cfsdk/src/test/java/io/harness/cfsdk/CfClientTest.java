@@ -47,9 +47,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import io.harness.cfsdk.cloud.core.model.Evaluation;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
+import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 import io.harness.cfsdk.cloud.sse.EventsListener;
 import io.harness.cfsdk.cloud.sse.StatusEvent;
 import io.harness.cfsdk.mock.MockedCache;
