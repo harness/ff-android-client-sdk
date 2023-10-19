@@ -77,7 +77,7 @@ public class CfClientTest {
         public static final String EVALUATION_ENDPOINT = "/api/1.0/client/env/00000000-0000-0000-0000-000000000000/target/anyone%40anywhere.com/evaluations/anyone%40anywhere.com?cluster=1";
         public static final String ALL_EVALUATIONS_ENDPOINT = "/api/1.0/client/env/00000000-0000-0000-0000-000000000000/target/anyone%40anywhere.com/evaluations?cluster=1";
         public static final String STREAM_ENDPOINT = "/api/1.0/stream?cluster=1";
-        public static final String METRICS_ENDPOINTS = "/api/1.0/metrics/00000000-0000-0000-0000-000000000000?cluster=1";
+        public static final String METRICS_ENDPOINTS = "/api/1.0/metrics/00000000-0000-0000-0000-000000000000";
 
         private final AtomicInteger version = new AtomicInteger(2);
         protected final AtomicLongMap<String> calledMap = AtomicLongMap.create();
