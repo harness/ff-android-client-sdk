@@ -40,6 +40,10 @@ grep -rl "javax.annotation.Nonnull" _temp_api | xargs sed -i "" -e 's/@javax.ann
 grep -rl "javax.annotation.Nonnull" _temp_metric_api | xargs sed -i "" -e 's/@javax.annotation.Nonnull//g'
 
 
+# this patch removes insecure code and some newer API levels in the auto-generated code
+# if you upgrade the openapi version you may need to create a new patch
+git apply generateapi.patch
+
 rm -rf cfsdk/src/main/java/io/harness/cfsdk/cloud/openapi
 cp -R _temp_api/src/main/java/io/harness/cfsdk/cloud/openapi cfsdk/src/main/java/io/harness/cfsdk/cloud/
 cp -R _temp_metric_api/src/main/java/io/harness/cfsdk/cloud/openapi cfsdk/src/main/java/io/harness/cfsdk/cloud/
