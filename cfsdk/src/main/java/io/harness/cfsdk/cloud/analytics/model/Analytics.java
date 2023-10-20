@@ -2,7 +2,7 @@ package io.harness.cfsdk.cloud.analytics.model;
 
 import java.util.Objects;
 
-import io.harness.cfsdk.cloud.core.model.Variation;
+import io.harness.cfsdk.cloud.openapi.client.model.Variation;
 import io.harness.cfsdk.cloud.model.Target;
 
 public class Analytics {

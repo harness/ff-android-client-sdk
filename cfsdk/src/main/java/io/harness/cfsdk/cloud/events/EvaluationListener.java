@@ -1,6 +1,6 @@
 package io.harness.cfsdk.cloud.events;
 
-import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 
 public interface EvaluationListener {
 

@@ -13,14 +13,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.harness.cfsdk.CfConfiguration;
-import io.harness.cfsdk.cloud.analytics.api.MetricsApi;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
-import io.harness.cfsdk.cloud.analytics.model.Metrics;
-import io.harness.cfsdk.cloud.core.client.ApiException;
-import io.harness.cfsdk.cloud.core.model.Variation;
+import io.harness.cfsdk.cloud.openapi.metric.ApiException;
+import io.harness.cfsdk.cloud.openapi.client.model.Variation;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
+import io.harness.cfsdk.cloud.openapi.metric.api.MetricsApi;
+import io.harness.cfsdk.cloud.openapi.metric.model.Metrics;
 
 public class AnalyticsPublisherServiceTest {
 
@@ -29,7 +28,7 @@ public class AnalyticsPublisherServiceTest {
         final AuthInfo authInfo = Mockito.mock(AuthInfo.class);
         final MetricsApi metricsApi = Mockito.mock(MetricsApi.class);
 
-        doThrow(new ApiException("dummy")).when(metricsApi).postMetrics(any(), any(), any());
+        doThrow(new ApiException("dummy")).when(metricsApi).postMetrics(any(), any());
 
         final AnalyticsPublisherService service = new AnalyticsPublisherService(authInfo, metricsApi);
         final AtomicBoolean result = new AtomicBoolean(true);
@@ -52,7 +51,7 @@ public class AnalyticsPublisherServiceTest {
         final AuthInfo authInfo = Mockito.mock(AuthInfo.class);
         final MetricsApi metricsApi = Mockito.mock(MetricsApi.class);
 
-        doThrow(new ApiException("dummy")).when(metricsApi).postMetrics(anyString(), anyString(), any(Metrics.class));
+        doThrow(new ApiException("dummy")).when(metricsApi).postMetrics(anyString(), any(Metrics.class));
 
         final AnalyticsPublisherService service = new AnalyticsPublisherService(authInfo, metricsApi);
         final AtomicBoolean result = new AtomicBoolean(false);

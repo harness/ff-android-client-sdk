@@ -11,11 +11,11 @@ import org.junit.Test;
 import java.util.LinkedList;
 import java.util.List;
 
-import io.harness.cfsdk.cloud.core.api.DefaultApi;
-import io.harness.cfsdk.cloud.core.client.ApiClient;
-import io.harness.cfsdk.cloud.core.client.ApiException;
-import io.harness.cfsdk.cloud.core.model.AuthenticationResponse;
-import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.openapi.client.ApiClient;
+import io.harness.cfsdk.cloud.openapi.client.ApiException;
+import io.harness.cfsdk.cloud.openapi.client.api.ClientApi;
+import io.harness.cfsdk.cloud.openapi.client.model.AuthenticationResponse;
+import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
@@ -32,7 +32,7 @@ public class CloudTest {
         String authToken = "demo_token";
         authenticationResponse.authToken(authToken);
 
-        DefaultApi defaultApi = mock(DefaultApi.class);
+        ClientApi defaultApi = mock(ClientApi.class);
         when(defaultApi.authenticate(any())).thenReturn(authenticationResponse)
                 .thenThrow(new ApiException());
 
@@ -57,7 +57,7 @@ public class CloudTest {
 
         List<Evaluation> evaluationList = new LinkedList<>();
         Evaluation evaluation = new Evaluation();
-        evaluation.value = "1";
+        evaluation.setValue("1");
         evaluation.flag("flag_1");
         evaluationList.add(evaluation);
         when(defaultApi.getEvaluations(eq(authInfo.getEnvironment()), eq("demo_target"), anyString())).thenReturn(evaluationList);

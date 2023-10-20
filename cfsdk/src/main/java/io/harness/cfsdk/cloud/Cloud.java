@@ -4,13 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.harness.cfsdk.CfConfiguration;
-import io.harness.cfsdk.cloud.core.api.DefaultApi;
-import io.harness.cfsdk.cloud.core.client.ApiClient;
-import io.harness.cfsdk.cloud.core.client.ApiException;
-import io.harness.cfsdk.cloud.core.model.AuthenticationRequest;
+import io.harness.cfsdk.cloud.openapi.client.api.ClientApi;
+import io.harness.cfsdk.cloud.openapi.client.ApiClient;
+import io.harness.cfsdk.cloud.openapi.client.ApiException;
+import io.harness.cfsdk.cloud.openapi.client.model.AuthenticationRequest;
 import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
+import io.harness.cfsdk.cloud.openapi.client.model.AuthenticationRequestTarget;
 import io.harness.cfsdk.utils.TlsUtils;
 
 public class Cloud implements ICloud {
@@ -21,7 +22,7 @@ public class Cloud implements ICloud {
     private String authToken;
     private AuthInfo authInfo;
     private final Target target;
-    private DefaultApi defaultApi;
+    private ClientApi defaultApi;
     private final ApiClient apiClient;
     private final CloudFactory cloudFactory;
     private final TokenProvider tokenProvider;
@@ -119,9 +120,16 @@ public class Cloud implements ICloud {
     private void authenticate() throws ApiException {
 
         defaultApi = cloudFactory.defaultApi(apiClient);
+
+        AuthenticationRequestTarget authTarget = new AuthenticationRequestTarget();
+        authTarget.identifier(target.getIdentifier());
+        authTarget.attributes(target.getAttributes());
+        authTarget.setName(target.getName());
+        authTarget.setAnonymous(false);
+
         final AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.apiKey(key);
-        authenticationRequest.setTarget(target);
+        authenticationRequest.setTarget(authTarget);
         authToken = defaultApi.authenticate(authenticationRequest).getAuthToken();
         tokenProvider.addToken(key, authToken);
         authToken = tokenProvider.getToken(key);

@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import io.harness.cfsdk.cloud.cache.DefaultCache;
-import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 
 public class DefaultCacheTest {
 

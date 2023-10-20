@@ -9,7 +9,7 @@ import java.util.List;
 import io.harness.cfsdk.cloud.ApiResponse;
 import io.harness.cfsdk.cloud.FeatureService;
 import io.harness.cfsdk.cloud.cache.CloudCache;
-import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
 
 public class FeatureRepositoryImpl implements FeatureRepository {

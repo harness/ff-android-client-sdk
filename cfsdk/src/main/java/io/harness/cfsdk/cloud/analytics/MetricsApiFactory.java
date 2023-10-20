@@ -1,8 +1,8 @@
 package io.harness.cfsdk.cloud.analytics;
 
 import io.harness.cfsdk.CfConfiguration;
-import io.harness.cfsdk.cloud.analytics.api.MetricsApi;
 import io.harness.cfsdk.cloud.model.AuthInfo;
+import io.harness.cfsdk.cloud.openapi.metric.api.MetricsApi;
 
 /**
  * This is a factory class to provide the API for metrics related operations.

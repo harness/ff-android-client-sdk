@@ -6,7 +6,7 @@ import static org.mockito.Mockito.mock;
 import org.junit.Test;
 
 import io.harness.cfsdk.cloud.cache.CloudCache;
-import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 import io.harness.cfsdk.mock.MockedNetworkInfoProvider;
 
 public class FeatureRepositoryImplTest {

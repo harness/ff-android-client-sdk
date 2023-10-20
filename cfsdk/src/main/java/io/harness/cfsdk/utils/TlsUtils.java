@@ -18,7 +18,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import io.harness.cfsdk.CfConfiguration;
-import io.harness.cfsdk.cloud.core.client.ApiClient;
+import io.harness.cfsdk.cloud.openapi.client.ApiClient;
 import okhttp3.OkHttpClient;
 
 public class TlsUtils {
@@ -45,6 +45,23 @@ public class TlsUtils {
         }
     }
 
+    public static void setupTls(io.harness.cfsdk.cloud.openapi.metric.ApiClient apiClient, CfConfiguration config) {
+        if (config == null) {
+            return;
+        }
+
+        final List<X509Certificate> trustedCAs = config.getTlsTrustedCAs();
+        if (trustedCAs != null && !trustedCAs.isEmpty()) {
+
+            final ByteArrayOutputStream certOutputStream = new ByteArrayOutputStream();
+            for (X509Certificate cert : trustedCAs) {
+                final byte[] bytes = certToByteArray(cert);
+                certOutputStream.write(bytes, 0, bytes.length);
+            }
+
+            apiClient.setSslCaCert(new ByteArrayInputStream(certOutputStream.toByteArray()));
+        }
+    }
     public static void setupTls(OkHttpClient.Builder httpClientBuilder, List<X509Certificate> trustedCAs) {
 
         try {

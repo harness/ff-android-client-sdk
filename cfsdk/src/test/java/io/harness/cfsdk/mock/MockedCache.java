@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.harness.cfsdk.cloud.cache.CloudCache;
-import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 
 public class MockedCache implements CloudCache {
 

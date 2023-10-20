@@ -5,7 +5,8 @@ import static io.harness.cfsdk.utils.CfUtils.Text.isNotEmpty;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
+
 
 /**
  * Various utils for the SDK.

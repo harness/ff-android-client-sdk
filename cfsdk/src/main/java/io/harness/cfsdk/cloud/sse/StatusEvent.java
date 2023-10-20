@@ -3,7 +3,7 @@ package io.harness.cfsdk.cloud.sse;
 
 import java.util.List;
 
-import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 
 /**
  * Base class describing events that can be triggered via {@link EventsListener}.
@@ -34,8 +34,6 @@ public class StatusEvent {
         /**
          * Evaluation is changed via realtime evaluation update. Will not be called if stream is disabled.
          * The payload is of type {@link Evaluation}
-         *
-         * @see io.harness.cfsdk.cloud.core.client.Configuration
          */
         EVALUATION_CHANGE,
         /**

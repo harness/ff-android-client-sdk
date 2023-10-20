@@ -19,8 +19,8 @@ import io.harness.cfsdk.cloud.ICloud;
 import io.harness.cfsdk.cloud.TokenProvider;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.cache.DefaultCache;
-import io.harness.cfsdk.cloud.core.api.DefaultApi;
-import io.harness.cfsdk.cloud.core.client.ApiClient;
+import io.harness.cfsdk.cloud.openapi.client.api.ClientApi;
+import io.harness.cfsdk.cloud.openapi.client.ApiClient;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkInfoProvider;
 import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
@@ -97,9 +97,8 @@ public class CloudFactory implements ICloudFactory {
     }
 
     @Override
-    public DefaultApi defaultApi(ApiClient apiClient) {
-
-        return new DefaultApi(apiClient);
+    public ClientApi defaultApi(ApiClient apiClient) {
+        return new ClientApi(apiClient);
     }
 
     @Override

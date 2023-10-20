@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.*;
 
 import io.harness.cfsdk.AndroidSdkVersion;
-import io.harness.cfsdk.cloud.core.model.Evaluation;
+import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 import io.harness.cfsdk.cloud.network.NewRetryInterceptor;
 import io.harness.cfsdk.common.SdkCodes;
 import okhttp3.*;
