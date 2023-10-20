@@ -89,10 +89,14 @@ public class AnalyticsPublisherService {
                     log.trace("metrics payload: {}", metrics);
 
                 final long evalSum = sumOfValuesInMap(freqMap);
-                metricsApi.postMetrics(authInfo.getEnvironment(), metrics);
-                metricsSent.addAndGet(evalSum);
 
-                log.debug("Successfully sent analytics data to the server");
+                if (evalSum > 0) {
+                    metricsApi.postMetrics(authInfo.getEnvironment(), metrics);
+                    metricsSent.addAndGet(evalSum);
+                    log.debug("Successfully sent analytics data to the server");
+                } else {
+                    log.debug("Sum of metric evaluations is 0 - metrics post skipped");
+                }
 
             } else {
                 log.debug("No analytics data to send the server");
