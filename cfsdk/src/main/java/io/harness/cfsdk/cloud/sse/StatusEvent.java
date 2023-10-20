@@ -34,8 +34,6 @@ public class StatusEvent {
         /**
          * Evaluation is changed via realtime evaluation update. Will not be called if stream is disabled.
          * The payload is of type {@link Evaluation}
-         *
-         * @see io.harness.cfsdk.cloud.core.client.Configuration
          */
         EVALUATION_CHANGE,
         /**
