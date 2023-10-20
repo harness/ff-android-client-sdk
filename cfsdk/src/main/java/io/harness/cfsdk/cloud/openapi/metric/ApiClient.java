@@ -889,8 +889,7 @@ public class ApiClient {
                 throw new ApiException(e);
             }
         } else if (returnType.equals(File.class)) {
-            // Handle file downloading.
-            return (T) downloadFileFromResponse(response);
+            throw new UnsupportedOperationException("downloading files not supported");
         }
 
         String respBody;
@@ -959,67 +958,9 @@ public class ApiClient {
         }
     }
 
-    /**
-     * Download file from the given response.
-     *
-     * @param response An instance of the Response object
-     * @throws io.harness.cfsdk.cloud.openapi.metric.ApiException If fail to read file content from response and write to disk
-     * @return Downloaded file
-     */
-    public File downloadFileFromResponse(Response response) throws ApiException {
-        try {
-            File file = prepareDownloadFile(response);
-            BufferedSink sink = Okio.buffer(Okio.sink(file));
-            sink.writeAll(response.body().source());
-            sink.close();
-            return file;
-        } catch (IOException e) {
-            throw new ApiException(e);
-        }
-    }
 
-    /**
-     * Prepare file for download
-     *
-     * @param response An instance of the Response object
-     * @return Prepared file for the download
-     * @throws java.io.IOException If fail to prepare file for download
-     */
-    public File prepareDownloadFile(Response response) throws IOException {
-        String filename = null;
-        String contentDisposition = response.header("Content-Disposition");
-        if (contentDisposition != null && !"".equals(contentDisposition)) {
-            // Get filename from the Content-Disposition header.
-            Pattern pattern = Pattern.compile("filename=['\"]?([^'\"\\s]+)['\"]?");
-            Matcher matcher = pattern.matcher(contentDisposition);
-            if (matcher.find()) {
-                filename = sanitizeFilename(matcher.group(1));
-            }
-        }
 
-        String prefix = null;
-        String suffix = null;
-        if (filename == null) {
-            prefix = "download-";
-            suffix = "";
-        } else {
-            int pos = filename.lastIndexOf(".");
-            if (pos == -1) {
-                prefix = filename + "-";
-            } else {
-                prefix = filename.substring(0, pos) + "-";
-                suffix = filename.substring(pos);
-            }
-            // Files.createTempFile requires the prefix to be at least three characters long
-            if (prefix.length() < 3)
-                prefix = "download-";
-        }
 
-        if (tempFolderPath == null)
-            return Files.createTempFile(prefix, suffix).toFile();
-        else
-            return Files.createTempFile(Paths.get(tempFolderPath), prefix, suffix).toFile();
-    }
 
     /**
      * {@link #execute(Call, Type)}
