@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,6 +73,7 @@ public class CfClient implements Closeable {
     private final Set<EventsListener> eventsListenerSet = Collections.synchronizedSet(new LinkedHashSet<>());
     private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet = new ConcurrentHashMap<>();
     private final GuardObjectWrapper evaluationPollingLock = new GuardObjectWrapper();
+    private final Duration minimumRefreshIntervalSecs = Duration.ofSeconds(60);
 
     private ICloud cloud;
     private Target target;
@@ -83,6 +86,7 @@ public class CfClient implements Closeable {
     private AuthInfo authInfo;
     private boolean useStream;
     private boolean analyticsEnabled;
+    private Instant lastPollTime = Instant.EPOCH;
 
     /**
      * Base constructor.
@@ -373,6 +377,37 @@ public class CfClient implements Closeable {
         }
         SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
         return defaultValue;
+    }
+
+    /**
+     * Perform a soft-poll. This method will get the latest flag evaluations from the server. It
+     * is useful for forcing the SDK's state to refresh when coming to the foreground, after
+     * a period of background inactivity where stream events may have been missed.
+     * This method will only call out to the server once every minute.
+     */
+    public void refreshEvaluations() {
+        final Instant now = Instant.now();
+        final Duration duration = Duration.between(lastPollTime, now);
+
+        if (duration.compareTo(minimumRefreshIntervalSecs) < 0) {
+            return; // not enough time elapsed
+        }
+
+        if (target == null || authInfo == null) {
+            log.warn("cannot refresh evaluations: no target/not authenticated");
+            return;
+        }
+
+        log.debug("Refreshing flags");
+
+        final List<Evaluation> evaluations = this.featureRepository.getAllEvaluations(
+            authInfo.getEnvironmentIdentifier(),
+            target.getIdentifier(),
+            authInfo.getCluster()
+        );
+
+        lastPollTime = now;
+        log.debug("Refresh got {} evaluations", evaluations.size());
     }
 
 
@@ -803,8 +838,7 @@ public class CfClient implements Closeable {
         }
     }
 
-    /* Package private */
-
+    /* ---------- Package private ---------- */
 
     /**
      * Retrieves single {@link Evaluation instance} based on provided id. If no such evaluation is found,
@@ -867,5 +901,12 @@ public class CfClient implements Closeable {
 
     void reset() {
         unregister();
+    }
+
+    CfClient(Target target, AuthInfo authInfo, FeatureRepository featureRepository) { /* tests only */
+        this.target = target;
+        this.authInfo = authInfo;
+        this.featureRepository = featureRepository;
+        this.cloudFactory = null;
     }
 }

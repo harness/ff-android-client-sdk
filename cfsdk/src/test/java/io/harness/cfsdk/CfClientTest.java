@@ -4,7 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static io.harness.cfsdk.CfConfiguration.DEFAULT_METRICS_CAPACITY;
 import static io.harness.cfsdk.TestUtils.makeAuthResponse;
@@ -47,9 +51,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
+import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
 import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
+import io.harness.cfsdk.cloud.openapi.metric.model.Metrics;
+import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.sse.EventsListener;
 import io.harness.cfsdk.cloud.sse.StatusEvent;
 import io.harness.cfsdk.mock.MockedCache;
@@ -585,6 +592,29 @@ public class CfClientTest {
         assertEquals(123, numResult, .0);
         assertNotNull("default (or wrong) json returned", jsonResult.get("flag"));
         assertEquals("on", jsonResult.get("flag"));
+    }
+
+    @Test
+    public void refreshEvalsShouldOnlyPollFirstCallThenSkip() throws InterruptedException {
+
+        Target target = mock(Target.class);
+        AuthInfo authInfo = mock(AuthInfo.class);
+        FeatureRepository featureRepo = mock(FeatureRepository.class);
+
+        when(authInfo.getEnvironmentIdentifier()).thenReturn("dummy1");
+        when(target.getIdentifier()).thenReturn("dummy2");
+        when(authInfo.getCluster()).thenReturn("dummy3");
+
+        CfClient client = new CfClient(target, authInfo, featureRepo);
+        client.refreshEvaluations();
+
+        for (int i = 0; i < 1000; i++) {
+            client.refreshEvaluations();
+        }
+
+        // Assert soft polling works correctly
+        // getAllEvaluations should only be invoked once every 60s even if caller spams the method
+        verify(featureRepo, times(1)).getAllEvaluations(anyString(), anyString(), anyString());
     }
 
 }
