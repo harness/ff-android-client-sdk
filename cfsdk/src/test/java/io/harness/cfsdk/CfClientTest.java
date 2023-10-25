@@ -10,6 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static java.util.concurrent.ThreadLocalRandom.current;
 import static io.harness.cfsdk.CfConfiguration.DEFAULT_METRICS_CAPACITY;
 import static io.harness.cfsdk.TestUtils.makeAuthResponse;
 import static io.harness.cfsdk.TestUtils.makeBasicEvaluationsListJson;
@@ -51,9 +52,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
+import io.harness.cfsdk.cloud.factories.CloudFactory;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
+import io.harness.cfsdk.cloud.network.NewRetryInterceptor;
+import io.harness.cfsdk.cloud.openapi.client.ApiClient;
 import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 import io.harness.cfsdk.cloud.openapi.metric.model.Metrics;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
@@ -62,6 +66,7 @@ import io.harness.cfsdk.cloud.sse.StatusEvent;
 import io.harness.cfsdk.mock.MockedCache;
 import io.harness.cfsdk.mock.MockedNetworkInfoProvider;
 import io.harness.cfsdk.utils.EventsListenerCounter;
+import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -274,8 +279,6 @@ public class CfClientTest {
             assertEquals(1, dispatcher.getUrlAccessCount(MockWebServerDispatcher.EVALUATION_ENDPOINT));
             assertEquals(1, cache.getCacheSavedCountForEvaluation("anyone@anywhere.com"));
             assertEquals(0, cache.getCacheHitCountForEvaluation("anyone@anywhere.com"));
-
-
         }
     }
 
@@ -444,7 +447,7 @@ public class CfClientTest {
             assertEquals(DEFAULT_VALUE, eval.getValue());
         });
 
-        assertEquals(1, dispatcher.getUrlAccessCount(MockWebServerDispatcher.EVALUATION_ENDPOINT));
+        assertEquals(5, dispatcher.getUrlAccessCount(MockWebServerDispatcher.EVALUATION_ENDPOINT));
         assertEquals(0, cache.getCacheHitCountForEvaluation("anyone@anywhere.com"));
         assertEquals(0, cache.getCacheSavedCountForEvaluation("anyone@anywhere.com"));
     }
@@ -531,7 +534,18 @@ public class CfClientTest {
             mockSvr.setDispatcher(dispatcher);
             mockSvr.start();
 
-            final CfClient client = CfClient.getInstance();
+
+            final CloudFactory factory = new CloudFactory() {
+                /* override the apiClient so we can set retry timeouts lower and make the test run faster */
+                @Override
+                public ApiClient apiClient() {
+                    final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+                    builder.addInterceptor(new NewRetryInterceptor(current().nextInt(1, 10)));
+                    return new ApiClient(builder.build());
+                }
+            };
+
+            final CfClient client = new CfClient(factory);
             client.reset();
             client.setNetworkInfoProvider(networkInfoProvider);
             client.registerEventsListener(eventListener);

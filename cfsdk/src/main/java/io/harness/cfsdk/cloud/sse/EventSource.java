@@ -3,6 +3,7 @@ package io.harness.cfsdk.cloud.sse;
 import static io.harness.cfsdk.cloud.sse.StatusEvent.makeSseEndEvent;
 import static io.harness.cfsdk.cloud.sse.StatusEvent.makeSseResumeEvent;
 import static io.harness.cfsdk.cloud.sse.StatusEvent.makeSseStartEvent;
+import static java.util.concurrent.ThreadLocalRandom.current;
 
 import androidx.annotation.NonNull;
 
@@ -35,7 +36,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class EventSource implements Callback, AutoCloseable {
 
   private static final Logger log = LoggerFactory.getLogger(EventSource.class);
@@ -55,7 +55,7 @@ public class EventSource implements Callback, AutoCloseable {
       Map<String, String> headers,
       @NonNull EventsListener eventListener,
       long sseReadTimeoutMins) {
-    this(url, headers, eventListener, sseReadTimeoutMins, 2_000, null);
+    this(url, headers, eventListener, sseReadTimeoutMins, current().nextInt(2000, 5000), null);
   }
 
   public EventSource(

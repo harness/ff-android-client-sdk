@@ -1,5 +1,6 @@
 package io.harness.cfsdk.cloud.factories;
 
+import static java.util.concurrent.ThreadLocalRandom.current;
 import static io.harness.cfsdk.AndroidSdkVersion.ANDROID_SDK_VERSION;
 
 import android.content.Context;
@@ -19,6 +20,7 @@ import io.harness.cfsdk.cloud.ICloud;
 import io.harness.cfsdk.cloud.TokenProvider;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.cache.DefaultCache;
+import io.harness.cfsdk.cloud.network.NewRetryInterceptor;
 import io.harness.cfsdk.cloud.openapi.client.api.ClientApi;
 import io.harness.cfsdk.cloud.openapi.client.ApiClient;
 import io.harness.cfsdk.cloud.model.Target;
@@ -28,6 +30,7 @@ import io.harness.cfsdk.cloud.polling.EvaluationPolling;
 import io.harness.cfsdk.cloud.polling.ShortTermPolling;
 import io.harness.cfsdk.cloud.repository.FeatureRepository;
 import io.harness.cfsdk.cloud.repository.FeatureRepositoryImpl;
+import okhttp3.OkHttpClient;
 
 public class CloudFactory implements ICloudFactory {
 
@@ -79,21 +82,24 @@ public class CloudFactory implements ICloudFactory {
     @Override
     public ApiClient apiClient() {
 
-        final ApiClient apiClient = new ApiClient();
+        final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.addInterceptor(new NewRetryInterceptor(current().nextInt(2000, 5000)));
+
+        final ApiClient apiClient = new ApiClient(builder.build());
         apiClient.setUserAgent("android " + ANDROID_SDK_VERSION);
-        String hostname = "UnknownHost";
-        try {
-
-            hostname = InetAddress.getLocalHost().getHostName();
-            log.debug("Hostname: {}", hostname);
-        } catch (UnknownHostException e) {
-
-            log.warn("Unable to get hostname", e);
-        }
-        apiClient.addDefaultHeader("Hostname", hostname);
+        apiClient.addDefaultHeader("Hostname", getHostname());
         apiClient.addDefaultHeader("Harness-SDK-Info", "Android " + ANDROID_SDK_VERSION + " Client");
 
         return apiClient;
+    }
+
+    private String getHostname() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            log.warn("Unable to get hostname", e);
+            return "UnknownHost";
+        }
     }
 
     @Override
