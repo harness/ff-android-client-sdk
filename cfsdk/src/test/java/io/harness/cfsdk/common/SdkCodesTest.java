@@ -16,6 +16,7 @@ public class SdkCodesTest {
             errorMissingSdkKey();
             infoPollStarted(123);
             infoSdkInitOk();
+            infoSdkWaitingForInit();
             infoSdkAuthOk();
             infoPollingStopped();
             infoStreamConnected();
