@@ -31,6 +31,11 @@ public class SdkCodes {
       log.info(sdkErrMsg(1000));
   }
 
+  public static void infoSdkWaitingForInit() {
+    if (log.isInfoEnabled())
+      log.info(sdkErrMsg(1003));
+  }
+
   public static void infoSdkAuthOk() {
     if (log.isInfoEnabled())
       log.info(sdkErrMsg(2000));
@@ -97,6 +102,7 @@ public class SdkCodes {
     put(1000, "The SDK has successfully initialized");
     put(1001, "The SDK has failed to initialize due to the following authentication error:");
     put(1002, "The SDK has failed to initialize due to a missing or empty API key");
+    put(1003, "The SDK is waiting for initialization to complete");
 
     put(2000, "Authenticated ok");
     put(2001, "Authentication failed with a non-recoverable error - defaults will be served");

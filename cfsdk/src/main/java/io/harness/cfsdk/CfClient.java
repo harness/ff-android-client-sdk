@@ -459,6 +459,7 @@ public class CfClient implements Closeable {
      */
     public boolean waitForInitialization(long timeoutMs) {
         try {
+            SdkCodes.infoSdkWaitingForInit();
             if (initLatch.await(timeoutMs, TimeUnit.MILLISECONDS) && (authInfo != null)) {
                 return true;
             }
@@ -476,6 +477,7 @@ public class CfClient implements Closeable {
      * @since 1.2.0
      */
     public void waitForInitialization() throws InterruptedException {
+        SdkCodes.infoSdkWaitingForInit();
         initLatch.await();
     }
 
