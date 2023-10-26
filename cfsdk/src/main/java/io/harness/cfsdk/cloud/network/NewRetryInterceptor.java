@@ -30,6 +30,7 @@ public class NewRetryInterceptor implements Interceptor {
   public Response intercept(@NotNull Chain chain) throws IOException {
     int tryCount = 1;
     boolean successful;
+    boolean limitReached = false;
     Response response = null;
     String msg = "";
     do {
@@ -58,7 +59,7 @@ public class NewRetryInterceptor implements Interceptor {
         }
       }
       if (!successful) {
-        final boolean limitReached = tryCount > maxTryCount;
+        limitReached = tryCount >= maxTryCount;
         log.warn(
             "Request attempt {} to {} was not successful, [{}]{}",
             tryCount,
@@ -72,7 +73,8 @@ public class NewRetryInterceptor implements Interceptor {
           sleep(retryBackoffDelay * tryCount);
         }
       }
-    } while (!successful && tryCount++ <= maxTryCount);
+      tryCount++;
+    } while (!successful && !limitReached);
 
     return response;
   }
