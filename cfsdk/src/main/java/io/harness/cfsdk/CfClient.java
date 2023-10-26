@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -74,6 +75,7 @@ public class CfClient implements Closeable {
     private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet = new ConcurrentHashMap<>();
     private final GuardObjectWrapper evaluationPollingLock = new GuardObjectWrapper();
     private final Duration minimumRefreshIntervalSecs = Duration.ofSeconds(60);
+    private final CountDownLatch initLatch = new CountDownLatch(1);
 
     private ICloud cloud;
     private Target target;
@@ -415,6 +417,7 @@ public class CfClient implements Closeable {
      * Clears the occupied resources and shut's down the sdk.
      * After calling this method, the {@link #initialize} must be called again. It will also
      * remove any registered event listeners.
+     * @since 1.2.0
      */
     @Override
     public void close() {
@@ -443,6 +446,37 @@ public class CfClient implements Closeable {
     @Deprecated
     public void destroy() {
         close();
+    }
+
+
+    /**
+     * Wait for the SDK to authenticate and populate it cache.
+     * @param timeoutMs Timeout in milliseconds to wait for SDK to initialize
+     * @return Returns true if successfully initialized else false if timed out or something went
+     * wrong. If false is returned, your code may proceed to use xVariation functions however
+     * default variations may be served (SDKCODE 2001). For failure cause check logs leading up.
+     * @since 1.2.0
+     */
+    public boolean waitForInitialization(long timeoutMs) {
+        try {
+            if (initLatch.await(timeoutMs, TimeUnit.MILLISECONDS) && (authInfo != null)) {
+                return true;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("waitForInitialization interrupted", e);
+        }
+        log.warn("Failed to initialize within the {}ms timeout window. Defaults will be served.", timeoutMs);
+        return false;
+    }
+    /**
+     * Wait for the SDK to authenticate and populate it cache. This version waits indefinitely, if
+     * you require control over startup time then use {@link #waitForInitialization(long) waitForInitialization(timeoutMs)}
+     * @throws InterruptedException if the thread was interrupted while waiting
+     * @since 1.2.0
+     */
+    public void waitForInitialization() throws InterruptedException {
+        initLatch.await();
     }
 
     private final EventsListener eventsListener = statusEvent -> {
@@ -783,6 +817,8 @@ public class CfClient implements Closeable {
             final AuthResult result = new AuthResult(true);
             authCallback.authorizationSuccess(authInfo, result);
         }
+
+        initLatch.countDown();
     }
 
     private void runInitThreadWrapEx(final String apiKey, final CloudCache cloudCache, final AuthCallback authCallback) {
