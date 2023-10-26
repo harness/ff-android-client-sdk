@@ -450,7 +450,7 @@ public class CfClient implements Closeable {
 
 
     /**
-     * Wait for the SDK to authenticate and populate it cache.
+     * Wait for the SDK to authenticate and populate its cache.
      * @param timeoutMs Timeout in milliseconds to wait for SDK to initialize
      * @return Returns true if successfully initialized else false if timed out or something went
      * wrong. If false is returned, your code may proceed to use xVariation functions however
