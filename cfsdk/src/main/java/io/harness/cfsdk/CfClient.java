@@ -27,6 +27,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -638,6 +639,9 @@ public class CfClient implements Closeable {
     private void runRescheduleThreadWrapEx() {
         try {
             runRescheduleThread();
+        } catch (InterruptedException ex) {
+            log.warn("Reschedule delay interrupted", ex);
+            Thread.currentThread().interrupt();
         } catch (Exception ex) {
             log.error("Failed to call reschedule() " + ex.getMessage(), ex);
 
@@ -649,7 +653,11 @@ public class CfClient implements Closeable {
         }
     }
 
-    private void runRescheduleThread() throws ApiException {
+    private void runRescheduleThread() throws ApiException, InterruptedException {
+
+        long delayMs = ThreadLocalRandom.current().nextLong(5_000, 10_000);
+        log.info("SDK will restart in {}ms", delayMs);
+        TimeUnit.MILLISECONDS.sleep(delayMs);
 
         if (!ready.get() && cloud.initialize()) {
             ready.set(true);
