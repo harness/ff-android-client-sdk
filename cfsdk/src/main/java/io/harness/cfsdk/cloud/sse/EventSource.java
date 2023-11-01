@@ -210,10 +210,6 @@ public class EventSource implements Callback, AutoCloseable {
       SdkCodes.warnStreamDisconnected(ex.getMessage());
       log.warn("SSE stream aborted", ex);
       eventListener.onEventReceived(makeSseEndEvent());
-      if (ex instanceof SSEStreamException) {
-        throw ex;
-      }
-      throw new SSEStreamException(ex.getMessage(), ex);
     }
   }
 
