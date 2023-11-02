@@ -1,6 +1,5 @@
 rootProject.name = "CFAndroidSDK"
 include ':cfsdk'
-include ':examples:example'
 
 // uncomment if you want to debug in the IDE
 //include ':examples:tlsexample'

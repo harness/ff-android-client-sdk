@@ -3,6 +3,7 @@ package io.harness.cfsdk.tlsexample
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import ch.qos.logback.classic.android.BasicLogcatConfigurator
 import io.harness.cfsdk.CfClient
 import io.harness.cfsdk.CfConfiguration
 import io.harness.cfsdk.cloud.events.AuthResult
@@ -10,26 +11,34 @@ import io.harness.cfsdk.cloud.events.EvaluationListener
 import io.harness.cfsdk.cloud.model.AuthInfo
 import io.harness.cfsdk.cloud.model.Target
 import io.harness.cfsdk.cloud.oksse.EventsListener
-import io.harness.cfsdk.logging.CfLog
 import org.bouncycastle.cert.X509CertificateHolder
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter
-import org.bouncycastle.crypto.params.Blake3Parameters.context
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openssl.PEMParser
-import java.io.*
-import java.nio.charset.StandardCharsets
+
+
+import java.io.IOException
+import java.io.StringReader
 import java.security.Provider
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 import java.util.*
-import java.util.stream.Collectors
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
 
+    private val log: Logger = LoggerFactory.getLogger(MainActivity::class.java)
+
+    companion object {
+        init {
+            BasicLogcatConfigurator.configureDefaultContext()
+        }
+    }
+
     private lateinit var client: CfClient
     private lateinit var timer: Timer
-    private val logTag = MainActivity::class.simpleName
     private val logPrefix : String = "SDK"
     private val sdkKey : String = "<ADD YOUR SDK KEY HERE>"
     private val flagName : String = System.getenv("FF_FLAG_NAME") ?: "harnessappdemodarkmode"
@@ -42,12 +51,12 @@ class MainActivity : AppCompatActivity() {
 
 
     private var eventsListener = EventsListener { event ->
-        CfLog.OUT.v(logTag, "Event: ${event.eventType}")
+        log.info("Event: ${event.eventType}")
     }
 
     private val flag1Listener: EvaluationListener = EvaluationListener {
         val eval = client.boolVariation(flagName, false)
-        CfLog.OUT.v(logTag, "$flagName value: $eval")
+        log.info("$flagName value: $eval")
     }
 
 
@@ -67,7 +76,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (registerEventsOk && registerEvaluationsOk > 0) {
-            CfLog.OUT.i(logTag, "$logPrefix Registrations OK")
+            log.info("$logPrefix Registrations OK")
         }
 
         setupWatchTimer()
@@ -81,7 +90,7 @@ class MainActivity : AppCompatActivity() {
             err.message?.let { errMsg ->
                 msg = errMsg
             }
-            CfLog.OUT.e(logTag, msg, err)
+            log.info(msg, err)
         }
         runOnUiThread {
 
@@ -115,11 +124,13 @@ class MainActivity : AppCompatActivity() {
             target,
             this::authSuccess
         )
+
+        log.info("init done")
     }
 
     private fun readEvaluations(client: CfClient, logPrefix: String) {
         val value = client.boolVariation(flagName, false)
-        CfLog.OUT.v(logTag, "$logPrefix flag $flagName: $value")
+        log.info("$logPrefix flag $flagName: $value")
     }
 
     override fun onDestroy() {
@@ -143,7 +154,7 @@ class MainActivity : AppCompatActivity() {
             )
 
         } catch (e:Exception) {
-            CfLog.OUT.e(logTag, "Error", e)
+            log.error("WatchTimer ERROR", e)
         }
     }
 

@@ -5,9 +5,10 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
 import io.harness.cfsdk.*
-import io.harness.cfsdk.cloud.events.EvaluationListener
 import io.harness.cfsdk.cloud.model.Target
-import io.harness.cfsdk.cloud.oksse.model.StatusEvent
+import io.harness.cfsdk.cloud.sse.StatusEvent
+import io.harness.cfsdk.cloud.sse.EventsListener
+
 
 class MainActivity : AppCompatActivity() {
 

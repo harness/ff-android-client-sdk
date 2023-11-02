@@ -1,5 +1,6 @@
 package io.harness.cfsdk.cloud.analytics;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
@@ -9,6 +10,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
@@ -21,6 +24,13 @@ import static org.junit.Assert.*;
 public class AnalyticsManagerTest {
     private static final Logger log = LoggerFactory.getLogger(AnalyticsManagerTest.class);
     private final int BUFFER_SIZE = 100;
+
+    @BeforeClass
+    public static void setupLogging() {
+        LoggerContext context = (LoggerContext)LoggerFactory.getILoggerFactory();
+        ch.qos.logback.classic.Logger root = context.getLogger(Logger.ROOT_LOGGER_NAME);
+        root.setLevel(Level.ERROR);
+    }
 
     @Test
     public void testPushToQueue() throws InterruptedException {
