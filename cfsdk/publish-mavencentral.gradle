@@ -1,7 +1,7 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
-task androidSourcesJar(type: Jar) {
+tasks.register('androidSourcesJar', Jar) {
     archiveClassifier.set('sources')
     if (project.plugins.findPlugin("com.android.library")) {
         from android.sourceSets.main.java.srcDirs
@@ -10,10 +10,11 @@ task androidSourcesJar(type: Jar) {
     }
 }
 
-task androidJavadocs(type: Javadoc) {
+tasks.register('androidJavadocs', Javadoc) {
     source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    android.libraryVariants.all { variant ->
+    // TODO not working with Android Gradle Plugin 8.2.0-rc02 - need to investigate
+    //classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    android.libraryVariants.configureEach { variant ->
         if (variant.name == 'release') {
             owner.classpath += variant.javaCompileProvider.get().classpath
         }
@@ -21,7 +22,8 @@ task androidJavadocs(type: Javadoc) {
     exclude '**/R.html', '**/R.*.html', '**/index.html'
 }
 
-task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+tasks.register('androidJavadocsJar', Jar) {
+    dependsOn androidJavadocs
     archiveClassifier.set('javadoc')
     from androidJavadocs.destinationDir
 }
@@ -136,7 +138,7 @@ signing {
     sign publishing.publications
 }
 
-tasks.withType(Sign) {
+tasks.withType(Sign).configureEach {
     // This allows publishToMavenLocal to work without the need to sign dev artifacts
     onlyIf("calling publish task") { gradle.taskGraph.hasTask("publish") }
 }
