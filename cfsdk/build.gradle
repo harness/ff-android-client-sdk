@@ -45,9 +45,8 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    afterEvaluate {
-        generateReleaseBuildConfig.enabled = false
-        generateDebugBuildConfig.enabled = false
+    buildFeatures {
+        buildConfig = false
     }
 }
 
