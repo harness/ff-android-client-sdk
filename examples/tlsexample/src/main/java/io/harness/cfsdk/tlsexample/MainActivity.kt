@@ -10,7 +10,7 @@ import io.harness.cfsdk.cloud.events.AuthResult
 import io.harness.cfsdk.cloud.events.EvaluationListener
 import io.harness.cfsdk.cloud.model.AuthInfo
 import io.harness.cfsdk.cloud.model.Target
-import io.harness.cfsdk.cloud.oksse.EventsListener
+import io.harness.cfsdk.cloud.sse.EventsListener
 import org.bouncycastle.cert.X509CertificateHolder
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -25,7 +25,6 @@ import java.security.cert.X509Certificate
 import java.util.*
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
 

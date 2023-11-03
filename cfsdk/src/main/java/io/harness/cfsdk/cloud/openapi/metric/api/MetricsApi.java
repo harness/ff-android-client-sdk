@@ -76,6 +76,7 @@ public class MetricsApi {
     /**
      * Build call for postMetrics
      * @param environmentUUID environment parameter in query. (required)
+     * @param cluster Unique identifier for the cluster for the account (optional)
      * @param metrics  (optional)
      * @param _callback Callback for upload/download progress
      * @return Call to execute
@@ -89,7 +90,7 @@ public class MetricsApi {
         <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call postMetricsCall(String environmentUUID, Metrics metrics, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call postMetricsCall(String environmentUUID, String cluster, Metrics metrics, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -115,6 +116,10 @@ public class MetricsApi {
         Map<String, String> localVarCookieParams = new HashMap<String, String>();
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 
+        if (cluster != null) {
+            localVarQueryParams.addAll(localVarApiClient.parameterToPair("cluster", cluster));
+        }
+
         final String[] localVarAccepts = {
             "application/json"
         };
@@ -136,13 +141,13 @@ public class MetricsApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call postMetricsValidateBeforeCall(String environmentUUID, Metrics metrics, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call postMetricsValidateBeforeCall(String environmentUUID, String cluster, Metrics metrics, final ApiCallback _callback) throws ApiException {
         // verify the required parameter 'environmentUUID' is set
         if (environmentUUID == null) {
             throw new ApiException("Missing the required parameter 'environmentUUID' when calling postMetrics(Async)");
         }
 
-        return postMetricsCall(environmentUUID, metrics, _callback);
+        return postMetricsCall(environmentUUID, cluster, metrics, _callback);
 
     }
 
@@ -150,6 +155,7 @@ public class MetricsApi {
      * Send metrics to the Analytics server.
      * Send metrics to Analytics server
      * @param environmentUUID environment parameter in query. (required)
+     * @param cluster Unique identifier for the cluster for the account (optional)
      * @param metrics  (optional)
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      * @http.response.details
@@ -161,14 +167,15 @@ public class MetricsApi {
         <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
      </table>
      */
-    public void postMetrics(String environmentUUID, Metrics metrics) throws ApiException {
-        postMetricsWithHttpInfo(environmentUUID, metrics);
+    public void postMetrics(String environmentUUID, String cluster, Metrics metrics) throws ApiException {
+        postMetricsWithHttpInfo(environmentUUID, cluster, metrics);
     }
 
     /**
      * Send metrics to the Analytics server.
      * Send metrics to Analytics server
      * @param environmentUUID environment parameter in query. (required)
+     * @param cluster Unique identifier for the cluster for the account (optional)
      * @param metrics  (optional)
      * @return ApiResponse&lt;Void&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -181,8 +188,8 @@ public class MetricsApi {
         <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<Void> postMetricsWithHttpInfo(String environmentUUID, Metrics metrics) throws ApiException {
-        okhttp3.Call localVarCall = postMetricsValidateBeforeCall(environmentUUID, metrics, null);
+    public ApiResponse<Void> postMetricsWithHttpInfo(String environmentUUID, String cluster, Metrics metrics) throws ApiException {
+        okhttp3.Call localVarCall = postMetricsValidateBeforeCall(environmentUUID, cluster, metrics, null);
         return localVarApiClient.execute(localVarCall);
     }
 
@@ -190,6 +197,7 @@ public class MetricsApi {
      * Send metrics to the Analytics server. (asynchronously)
      * Send metrics to Analytics server
      * @param environmentUUID environment parameter in query. (required)
+     * @param cluster Unique identifier for the cluster for the account (optional)
      * @param metrics  (optional)
      * @param _callback The callback to be executed when the API call finishes
      * @return The request call
@@ -203,9 +211,9 @@ public class MetricsApi {
         <tr><td> 500 </td><td> Internal server error </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call postMetricsAsync(String environmentUUID, Metrics metrics, final ApiCallback<Void> _callback) throws ApiException {
+    public okhttp3.Call postMetricsAsync(String environmentUUID, String cluster, Metrics metrics, final ApiCallback<Void> _callback) throws ApiException {
 
-        okhttp3.Call localVarCall = postMetricsValidateBeforeCall(environmentUUID, metrics, _callback);
+        okhttp3.Call localVarCall = postMetricsValidateBeforeCall(environmentUUID, cluster, metrics, _callback);
         localVarApiClient.executeAsync(localVarCall, _callback);
         return localVarCall;
     }

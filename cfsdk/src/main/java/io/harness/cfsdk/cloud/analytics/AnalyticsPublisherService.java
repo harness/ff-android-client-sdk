@@ -91,7 +91,7 @@ public class AnalyticsPublisherService {
                 final long evalSum = sumOfValuesInMap(freqMap);
 
                 if (evalSum > 0) {
-                    metricsApi.postMetrics(authInfo.getEnvironment(), metrics);
+                    metricsApi.postMetrics(authInfo.getEnvironment(), authInfo.getCluster(), metrics);
                     metricsSent.addAndGet(evalSum);
                     log.debug("Successfully sent analytics data to the server");
                 } else {
