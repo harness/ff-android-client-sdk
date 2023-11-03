@@ -25,7 +25,7 @@ To use this SDK, make sure you've:
 
 - [Android Studio](https://developer.android.com/studio?gclid=CjwKCAjwp7eUBhBeEiwAZbHwkRqdhQkk6wroJeWGu0uGWjW9Ue3hFXc4SuB6lwYU4LOZiZ-MQ4p57BoCvF0QAvD_BwE&gclsrc=aw.ds) or the [Android SDK](docs/dev_environment.md) for CLI only<br>
 - [Java 11](https://www.oracle.com/java/technologies/downloads/#java11) or newer <br>
-- [Gradle 7.4.1](https://gradle.org/releases/) or newer <br>
+- [Gradle 8.3](https://gradle.org/releases/) or newer <br>
 
 To follow along with our test code sample, make sure you’ve:
 - [Created a Feature Flag](https://ngdocs.harness.io/article/1j7pdkqh7j-create-a-feature-flag) on the Harness Platform called harnessappdemodarkmode
