@@ -58,9 +58,11 @@ import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
+import ch.qos.logback.classic.android.BasicLogcatConfigurator
 import io.harness.cfsdk.*
-import io.harness.cfsdk.cloud.events.EvaluationListener
 import io.harness.cfsdk.cloud.model.Target
+import io.harness.cfsdk.cloud.sse.StatusEvent
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -89,18 +91,24 @@ class MainActivity : AppCompatActivity() {
         CfClient.getInstance().initialize(this, apiKey, sdkConfiguration, target)
         { info, result ->
             if (result.isSuccess) {
-                Log.i("SDKInit", "Successfully initialized client")
+                Log.i("SDKInit", "Successfully initialized client: " +info)
 
                 // Get initial value of flag and display it
                 var flagValue : Boolean = CfClient.getInstance().boolVariation(flagName, false)
                 printMessage("$flagName : $flagValue")
 
-                // Setup Listener to handle flag change events.  This fires when a flag is modified
-                CfClient.getInstance().registerEvaluationListener(flagName, EvaluationListener {
-                    Log.i("SDKEvent", "received event for flag")
-                    var flagValue : Boolean = CfClient.getInstance().boolVariation(flagName, false)
-                    printMessage("$flagName : $flagValue")
-               })
+                // Setup Listener to handle different events emitted by the SDK
+                CfClient.getInstance().registerEventsListener { event ->
+                    when (event.eventType) {
+                        // Setup Listener to handle flag change events.  This fires when a flag is modified.
+                        StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, StatusEvent.EVENT_TYPE.EVALUATION_RELOAD -> {
+                            Log.i("SDKEvent", "received event for flag")
+                            flagValue = CfClient.getInstance().boolVariation(flagName, false)
+                            printMessage("$flagName : $flagValue")
+                        }
+                        else -> Log.i("SDKEvent", "Got ${event.eventType.name}")
+                    }
+                }
             } else {
                 Log.e("SDKInit", "Failed to initialize client", result.error)
                 result.error.message?.let { printMessage(it) }
