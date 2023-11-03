@@ -4,13 +4,19 @@ import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
+import ch.qos.logback.classic.android.BasicLogcatConfigurator
 import io.harness.cfsdk.*
 import io.harness.cfsdk.cloud.model.Target
 import io.harness.cfsdk.cloud.sse.StatusEvent
-import io.harness.cfsdk.cloud.sse.EventsListener
 
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        init {
+            BasicLogcatConfigurator.configureDefaultContext() // enable SDK logging to logcat
+        }
+    }
 
     private var flagName: String = BuildConfig.FF_FLAG_NAME.ifEmpty { "harnessappdemodarkmode" }
 
@@ -47,9 +53,9 @@ class MainActivity : AppCompatActivity() {
                 CfClient.getInstance().registerEventsListener { event ->
                     when (event.eventType) {
                         // Setup Listener to handle flag change events.  This fires when a flag is modified.
-                        StatusEvent.EVENT_TYPE.EVALUATION_CHANGE -> {
+                        StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, StatusEvent.EVENT_TYPE.EVALUATION_RELOAD -> {
                             Log.i("SDKEvent", "received event for flag")
-                            var flagValue : Boolean = CfClient.getInstance().boolVariation(flagName, false)
+                            flagValue = CfClient.getInstance().boolVariation(flagName, false)
                             printMessage("$flagName : $flagValue")
                         }
                         // There's been an interruption SSE stream which has since resumed, which means the
@@ -57,9 +63,11 @@ class MainActivity : AppCompatActivity() {
                         // bool variation to get the most up to date evaluation value.
                         StatusEvent.EVENT_TYPE.SSE_RESUME -> {
                             Log.i("SDKEvent", "received event for flag")
-                            var flagValue : Boolean = CfClient.getInstance().boolVariation(flagName, false)
+                            flagValue = CfClient.getInstance().boolVariation(flagName, false)
                             printMessage("$flagName : $flagValue")
-                        }}
+                        }
+                        else -> Log.i("SDKEvent", "Got ${event.eventType.name}")
+                    }
                 }
             } else {
                 Log.e("SDKInit", "Failed to initialize client", result.error)

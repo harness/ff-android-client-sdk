@@ -33,7 +33,7 @@ public class AnalyticsPublisherServiceTest {
         final AuthInfo authInfo = Mockito.mock(AuthInfo.class);
         final MetricsApi metricsApi = Mockito.mock(MetricsApi.class);
 
-        doThrow(new ApiException("dummy")).when(metricsApi).postMetrics(any(), any());
+        doThrow(new ApiException("dummy")).when(metricsApi).postMetrics(any(), any(), any());
 
         final AnalyticsPublisherService service = new AnalyticsPublisherService(authInfo, metricsApi);
         final AtomicBoolean result = new AtomicBoolean(true);
@@ -56,7 +56,7 @@ public class AnalyticsPublisherServiceTest {
         final AuthInfo authInfo = Mockito.mock(AuthInfo.class);
         final MetricsApi metricsApi = Mockito.mock(MetricsApi.class);
 
-        doThrow(new ApiException("dummy")).when(metricsApi).postMetrics(anyString(), any(Metrics.class));
+        doThrow(new ApiException("dummy")).when(metricsApi).postMetrics(anyString(), anyString(), any(Metrics.class));
 
         final AnalyticsPublisherService service = new AnalyticsPublisherService(authInfo, metricsApi);
         final AtomicBoolean result = new AtomicBoolean(false);
@@ -81,7 +81,7 @@ public class AnalyticsPublisherServiceTest {
         service.sendData(freqMap, (AnalyticsPublisherServiceCallback) success -> log.info("sendData success={}", success));
 
         // Verify that we did not post anything
-        verify(metricsApi, times(0)).postMetrics(anyString(), any(Metrics.class));
+        verify(metricsApi, times(0)).postMetrics(anyString(), anyString(), any(Metrics.class));
     }
 
 }

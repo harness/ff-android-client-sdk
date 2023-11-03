@@ -25,7 +25,8 @@ To use this SDK, make sure you've:
 
 - [Android Studio](https://developer.android.com/studio?gclid=CjwKCAjwp7eUBhBeEiwAZbHwkRqdhQkk6wroJeWGu0uGWjW9Ue3hFXc4SuB6lwYU4LOZiZ-MQ4p57BoCvF0QAvD_BwE&gclsrc=aw.ds) or the [Android SDK](docs/dev_environment.md) for CLI only<br>
 - [Java 11](https://www.oracle.com/java/technologies/downloads/#java11) or newer <br>
-- [Gradle 7.4.1](https://gradle.org/releases/) or newer <br>
+- [Gradle 8.3](https://gradle.org/releases/) or newer <br>
+- Android Studio Hedgehog is needed to support Android Gradle Plugin 8.2.x when not building SDK source code from command line
 
 To follow along with our test code sample, make sure you’ve:
 - [Created a Feature Flag](https://ngdocs.harness.io/article/1j7pdkqh7j-create-a-feature-flag) on the Harness Platform called harnessappdemodarkmode
@@ -58,9 +59,11 @@ import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
+import ch.qos.logback.classic.android.BasicLogcatConfigurator
 import io.harness.cfsdk.*
-import io.harness.cfsdk.cloud.events.EvaluationListener
 import io.harness.cfsdk.cloud.model.Target
+import io.harness.cfsdk.cloud.sse.StatusEvent
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -89,18 +92,24 @@ class MainActivity : AppCompatActivity() {
         CfClient.getInstance().initialize(this, apiKey, sdkConfiguration, target)
         { info, result ->
             if (result.isSuccess) {
-                Log.i("SDKInit", "Successfully initialized client")
+                Log.i("SDKInit", "Successfully initialized client: " +info)
 
                 // Get initial value of flag and display it
                 var flagValue : Boolean = CfClient.getInstance().boolVariation(flagName, false)
                 printMessage("$flagName : $flagValue")
 
-                // Setup Listener to handle flag change events.  This fires when a flag is modified
-                CfClient.getInstance().registerEvaluationListener(flagName, EvaluationListener {
-                    Log.i("SDKEvent", "received event for flag")
-                    var flagValue : Boolean = CfClient.getInstance().boolVariation(flagName, false)
-                    printMessage("$flagName : $flagValue")
-               })
+                // Setup Listener to handle different events emitted by the SDK
+                CfClient.getInstance().registerEventsListener { event ->
+                    when (event.eventType) {
+                        // Setup Listener to handle flag change events.  This fires when a flag is modified.
+                        StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, StatusEvent.EVENT_TYPE.EVALUATION_RELOAD -> {
+                            Log.i("SDKEvent", "received event for flag")
+                            flagValue = CfClient.getInstance().boolVariation(flagName, false)
+                            printMessage("$flagName : $flagValue")
+                        }
+                        else -> Log.i("SDKEvent", "Got ${event.eventType.name}")
+                    }
+                }
             } else {
                 Log.e("SDKInit", "Failed to initialize client", result.error)
                 result.error.message?.let { printMessage(it) }
