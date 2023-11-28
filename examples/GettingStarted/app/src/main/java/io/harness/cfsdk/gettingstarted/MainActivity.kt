@@ -3,7 +3,6 @@ package io.harness.cfsdk.gettingstarted
 import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import android.util.Log
 import ch.qos.logback.classic.android.BasicLogcatConfigurator
 import io.harness.cfsdk.*
 import io.harness.cfsdk.cloud.model.Target
@@ -14,6 +13,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         init {
+
             BasicLogcatConfigurator.configureDefaultContext() // enable SDK logging to logcat
         }
     }
@@ -29,7 +29,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         printMessage("Starting SDK")
 
-        if (flagName.equals("null")) { flagName = "harnessappdemodarkmode" }
+
+        if (flagName.equals("null")) {
+            flagName = "harnessappdemodarkmode"
+        }
 
         // Create Default Configuration for the SDK.  We can use this to disable streaming,
         // change the URL the client connects to etc
@@ -43,18 +46,26 @@ class MainActivity : AppCompatActivity() {
         CfClient.getInstance().initialize(this, apiKey, sdkConfiguration, target)
         { info, result ->
             if (result.isSuccess) {
-                Log.i("SDKInit", "Successfully initialized client: " +info)
+                Log.i("SDKInit", "Successfully initialized client: " + info)
 
                 // Get initial value of flag and display it
-                var flagValue : Boolean = CfClient.getInstance().boolVariation(flagName, false)
+                var flagValue: Boolean = CfClient.getInstance().boolVariation(flagName, false)
                 printMessage("$flagName : $flagValue")
 
                 // Setup Listener to handle different events emitted by the SDK
                 CfClient.getInstance().registerEventsListener { event ->
                     when (event.eventType) {
                         // Setup Listener to handle flag change events.  This fires when a flag is modified.
-                        StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, StatusEvent.EVENT_TYPE.EVALUATION_RELOAD -> {
-                            Log.i("SDKEvent", "received event for flag")
+                        StatusEvent.EVENT_TYPE.EVALUATION_CHANGE -> {
+                            Log.i("SDKEvent", "received ${event.eventType} event for flag")
+                            event.extractEvaluationPayload()
+                            flagValue = CfClient.getInstance().boolVariation(flagName, false)
+                            printMessage("$flagName : $flagValue")
+                        }
+
+                        StatusEvent.EVENT_TYPE.EVALUATION_RELOAD -> {
+                            Log.i("SDKEvent", "received ${event.eventType} event for flag")
+                            event.extractEvaluationListPayload()
                             flagValue = CfClient.getInstance().boolVariation(flagName, false)
                             printMessage("$flagName : $flagValue")
                         }
@@ -62,10 +73,11 @@ class MainActivity : AppCompatActivity() {
                         // cache will have been updated with the latest values, so we can call
                         // bool variation to get the most up to date evaluation value.
                         StatusEvent.EVENT_TYPE.SSE_RESUME -> {
-                            Log.i("SDKEvent", "received event for flag")
+                            Log.i("SDKEvent", "received ${event.eventType} event for flag")
                             flagValue = CfClient.getInstance().boolVariation(flagName, false)
                             printMessage("$flagName : $flagValue")
                         }
+
                         else -> Log.i("SDKEvent", "Got ${event.eventType.name}")
                     }
                 }
@@ -77,7 +89,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // printMessage uses the UI Thread to update the text on the display
-    private fun printMessage(msg : String) {
+    private fun printMessage(msg: String) {
         val tv1: TextView = findViewById(R.id.textView1)
         runOnUiThread { tv1.text = msg }
     }
