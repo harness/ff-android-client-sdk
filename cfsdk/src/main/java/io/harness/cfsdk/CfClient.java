@@ -499,6 +499,8 @@ public class CfClient implements Closeable {
 
             case SSE_START:
                 evaluationPolling.stop();
+                StatusEvent startEvent = new StatusEvent(StatusEvent.EVENT_TYPE.SSE_START);
+                sendEvent(startEvent);
                 break;
 
             case SSE_RESUME:
@@ -512,7 +514,8 @@ public class CfClient implements Closeable {
                         cluster
                 );
 
-                statusEvent = new StatusEvent(statusEvent.getEventType(), resumedEvaluations);
+                StatusEvent resumeEvent = new StatusEvent(StatusEvent.EVENT_TYPE.SSE_RESUME, resumedEvaluations);
+                sendEvent(resumeEvent);
                 break;
 
             case SSE_END:
@@ -528,30 +531,34 @@ public class CfClient implements Closeable {
 
                     evaluationPolling.start(this::reschedule);
                 }
+                StatusEvent endEvent = new StatusEvent(StatusEvent.EVENT_TYPE.SSE_END);
+                sendEvent(endEvent);
                 break;
 
             case EVALUATION_CHANGE:
-                List<Evaluation> evaluations = statusEvent.extractEvaluationListPayload();
+                List<Evaluation> changeEvaluations = statusEvent.extractEvaluationListPayload();
 
                 // if evaluations are present in sse event save it directly, else fetch from server
-                if(areEvaluationsValid(evaluations)) {
-                    for (int i = 0; i < evaluations.size(); i++) {
-                        featureRepository.save(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), evaluations.get(i));
-                        statusEvent = new StatusEvent(statusEvent.getEventType(), evaluations.get(i));
-                        notifyListeners(evaluations.get(i));
+                if(areEvaluationsValid(changeEvaluations)) {
+                    for (int i = 0; i < changeEvaluations.size(); i++) {
+                        featureRepository.save(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), changeEvaluations.get(i));
+                        StatusEvent preEvalChangeEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, changeEvaluations.get(i));
+                        sendEvent(preEvalChangeEvent);
+                        notifyListeners(changeEvaluations.get(i));
                     }
                 } else {
-                    for (int i = 0; i < evaluations.size(); i++) {
+                    for (int i = 0; i < changeEvaluations.size(); i++) {
                         Evaluation evaluation = featureRepository.getEvaluationFromServer(
 
                                 authInfo.getEnvironmentIdentifier(),
                                 target.getIdentifier(),
-                                evaluations.get(i).getFlag(),
+                                changeEvaluations.get(i).getFlag(),
                                 cluster
                         );
 
                         if (evaluation != null) {
-                            statusEvent = new StatusEvent(statusEvent.getEventType(), evaluation);
+                            StatusEvent evalChangeEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, evaluation);
+                            sendEvent(evalChangeEvent);
                             notifyListeners(evaluation);
                         } else {
                             log.warn("EVALUATION_CHANGE event failed to get evaluation for target '{}' from server", target.getIdentifier());
@@ -565,20 +572,24 @@ public class CfClient implements Closeable {
 
                 final Evaluation eval = statusEvent.extractEvaluationPayload();
                 featureRepository.remove(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), eval.getFlag());
+                StatusEvent evalRemoveEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_REMOVE, eval);
+                sendEvent(evalRemoveEvent);
+                notifyListeners(eval);
                 break;
 
             case EVALUATION_RELOAD:
                 // TODO - add a try around this payload - possibly triggered by other things too
-                evaluations = statusEvent.extractEvaluationListPayload();
+                List<Evaluation> reloadEvaluations = statusEvent.extractEvaluationListPayload();
 
                 // if evaluations are present in sse event save it directly, else fetch from server
-                if(areEvaluationsValid(evaluations)) {
-                    for (int i = 0; i < evaluations.size(); i++) {
-                        featureRepository.save(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), evaluations.get(i));
-                        // TODO - do we need to notify listeners - the other path doesn't
-                        notifyListeners(evaluations.get(i));
+                if(areEvaluationsValid(reloadEvaluations)) {
+                    for (int i = 0; i < reloadEvaluations.size(); i++) {
+                        featureRepository.save(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), reloadEvaluations.get(i));
+                        notifyListeners(reloadEvaluations.get(i));
                     }
-                    statusEvent = new StatusEvent(statusEvent.getEventType(), evaluations);
+                    StatusEvent preEvalReloadEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, reloadEvaluations);
+                    sendEvent(preEvalReloadEvent);
+
                 } else {
                     log.debug("Reloading all evaluations");
 
@@ -590,13 +601,17 @@ public class CfClient implements Closeable {
                             cluster
                     );
 
-                    statusEvent = new StatusEvent(statusEvent.getEventType(), fetchedEvaluations);
+                    for (int i = 0; i < fetchedEvaluations.size(); i++) {
+                        notifyListeners(reloadEvaluations.get(i));
+                    }
+
+                    StatusEvent evalReloadEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, fetchedEvaluations);
+                    sendEvent(evalReloadEvent);
                 }
 
                 break;
         }
 
-        sendEvent(statusEvent);
     };
 
     void sendEvent(StatusEvent statusEvent) {
