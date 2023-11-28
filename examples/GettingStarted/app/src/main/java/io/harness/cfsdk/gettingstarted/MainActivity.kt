@@ -1,6 +1,7 @@
 package io.harness.cfsdk.gettingstarted
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import ch.qos.logback.classic.android.BasicLogcatConfigurator
@@ -17,7 +18,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private var flagName: String = BuildConfig.FF_FLAG_NAME.ifEmpty { "harnessappdemodarkmode" }
+    private var flagName: String = BuildConfig.FF_FLAG_NAME.ifEmpty { "boolflag" }
 
     // The SDK API Key to use for authentication.  Configure it when installing the app by setting FF_API_KEY
     // e.g. FF_API_KEY='my key' ./gradlew installDebug
@@ -30,7 +31,7 @@ class MainActivity : AppCompatActivity() {
 
 
         if (flagName.equals("null")) {
-            flagName = "harnessappdemodarkmode"
+            flagName = "boolflag"
         }
 
         // Create Default Configuration for the SDK.  We can use this to disable streaming,
