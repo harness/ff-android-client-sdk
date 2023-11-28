@@ -13,7 +13,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         init {
-
             BasicLogcatConfigurator.configureDefaultContext() // enable SDK logging to logcat
         }
     }
