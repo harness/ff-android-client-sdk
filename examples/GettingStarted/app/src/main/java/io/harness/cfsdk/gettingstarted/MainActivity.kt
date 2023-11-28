@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private var flagName: String = BuildConfig.FF_FLAG_NAME.ifEmpty { "boolflag" }
+    private var flagName: String = BuildConfig.FF_FLAG_NAME.ifEmpty { "harnessappdarkmode" }
 
     // The SDK API Key to use for authentication.  Configure it when installing the app by setting FF_API_KEY
     // e.g. FF_API_KEY='my key' ./gradlew installDebug
@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
 
 
         if (flagName.equals("null")) {
-            flagName = "boolflag"
+            flagName = "harnessappdarkmode"
         }
 
         // Create Default Configuration for the SDK.  We can use this to disable streaming,
