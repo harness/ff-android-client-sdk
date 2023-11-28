@@ -578,11 +578,9 @@ public class CfClient implements Closeable {
                 break;
 
             case EVALUATION_RELOAD:
-                // TODO - add a try around this payload - possibly triggered by other things too
-                List<Evaluation> reloadEvaluations = statusEvent.extractEvaluationListPayload();
-
                 // if evaluations are present in sse event save it directly, else fetch from server
-                if(areEvaluationsValid(reloadEvaluations)) {
+                if(areEvaluationsValid(statusEvent.extractEvaluationListPayload())) {
+                    List<Evaluation> reloadEvaluations = statusEvent.extractEvaluationListPayload();
                     for (int i = 0; i < reloadEvaluations.size(); i++) {
                         featureRepository.save(authInfo.getEnvironmentIdentifier(), target.getIdentifier(), reloadEvaluations.get(i));
                         notifyListeners(reloadEvaluations.get(i));
@@ -602,7 +600,7 @@ public class CfClient implements Closeable {
                     );
 
                     for (int i = 0; i < fetchedEvaluations.size(); i++) {
-                        notifyListeners(reloadEvaluations.get(i));
+                        notifyListeners(fetchedEvaluations.get(i));
                     }
 
                     StatusEvent evalReloadEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, fetchedEvaluations);
