@@ -305,13 +305,13 @@ public class CfClient implements Closeable {
             return defaultValue;
         }
 
-        final Object value = evaluation.getValue();
+        final String value = evaluation.getValue();
         if (value == null) {
             log.warn("Evaluation was found for '{}', but the value was null, " +
                     "returning default variation", evaluationId);
             SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
         }
-        
+
         return "true".equals(value);
     }
 
