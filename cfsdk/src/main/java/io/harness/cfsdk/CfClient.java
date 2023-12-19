@@ -873,7 +873,7 @@ public class CfClient implements Closeable {
         );
     }
 
-    protected boolean canPushToMetrics(Evaluation result) {
+    protected boolean canPushToMetrics() {
 
         return this.target.isValid() &&
                 analyticsEnabled &&
@@ -914,35 +914,38 @@ public class CfClient implements Closeable {
             T defaultValue
     ) {
 
-        Evaluation result = new Evaluation();
-
-        if (ready.get()) {
-
-            final String cluster = authInfo.getCluster();
-            final String identifier = authInfo.getEnvironmentIdentifier();
-
-            result = featureRepository.getEvaluation(
-
-                    identifier, target.getIdentifier(), evaluationId, cluster
-            );
-
-        } else {
-
-            result.value((String)defaultValue)
+        if (!ready.get()) {
+            // SDK isn't ready, so return early.
+            log.warn("SDK not initialized yet, not evaluating: '{}' ", evaluationId);
+            return new Evaluation()
+                    .value(null)
                     .flag(evaluationId);
         }
 
+
+        final String cluster = authInfo.getCluster();
+        final String identifier = authInfo.getEnvironmentIdentifier();
+
+        Evaluation result = featureRepository.getEvaluation(
+
+                identifier, target.getIdentifier(), evaluationId, cluster
+        );
+
+        // Return early if the evaluation wasn't found as we don't need to post metrics.
         if (result == null) {
-
-            log.warn("Result is null, creating the default one");
-            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
-            result = new Evaluation()
-                    .value((String)defaultValue)
+            log.warn("Evaluation not found: '{}' ", evaluationId);
+            return new Evaluation()
+                    .value(null)
                     .flag(evaluationId);
         }
 
-        if (canPushToMetrics(result)) {
+        pushToMetrics(evaluationId, result);
+        return result;
 
+    }
+
+    private void pushToMetrics(String evaluationId, Evaluation result) {
+        if (canPushToMetrics()) {
             final Variation variation = new Variation();
             variation.setName(evaluationId);
             variation.setValue(result.getValue());
@@ -950,8 +953,6 @@ public class CfClient implements Closeable {
 
             analyticsManager.registerEvaluation(this.target, evaluationId, variation);
         }
-
-        return result;
     }
 
     void setNetworkInfoProvider(NetworkInfoProviding networkInfoProvider) {
