@@ -386,8 +386,19 @@ public class CfClient implements Closeable {
         }
 
         try {
+            String originalValue = evaluation.getValue();
+
+            // Remove outer quotes if they exist. Having to unescape by hand as we don't want
+            // to use large libraries like commons/gson
+            if (originalValue.startsWith("\"") && originalValue.endsWith("\"") && originalValue.length() > 1) {
+                originalValue = originalValue.substring(1, originalValue.length() - 1);
+            }
+
+            // Replace escaped inner quotes
+            originalValue = originalValue.replace("\\\"", "\"");
+
+            JSONObject parsedVal = new JSONObject(originalValue);
             // Attempt to parse the evaluation value as a JSONObject
-            JSONObject parsedVal = new JSONObject(evaluation.getValue());
             pushToMetrics(evaluationId, evaluation);
             return parsedVal;
         } catch (JSONException e) {
