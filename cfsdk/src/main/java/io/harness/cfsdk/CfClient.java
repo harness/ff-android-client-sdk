@@ -313,6 +313,7 @@ public class CfClient implements Closeable {
             SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
         }
 
+        pushToMetrics(evaluationId, evaluation);
         return "true".equals(value);
     }
 
@@ -333,6 +334,7 @@ public class CfClient implements Closeable {
             return defaultValue;
         }
 
+        pushToMetrics(evaluationId, evaluation);
         return evaluation.getValue();
     }
 
@@ -356,7 +358,10 @@ public class CfClient implements Closeable {
         }
 
         try {
-            return Double.parseDouble(value);
+            double parsedVal = Double.parseDouble(value);
+            pushToMetrics(evaluationId, evaluation);
+            return parsedVal;
+
         } catch (NumberFormatException e) {
             log.warn("Error parsing evaluation value as double: '{}' returning default variation ", e.getMessage(), e);
             SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
@@ -381,7 +386,9 @@ public class CfClient implements Closeable {
 
         try {
             // Attempt to parse the evaluation value as a JSONObject
-            return new JSONObject(evaluation.getValue());
+            JSONObject parsedVal = new JSONObject(evaluation.getValue());
+            pushToMetrics(evaluationId, evaluation);
+            return parsedVal;
         } catch (JSONException e) {
             log.error("Error parsing evaluation value as JSONObject: " + e.getMessage(), e);
             SdkCodes.warnDefaultVariationServed(evaluationId, target, defaultValue.toString());
