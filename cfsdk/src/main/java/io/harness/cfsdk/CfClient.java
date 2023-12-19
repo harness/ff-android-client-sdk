@@ -921,7 +921,7 @@ public class CfClient implements Closeable {
      * The calling methods should handle the case when null is returned.
      *
      * @param evaluationId Identifier of the target evaluation
-     * @param target       The target for which the evaluation is to be fetched
+     * @param target The target used for the evaluation
      * @return Evaluation for the given id if found, otherwise null
      */
     <T> Evaluation getEvaluationById(
