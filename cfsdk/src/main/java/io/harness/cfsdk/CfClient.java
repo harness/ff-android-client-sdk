@@ -358,39 +358,35 @@ public class CfClient implements Closeable {
         try {
             return Double.parseDouble(value);
         } catch (NumberFormatException e) {
-            log.error("Error parsing evaluation value as double: " + e.getMessage(), e);
+            log.warn("Error parsing evaluation value as double: '{}' returning default variation ", e.getMessage(), e);
             SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
             return defaultValue;
         }
     }
 
     public JSONObject jsonVariation(String evaluationId, JSONObject defaultValue) {
+        Evaluation evaluation = getEvaluationById(evaluationId, target);
+        if (evaluation == null) {
+            log.warn("Evaluation for {} is null, returning default value", evaluationId);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
+        }
+
+        if (evaluation.getValue() == null) {
+            log.warn("Evaluation was found for '{}', but the value was null, " +
+                    "returning default variation", evaluationId);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
+        }
 
         try {
-
-            final Evaluation e = getEvaluationById(
-
-                    evaluationId,
-                    target,
-                    defaultValue
-            );
-
-            if (e.getValue() == null) {
-
-                Map<String, Object> resultMap = new HashMap<>();
-                resultMap.put(evaluationId, null);
-                return new JSONObject(resultMap);
-
-            } else {
-
-                return new JSONObject(e.getValue());
-            }
+            // Attempt to parse the evaluation value as a JSONObject
+            return new JSONObject(evaluation.getValue());
         } catch (JSONException e) {
-
-            log.error(e.getMessage(), e);
+            log.error("Error parsing evaluation value as JSONObject: " + e.getMessage(), e);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, defaultValue.toString());
+            return defaultValue;
         }
-        SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
-        return defaultValue;
     }
 
     /**
