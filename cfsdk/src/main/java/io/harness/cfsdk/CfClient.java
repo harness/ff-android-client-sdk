@@ -298,25 +298,21 @@ public class CfClient implements Closeable {
 
     public boolean boolVariation(String evaluationId, boolean defaultValue) {
 
-        final Evaluation evaluation = getEvaluationById(
+        final Evaluation evaluation = getEvaluationById(evaluationId, target);
 
-                evaluationId,
-                target,
-                defaultValue
-        );
+        if (evaluation == null) {
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
+        }
 
         final Object value = evaluation.getValue();
-        if (value instanceof Boolean) {
-
-            return (Boolean) value;
+        if (value == null) {
+            log.warn("Evaluation was found for '{}', but the value was null, " +
+                    "returning default variation", evaluationId);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
         }
-        if (value instanceof String) {
-
-            return "true".equals(value);
-        }
-
-        SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
-        return defaultValue;
+        
+        return "true".equals(value);
     }
 
     public String stringVariation(String evaluationId, String defaultValue) {
@@ -904,24 +900,19 @@ public class CfClient implements Closeable {
      * returns one with provided default value.
      *
      * @param evaluationId Identifier of target evaluation
-     * @param defaultValue Default value to be used in case when evaluation is not found
      * @return Evaluation for a given id
      */
     <T> Evaluation getEvaluationById(
 
             String evaluationId,
-            Target target,
-            T defaultValue
+            Target target
     ) {
 
         if (!ready.get()) {
             // SDK isn't ready, so return early.
             log.warn("SDK not initialized yet, not evaluating: '{}' ", evaluationId);
-            return new Evaluation()
-                    .value(null)
-                    .flag(evaluationId);
+            return null;
         }
-
 
         final String cluster = authInfo.getCluster();
         final String identifier = authInfo.getEnvironmentIdentifier();
@@ -931,17 +922,13 @@ public class CfClient implements Closeable {
                 identifier, target.getIdentifier(), evaluationId, cluster
         );
 
-        // Return early if the evaluation wasn't found as we don't need to post metrics.
+        // Return early if the evaluation wasn't found
         if (result == null) {
             log.warn("Evaluation not found: '{}' ", evaluationId);
-            return new Evaluation()
-                    .value(null)
-                    .flag(evaluationId);
+            return null;
         }
 
-        pushToMetrics(evaluationId, result);
         return result;
-
     }
 
     private void pushToMetrics(String evaluationId, Evaluation result) {
