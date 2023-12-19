@@ -896,11 +896,15 @@ public class CfClient implements Closeable {
     /* ---------- Package private ---------- */
 
     /**
-     * Retrieves single {@link Evaluation instance} based on provided id. If no such evaluation is found,
-     * returns one with provided default value.
+     * Retrieves a single {@link Evaluation} instance based on the provided id. If the SDK is not ready or
+     * if no evaluation is found for the given id, the method returns null.
      *
-     * @param evaluationId Identifier of target evaluation
-     * @return Evaluation for a given id
+     * This method is responsible only for fetching the evaluation and does not handle default values.
+     * The calling methods should handle the case when null is returned.
+     *
+     * @param evaluationId Identifier of the target evaluation
+     * @param target       The target for which the evaluation is to be fetched
+     * @return Evaluation for the given id if found, otherwise null
      */
     <T> Evaluation getEvaluationById(
 
