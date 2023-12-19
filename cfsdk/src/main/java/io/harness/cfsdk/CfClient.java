@@ -317,7 +317,22 @@ public class CfClient implements Closeable {
 
     public String stringVariation(String evaluationId, String defaultValue) {
 
-        return getEvaluationById(evaluationId, target, defaultValue).getValue();
+        Evaluation evaluation = getEvaluationById(evaluationId, target);
+
+        if (evaluation == null) {
+            log.warn("Using default value for stringVariation as evaluation is null or value is null");
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
+        }
+
+        if (evaluation.getValue() == null) {
+            log.warn("Evaluation was found for '{}', but the value was null, " +
+                    "returning default variation", evaluationId);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
+        }
+
+        return evaluation.getValue();
     }
 
     public double numberVariation(String evaluationId, double defaultValue) {
