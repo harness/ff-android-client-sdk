@@ -337,31 +337,30 @@ public class CfClient implements Closeable {
 
     public double numberVariation(String evaluationId, double defaultValue) {
 
-        final Evaluation evaluation = getEvaluationById(
+        final Evaluation evaluation = getEvaluationById(evaluationId, target);
 
-                evaluationId,
-                target,
-                defaultValue
-        );
-
-        final Object value = evaluation.getValue();
-        if (value instanceof Number) {
-
-            return ((Number) value).doubleValue();
+        if (evaluation == null) {
+            log.warn("Evaluation is null, returning default value");
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
         }
-        if (value instanceof String) {
 
-            final String strValue = (String) value;
-            try {
+        String value = evaluation.getValue();
 
-                return Double.parseDouble(strValue);
-            } catch (NumberFormatException e) {
-
-                log.error(e.getMessage(), e);
-            }
+        if (value == null) {
+            log.warn("Evaluation was found for '{}', but the value was null, " +
+                    "returning default variation", evaluationId);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
         }
-        SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
-        return defaultValue;
+
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            log.error("Error parsing evaluation value as double: " + e.getMessage(), e);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
+        }
     }
 
     public JSONObject jsonVariation(String evaluationId, JSONObject defaultValue) {
