@@ -301,6 +301,7 @@ public class CfClient implements Closeable {
         final Evaluation evaluation = getEvaluationById(evaluationId, target);
 
         if (evaluation == null) {
+            log.warn("Evaluation for {} is null, returning default value", evaluationId);
             SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
             return defaultValue;
         }
@@ -320,7 +321,7 @@ public class CfClient implements Closeable {
         Evaluation evaluation = getEvaluationById(evaluationId, target);
 
         if (evaluation == null) {
-            log.warn("Using default value for stringVariation as evaluation is null or value is null");
+            log.warn("Evaluation for {} is null, returning default value", evaluationId);
             SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
             return defaultValue;
         }
@@ -340,7 +341,7 @@ public class CfClient implements Closeable {
         final Evaluation evaluation = getEvaluationById(evaluationId, target);
 
         if (evaluation == null) {
-            log.warn("Evaluation is null, returning default value");
+            log.warn("Evaluation for {} is null, returning default value", evaluationId);
             SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
             return defaultValue;
         }
