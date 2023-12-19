@@ -311,6 +311,7 @@ public class CfClient implements Closeable {
             log.warn("Evaluation was found for '{}', but the value was null, " +
                     "returning default variation", evaluationId);
             SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
         }
 
         pushToMetrics(evaluationId, evaluation);
