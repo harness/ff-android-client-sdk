@@ -2,6 +2,7 @@ package io.harness.cfsdk;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,6 +45,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
@@ -186,6 +188,17 @@ public class CfClientTest {
     @Test
     public void shouldConnectToWebServerWithAbsoluteStreamUrl() throws Exception {
         testShouldConnectToWebServerStreamTest((host, port) -> CfConfiguration.builder()
+                .baseUrl(makeServerUrl(host, port))
+                .eventUrl(makeServerUrl(host, port))
+                .streamUrl(makeServerUrl(host, port) + "/stream") // make sure we're still backwards compatible
+                .enableAnalytics(false)
+                .enableStream(true)
+                .build());
+    }
+
+    @Test
+    public void variationMethodsShouldNotReturnDefaults() throws Exception {
+        variationMethodsShouldNotReturnDefaults((host, port) -> CfConfiguration.builder()
                 .baseUrl(makeServerUrl(host, port))
                 .eventUrl(makeServerUrl(host, port))
                 .streamUrl(makeServerUrl(host, port) + "/stream") // make sure we're still backwards compatible
@@ -388,7 +401,7 @@ public class CfClientTest {
             Target target = new Target();
             target.identifier("anyone@anywhere.com");
 
-            Evaluation eval = client.getEvaluationById("anyone@anywhere.com", target, false);
+            Evaluation eval = client.getEvaluationById("anyone@anywhere.com", target);
             assertNotNull(eval);
             assertEquals("testFlag", eval.getFlag());
             assertEquals("anyone@anywhere.com", eval.getIdentifier());
@@ -403,23 +416,20 @@ public class CfClientTest {
     /*
      * First check in cache and return null (empty MockedCache)
      * Evaluation endpoint API should be called and return 400 (MockedNetworkInfoProvider)
-     * Default value should be served
+     * Null value should be served
      */
     @Test
-    public void shouldGetEvaluation_WithDefaultValue_WhenNotInCache_AndServerReturns400() throws Exception {
+    public void shouldReturnNullForGetEvaluationById_WhenServerReturns400() throws Exception {
         final MockWebServerDispatcher dispatcher = new EvalEndpointDispatcher_ReturnsHttp400();
         final MockedCache cache = new MockedCache();
-        final String DEFAULT_VALUE = "false";
 
         runEvaluation_WithClientCallback(dispatcher, cache, MockedNetworkInfoProvider.create(), client -> {
 
             Target target = new Target();
             target.identifier("anyone@anywhere.com");
 
-            Evaluation eval = client.getEvaluationById("anyone@anywhere.com", target, DEFAULT_VALUE);
-            assertNotNull(eval);
-            assertEquals("anyone@anywhere.com", eval.getFlag());
-            assertEquals(DEFAULT_VALUE, eval.getValue());
+            Evaluation eval = client.getEvaluationById("anyone@anywhere.com", target);
+            assertNull(eval);
         });
 
         assertEquals(1, dispatcher.getUrlAccessCount(MockWebServerDispatcher.EVALUATION_ENDPOINT));
@@ -427,30 +437,25 @@ public class CfClientTest {
         assertEquals(0, cache.getCacheSavedCountForEvaluation("anyone@anywhere.com"));
     }
 
-    /*
-     * Same as above, except evaluation endpoint API should be called and return 500
-     */
     @Test
-    public void shouldGetEvaluation_WithDefaultValue_WhenNotInCache_AndServerReturns500() throws Exception {
+    public void shouldReturnNullForGetEvaluationById_WhenServerReturns500() throws Exception {
         final MockWebServerDispatcher dispatcher = new EvalEndpointDispatcher_ReturnsHttp500();
         final MockedCache cache = new MockedCache();
-        final String DEFAULT_VALUE = "false";
 
         runEvaluation_WithClientCallback(dispatcher, cache, MockedNetworkInfoProvider.create(), client -> {
 
             Target target = new Target();
             target.identifier("anyone@anywhere.com");
 
-            Evaluation eval = client.getEvaluationById("anyone@anywhere.com", target, DEFAULT_VALUE);
-            assertNotNull(eval);
-            assertEquals("anyone@anywhere.com", eval.getFlag());
-            assertEquals(DEFAULT_VALUE, eval.getValue());
+            Evaluation eval = client.getEvaluationById("anyone@anywhere.com", target);
+            assertNull(eval); // Expecting null since the server returns 500
         });
 
         assertEquals(5, dispatcher.getUrlAccessCount(MockWebServerDispatcher.EVALUATION_ENDPOINT));
         assertEquals(0, cache.getCacheHitCountForEvaluation("anyone@anywhere.com"));
         assertEquals(0, cache.getCacheSavedCountForEvaluation("anyone@anywhere.com"));
     }
+
 
     /*
      * Tests config item tlsTrustedCAs() with a self signed cert. We want to see default, stream
@@ -580,33 +585,50 @@ public class CfClientTest {
 
     }
 
-    @Test
-    public void variationMethodsShouldNotReturnDefaults() throws JSONException {
 
-        CfClient client = new CfClient() {
-            @Override
-            <T> Evaluation getEvaluationById( String evaluationId, Target target, T defaultValue ) {
-                switch (evaluationId) {
-                    case "boolflag": return new Evaluation().flag("bool1").kind("boolean").value("true").identifier("b1");
-                    case "strflag": return new Evaluation().flag("string1").kind("string").value("str").identifier("s1");
-                    case "numflag": return new Evaluation().flag("number1").kind("number").value("123").identifier("n1");
-                    case "jsonflag": return new Evaluation().flag("json1").kind("json").value("{'flag':'on'}").identifier("j1");
-                    default: throw new RuntimeException("unknown eval id " + evaluationId);
+    private void variationMethodsShouldNotReturnDefaults(BiFunction<String, Integer, CfConfiguration> configCallback) throws JSONException, IOException {
+        try (MockWebServer mockSvr = new MockWebServer()) {
+            final MockWebServerDispatcher dispatcher = new MockWebServerDispatcher();
+            mockSvr.setDispatcher(dispatcher);
+            mockSvr.start();
+
+            final Context mockContext = mock(Context.class);
+            final CfConfiguration config = configCallback.apply(mockSvr.getHostName(), mockSvr.getPort());
+
+            CfClient client = new CfClient() {
+                @Override
+                <T> Evaluation getEvaluationById( String evaluationId, Target target ) {
+                    switch (evaluationId) {
+                        case "boolflag": return new Evaluation().flag("bool1").kind("boolean").value("true").identifier("b1");
+                        case "strflag": return new Evaluation().flag("string1").kind("string").value("str").identifier("s1");
+                        case "numflag": return new Evaluation().flag("number1").kind("number").value("123").identifier("n1");
+                        case "jsonflag": return new Evaluation().flag("json1").kind("json").value("{'flag':'on'}").identifier("j1");
+                        default: throw new RuntimeException("unknown eval id " + evaluationId);
+                    }
                 }
-            }
-        };
+            };
 
-        boolean boolResult = client.boolVariation("boolflag", false);
-        String strResult = client.stringVariation("strflag", "");
-        double numResult = client.numberVariation("numflag", 0);
-        JSONObject jsonResult = client.jsonVariation("jsonflag", new JSONObject("{}"));
+            client.initialize(
+                    mockContext,
+                    "dummykey",
+                    config,
+                    DUMMY_TARGET,
+                    new MockedCache()
+            );
 
-        assertTrue(boolResult);
-        assertEquals("str", strResult);
-        assertEquals(123, numResult, .0);
-        assertNotNull("default (or wrong) json returned", jsonResult.get("flag"));
-        assertEquals("on", jsonResult.get("flag"));
+            boolean boolResult = client.boolVariation("boolflag", false);
+            String strResult = client.stringVariation("strflag", "");
+            double numResult = client.numberVariation("numflag", 0);
+            JSONObject jsonResult = client.jsonVariation("jsonflag", new JSONObject("{}"));
+
+            assertTrue(boolResult);
+            assertEquals("str", strResult);
+            assertEquals(123, numResult, .0);
+            assertNotNull("default (or wrong) json returned", jsonResult.get("flag"));
+            assertEquals("on", jsonResult.get("flag"));
+        }
     }
+
 
     @Test
     public void refreshEvalsShouldOnlyPollFirstCallThenSkip() throws InterruptedException {

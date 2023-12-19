@@ -298,88 +298,114 @@ public class CfClient implements Closeable {
 
     public boolean boolVariation(String evaluationId, boolean defaultValue) {
 
-        final Evaluation evaluation = getEvaluationById(
+        final Evaluation evaluation = getEvaluationById(evaluationId, target);
 
-                evaluationId,
-                target,
-                defaultValue
-        );
-
-        final Object value = evaluation.getValue();
-        if (value instanceof Boolean) {
-
-            return (Boolean) value;
-        }
-        if (value instanceof String) {
-
-            return "true".equals(value);
+        if (evaluation == null) {
+            log.warn("Evaluation for {} is null, returning default value", evaluationId);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
         }
 
-        SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
-        return defaultValue;
+        final String value = evaluation.getValue();
+        if (value == null) {
+            log.warn("Evaluation was found for '{}', but the value was null, " +
+                    "returning default variation", evaluationId);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
+        }
+
+        pushToMetrics(evaluationId, evaluation);
+        return "true".equals(value);
     }
 
     public String stringVariation(String evaluationId, String defaultValue) {
 
-        return getEvaluationById(evaluationId, target, defaultValue).getValue();
+        Evaluation evaluation = getEvaluationById(evaluationId, target);
+
+        if (evaluation == null) {
+            log.warn("Evaluation for {} is null, returning default value", evaluationId);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
+        }
+
+        if (evaluation.getValue() == null) {
+            log.warn("Evaluation was found for '{}', but the value was null, " +
+                    "returning default variation", evaluationId);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
+        }
+
+        pushToMetrics(evaluationId, evaluation);
+        return evaluation.getValue();
     }
 
     public double numberVariation(String evaluationId, double defaultValue) {
 
-        final Evaluation evaluation = getEvaluationById(
+        final Evaluation evaluation = getEvaluationById(evaluationId, target);
 
-                evaluationId,
-                target,
-                defaultValue
-        );
-
-        final Object value = evaluation.getValue();
-        if (value instanceof Number) {
-
-            return ((Number) value).doubleValue();
+        if (evaluation == null) {
+            log.warn("Evaluation for {} is null, returning default value", evaluationId);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
         }
-        if (value instanceof String) {
 
-            final String strValue = (String) value;
-            try {
+        String value = evaluation.getValue();
 
-                return Double.parseDouble(strValue);
-            } catch (NumberFormatException e) {
-
-                log.error(e.getMessage(), e);
-            }
+        if (value == null) {
+            log.warn("Evaluation was found for '{}', but the value was null, " +
+                    "returning default variation", evaluationId);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
         }
-        SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
-        return defaultValue;
+
+        try {
+            double parsedVal = Double.parseDouble(value);
+            pushToMetrics(evaluationId, evaluation);
+            return parsedVal;
+
+        } catch (NumberFormatException e) {
+            log.warn("Error parsing evaluation value as double: '{}' returning default variation ", e.getMessage(), e);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
+        }
     }
 
     public JSONObject jsonVariation(String evaluationId, JSONObject defaultValue) {
+        Evaluation evaluation = getEvaluationById(evaluationId, target);
+        if (evaluation == null) {
+            log.warn("Evaluation for {} is null, returning default value", evaluationId);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
+        }
+
+        if (evaluation.getValue() == null) {
+            log.warn("Evaluation was found for '{}', but the value was null, " +
+                    "returning default variation", evaluationId);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
+            return defaultValue;
+        }
 
         try {
+            String originalValue = evaluation.getValue();
 
-            final Evaluation e = getEvaluationById(
-
-                    evaluationId,
-                    target,
-                    defaultValue
-            );
-
-            if (e.getValue() == null) {
-
-                Map<String, Object> resultMap = new HashMap<>();
-                resultMap.put(evaluationId, null);
-                return new JSONObject(resultMap);
-
-            } else {
-
-                return new JSONObject(e.getValue());
+            // Remove outer quotes if they exist. Having to unescape by hand as we don't want
+            // to use large libraries like commons/gson
+            if (originalValue.startsWith("\"") && originalValue.endsWith("\"") && originalValue.length() > 1) {
+                originalValue = originalValue.substring(1, originalValue.length() - 1);
             }
-        } catch (JSONException e) {
 
-            log.error(e.getMessage(), e);
+            // Replace escaped inner quotes
+            originalValue = originalValue.replace("\\\"", "\"");
+
+            JSONObject parsedVal = new JSONObject(originalValue);
+            // Attempt to parse the evaluation value as a JSONObject
+            pushToMetrics(evaluationId, evaluation);
+            return parsedVal;
+        } catch (JSONException e) {
+            log.error("Error parsing evaluation value as JSONObject: " + e.getMessage(), e);
+            SdkCodes.warnDefaultVariationServed(evaluationId, target, defaultValue.toString());
+            return defaultValue;
         }
-        SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
-        return defaultValue;
     }
 
     /**
@@ -873,7 +899,7 @@ public class CfClient implements Closeable {
         );
     }
 
-    protected boolean canPushToMetrics(Evaluation result) {
+    protected boolean canPushToMetrics() {
 
         return this.target.isValid() &&
                 analyticsEnabled &&
@@ -900,49 +926,47 @@ public class CfClient implements Closeable {
     /* ---------- Package private ---------- */
 
     /**
-     * Retrieves single {@link Evaluation instance} based on provided id. If no such evaluation is found,
-     * returns one with provided default value.
+     * Retrieves a single {@link Evaluation} instance based on the provided id. If the SDK is not ready or
+     * if no evaluation is found for the given id, the method returns null.
      *
-     * @param evaluationId Identifier of target evaluation
-     * @param defaultValue Default value to be used in case when evaluation is not found
-     * @return Evaluation for a given id
+     * This method is responsible only for fetching the evaluation and does not handle default values.
+     * The calling methods should handle the case when null is returned.
+     *
+     * @param evaluationId Identifier of the target evaluation
+     * @param target The target used for the evaluation
+     * @return Evaluation for the given id if found, otherwise null
      */
     <T> Evaluation getEvaluationById(
 
             String evaluationId,
-            Target target,
-            T defaultValue
+            Target target
     ) {
 
-        Evaluation result = new Evaluation();
-
-        if (ready.get()) {
-
-            final String cluster = authInfo.getCluster();
-            final String identifier = authInfo.getEnvironmentIdentifier();
-
-            result = featureRepository.getEvaluation(
-
-                    identifier, target.getIdentifier(), evaluationId, cluster
-            );
-
-        } else {
-
-            result.value((String)defaultValue)
-                    .flag(evaluationId);
+        if (!ready.get()) {
+            // SDK isn't ready, so return early.
+            log.warn("SDK not initialized yet, not evaluating: '{}' ", evaluationId);
+            return null;
         }
 
+        final String cluster = authInfo.getCluster();
+        final String identifier = authInfo.getEnvironmentIdentifier();
+
+        Evaluation result = featureRepository.getEvaluation(
+
+                identifier, target.getIdentifier(), evaluationId, cluster
+        );
+
+        // Return early if the evaluation wasn't found
         if (result == null) {
-
-            log.warn("Result is null, creating the default one");
-            SdkCodes.warnDefaultVariationServed(evaluationId, target, String.valueOf(defaultValue));
-            result = new Evaluation()
-                    .value((String)defaultValue)
-                    .flag(evaluationId);
+            log.warn("Evaluation not found: '{}' ", evaluationId);
+            return null;
         }
 
-        if (canPushToMetrics(result)) {
+        return result;
+    }
 
+    private void pushToMetrics(String evaluationId, Evaluation result) {
+        if (canPushToMetrics()) {
             final Variation variation = new Variation();
             variation.setName(evaluationId);
             variation.setValue(result.getValue());
@@ -950,8 +974,6 @@ public class CfClient implements Closeable {
 
             analyticsManager.registerEvaluation(this.target, evaluationId, variation);
         }
-
-        return result;
     }
 
     void setNetworkInfoProvider(NetworkInfoProviding networkInfoProvider) {
