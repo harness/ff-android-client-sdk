@@ -801,6 +801,7 @@ public class CfClient implements Closeable {
 
             setTargetDefaults(target);
 
+            // TODO wrap with Future due to uncaught exception below
             executor.execute(() -> runInitThreadWrapEx(apiKey, cloudCache, authCallback));
 
         } catch (Exception e) {
