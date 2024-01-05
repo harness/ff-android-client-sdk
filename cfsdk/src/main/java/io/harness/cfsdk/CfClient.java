@@ -811,7 +811,6 @@ public class CfClient implements Closeable {
                 final AuthResult result = new AuthResult(false, cause);
                 authCallback.authorizationSuccess(authInfo, result);
             }
-
             close();
         }
     }
@@ -874,7 +873,13 @@ public class CfClient implements Closeable {
         try {
             runInitThread(apiKey, cloudCache, authCallback);
         } catch (ApiException e) {
-            throw new RejectedExecutionException(e);
+            log.error("Error when initializing: " + e.getMessage());
+
+            if (authCallback != null) {
+                AuthResult authResult = new AuthResult(false, e);
+                authCallback.authorizationSuccess(authInfo, authResult);
+                close();
+            }
         }
     }
 
