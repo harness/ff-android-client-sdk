@@ -811,7 +811,6 @@ public class CfClient implements Closeable {
                 final AuthResult result = new AuthResult(false, cause);
                 authCallback.authorizationSuccess(authInfo, result);
             }
-
             close();
         }
     }
