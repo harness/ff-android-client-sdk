@@ -801,7 +801,6 @@ public class CfClient implements Closeable {
 
             setTargetDefaults(target);
 
-            // TODO wrap with Future due to uncaught exception below
             executor.execute(() -> runInitThreadWrapEx(apiKey, cloudCache, authCallback));
 
         } catch (Exception e) {
@@ -875,7 +874,13 @@ public class CfClient implements Closeable {
         try {
             runInitThread(apiKey, cloudCache, authCallback);
         } catch (ApiException e) {
-            throw new RejectedExecutionException(e);
+            log.error("Error when initializing: " + e.getMessage());
+
+            if (authCallback != null) {
+                AuthResult authResult = new AuthResult(false, e);
+                authCallback.authorizationSuccess(authInfo, authResult);
+                close();
+            }
         }
     }
 
