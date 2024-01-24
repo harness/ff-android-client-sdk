@@ -152,7 +152,7 @@ public class CfClient implements Closeable {
 
         setupNetworkInfo(context);
 
-        doInitialize(apiKey, configuration, target, cloudCache, authCallback);
+        initializeInternal(apiKey, configuration, target, cloudCache, authCallback);
     }
 
     /**
@@ -698,7 +698,7 @@ public class CfClient implements Closeable {
         log.info("SDK will restart in {}ms", delayMs);
         TimeUnit.MILLISECONDS.sleep(delayMs);
 
-        if (!ready.get() && cloud.initialize()) {
+        if (!ready.get() && cloud != null && cloud.initialize()) {
             ready.set(true);
             this.authInfo = cloud.getAuthInfo();
 
@@ -779,7 +779,7 @@ public class CfClient implements Closeable {
         }};
     }
 
-    protected void doInitialize(
+    protected void initializeInternal(
             final String apiKey,
             final CfConfiguration configuration,
             final Target target,
@@ -873,7 +873,7 @@ public class CfClient implements Closeable {
         try {
             runInitThread(apiKey, cloudCache, authCallback);
         } catch (ApiException e) {
-            log.error("Error when initializing: " + e.getMessage());
+            log.error("Error when initializing: " + e.getMessage(), e);
 
             if (authCallback != null) {
                 AuthResult authResult = new AuthResult(false, e);
