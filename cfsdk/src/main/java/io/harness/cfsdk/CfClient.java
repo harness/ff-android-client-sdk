@@ -1,5 +1,6 @@
 package io.harness.cfsdk;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static io.harness.cfsdk.utils.CfUtils.EvaluationUtil.areEvaluationsValid;
 
 import android.content.Context;
@@ -150,7 +151,7 @@ public class CfClient implements Closeable {
             throw new IllegalStateException("Already initialized");
         }
 
-        setupNetworkInfo(context);
+        registerNetworkConnectedListener(context);
 
         initializeInternal(apiKey, configuration, target, cloudCache, authCallback);
     }
@@ -449,6 +450,8 @@ public class CfClient implements Closeable {
     @Override
     public void close() {
 
+        log.debug("Closing SDK");
+
         if (analyticsManager != null) {
             analyticsManager.close();
         }
@@ -703,7 +706,9 @@ public class CfClient implements Closeable {
             this.authInfo = cloud.getAuthInfo();
 
             if (analyticsEnabled) {
-                this.analyticsManager.close();
+                if (this.analyticsManager != null) {
+                    this.analyticsManager.close();
+                }
                 this.analyticsManager = getAnalyticsManager(configuration, authInfo);
             }
         }
@@ -735,7 +740,7 @@ public class CfClient implements Closeable {
         }
     }
 
-    protected void setupNetworkInfo(Context context) {
+    protected void registerNetworkConnectedListener(Context context) {
 
         if (networkInfoProvider != null) {
             networkInfoProvider.unregisterAll();
@@ -779,7 +784,7 @@ public class CfClient implements Closeable {
         }};
     }
 
-    protected void initializeInternal(
+    private void initializeInternal(
             final String apiKey,
             final CfConfiguration configuration,
             final Target target,
@@ -804,14 +809,16 @@ public class CfClient implements Closeable {
             executor.execute(() -> runInitThreadWrapEx(apiKey, cloudCache, authCallback));
 
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.warn(e.getMessage(), e);
 
             if (authCallback != null) {
                 final Throwable cause = e instanceof RejectedExecutionException ? e.getCause() : e;
                 final AuthResult result = new AuthResult(false, cause);
                 authCallback.authorizationSuccess(authInfo, result);
             }
-            close();
+
+            // Re-run the init on failure in the future
+            executor.execute(() -> { log.info("Init rescheduled"); sleepSeconds(60); runInitThreadWrapEx(apiKey, cloudCache, authCallback); });
         }
     }
 
@@ -872,14 +879,18 @@ public class CfClient implements Closeable {
     private void runInitThreadWrapEx(final String apiKey, final CloudCache cloudCache, final AuthCallback authCallback) {
         try {
             runInitThread(apiKey, cloudCache, authCallback);
-        } catch (ApiException e) {
-            log.error("Error when initializing: " + e.getMessage(), e);
+        } catch (Exception e) {
+            String msg = "runInitThread failed: " + e.getMessage();
+            log.warn(msg, e);
 
             if (authCallback != null) {
-                AuthResult authResult = new AuthResult(false, e);
-                authCallback.authorizationSuccess(authInfo, authResult);
-                close();
+                final Throwable cause = e instanceof RejectedExecutionException ? e.getCause() : e;
+                final AuthResult result = new AuthResult(false, cause);
+                authCallback.authorizationSuccess(authInfo, result);
             }
+
+            // Re-run the init on failure in the future
+            executor.execute(() -> { log.info("Init rescheduled"); sleepSeconds(60); runInitThreadWrapEx(apiKey, cloudCache, authCallback); });
         }
     }
 
@@ -978,6 +989,14 @@ public class CfClient implements Closeable {
             variation.setIdentifier(result.getIdentifier());
 
             analyticsManager.registerEvaluation(this.target, evaluationId, variation);
+        }
+    }
+
+    private void sleepSeconds(int seconds) {
+        try {
+            SECONDS.sleep(seconds);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
