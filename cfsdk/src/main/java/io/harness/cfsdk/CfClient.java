@@ -744,6 +744,8 @@ public class CfClient implements Closeable {
 
     protected void registerNetworkConnectedListener(Context context) {
 
+        // Note that if the network goes down all API requests will throw 'Unable to resolve host "config.ff.harness.io"' (Android 13/API 33)
+
         if (networkInfoProvider != null) {
             networkInfoProvider.unregisterAll();
         } else {
