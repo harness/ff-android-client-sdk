@@ -1,5 +1,6 @@
 package io.harness.cfsdk;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static io.harness.cfsdk.utils.CfUtils.EvaluationUtil.areEvaluationsValid;
 
@@ -91,6 +92,7 @@ public class CfClient implements Closeable {
     private boolean useStream;
     private boolean analyticsEnabled;
     private Instant lastPollTime = Instant.EPOCH;
+    private long lastNetworkConnect = 0;
 
     /**
      * Base constructor.
@@ -750,7 +752,15 @@ public class CfClient implements Closeable {
 
         networkInfoProvider.register(status -> {
             if (status == NetworkStatus.CONNECTED) {
-                reschedule();
+                long millisSinceLastConnected = System.currentTimeMillis() - lastNetworkConnect;
+
+                if (millisSinceLastConnected > SECONDS.toMillis(30)) {
+                    reschedule();
+                } else {
+                    log.info("skipping network reschedule, already invoked {} seconds ago", MILLISECONDS.toSeconds(millisSinceLastConnected));
+                }
+
+                lastNetworkConnect = System.currentTimeMillis();
             } else {
                 // waiting for the lock to be release.
                 evaluationPollingLock.get();
