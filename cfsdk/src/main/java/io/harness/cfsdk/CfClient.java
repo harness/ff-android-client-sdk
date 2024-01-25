@@ -1,5 +1,7 @@
 package io.harness.cfsdk;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static io.harness.cfsdk.utils.CfUtils.EvaluationUtil.areEvaluationsValid;
 
 import android.content.Context;
@@ -90,6 +92,7 @@ public class CfClient implements Closeable {
     private boolean useStream;
     private boolean analyticsEnabled;
     private Instant lastPollTime = Instant.EPOCH;
+    private long lastNetworkConnect = 0;
 
     /**
      * Base constructor.
@@ -150,9 +153,9 @@ public class CfClient implements Closeable {
             throw new IllegalStateException("Already initialized");
         }
 
-        setupNetworkInfo(context);
+        registerNetworkConnectedListener(context);
 
-        doInitialize(apiKey, configuration, target, cloudCache, authCallback);
+        initializeInternal(apiKey, configuration, target, cloudCache, authCallback);
     }
 
     /**
@@ -449,6 +452,8 @@ public class CfClient implements Closeable {
     @Override
     public void close() {
 
+        log.debug("Closing SDK");
+
         if (analyticsManager != null) {
             analyticsManager.close();
         }
@@ -698,12 +703,14 @@ public class CfClient implements Closeable {
         log.info("SDK will restart in {}ms", delayMs);
         TimeUnit.MILLISECONDS.sleep(delayMs);
 
-        if (!ready.get() && cloud.initialize()) {
+        if (!ready.get() && cloud != null && cloud.initialize()) {
             ready.set(true);
             this.authInfo = cloud.getAuthInfo();
 
             if (analyticsEnabled) {
-                this.analyticsManager.close();
+                if (this.analyticsManager != null) {
+                    this.analyticsManager.close();
+                }
                 this.analyticsManager = getAnalyticsManager(configuration, authInfo);
             }
         }
@@ -735,7 +742,9 @@ public class CfClient implements Closeable {
         }
     }
 
-    protected void setupNetworkInfo(Context context) {
+    protected void registerNetworkConnectedListener(Context context) {
+
+        // Note that if the network goes down all API requests will throw 'Unable to resolve host "config.ff.harness.io"' (Android 13/API 33)
 
         if (networkInfoProvider != null) {
             networkInfoProvider.unregisterAll();
@@ -745,7 +754,15 @@ public class CfClient implements Closeable {
 
         networkInfoProvider.register(status -> {
             if (status == NetworkStatus.CONNECTED) {
-                reschedule();
+                long millisSinceLastConnected = System.currentTimeMillis() - lastNetworkConnect;
+
+                if (millisSinceLastConnected > SECONDS.toMillis(30)) {
+                    reschedule();
+                } else {
+                    log.info("skipping network reschedule, already invoked {} seconds ago", MILLISECONDS.toSeconds(millisSinceLastConnected));
+                }
+
+                lastNetworkConnect = System.currentTimeMillis();
             } else {
                 // waiting for the lock to be release.
                 evaluationPollingLock.get();
@@ -779,7 +796,7 @@ public class CfClient implements Closeable {
         }};
     }
 
-    protected void doInitialize(
+    private void initializeInternal(
             final String apiKey,
             final CfConfiguration configuration,
             final Target target,
@@ -804,14 +821,16 @@ public class CfClient implements Closeable {
             executor.execute(() -> runInitThreadWrapEx(apiKey, cloudCache, authCallback));
 
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.warn(e.getMessage(), e);
 
             if (authCallback != null) {
                 final Throwable cause = e instanceof RejectedExecutionException ? e.getCause() : e;
                 final AuthResult result = new AuthResult(false, cause);
                 authCallback.authorizationSuccess(authInfo, result);
             }
-            close();
+
+            // Re-run the init on failure in the future
+            executor.execute(() -> { log.info("Init rescheduled"); sleepSeconds(60); runInitThreadWrapEx(apiKey, cloudCache, authCallback); });
         }
     }
 
@@ -872,14 +891,18 @@ public class CfClient implements Closeable {
     private void runInitThreadWrapEx(final String apiKey, final CloudCache cloudCache, final AuthCallback authCallback) {
         try {
             runInitThread(apiKey, cloudCache, authCallback);
-        } catch (ApiException e) {
-            log.error("Error when initializing: " + e.getMessage());
+        } catch (Exception e) {
+            String msg = "runInitThread failed: " + e.getMessage();
+            log.warn(msg, e);
 
             if (authCallback != null) {
-                AuthResult authResult = new AuthResult(false, e);
-                authCallback.authorizationSuccess(authInfo, authResult);
-                close();
+                final Throwable cause = e instanceof RejectedExecutionException ? e.getCause() : e;
+                final AuthResult result = new AuthResult(false, cause);
+                authCallback.authorizationSuccess(authInfo, result);
             }
+
+            // Re-run the init on failure in the future
+            executor.execute(() -> { log.info("Init rescheduled"); sleepSeconds(60); runInitThreadWrapEx(apiKey, cloudCache, authCallback); });
         }
     }
 
@@ -978,6 +1001,14 @@ public class CfClient implements Closeable {
             variation.setIdentifier(result.getIdentifier());
 
             analyticsManager.registerEvaluation(this.target, evaluationId, variation);
+        }
+    }
+
+    private void sleepSeconds(int seconds) {
+        try {
+            SECONDS.sleep(seconds);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

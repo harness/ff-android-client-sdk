@@ -226,8 +226,6 @@ public class EventSource implements Callback, AutoCloseable {
   private void sseMessage(String message) {
 
     try {
-      SdkCodes.infoStreamEventReceived(message);
-
       final JSONObject jsonObject = new JSONObject(message);
       final String domain = jsonObject.getString("domain");
       final String eventType = jsonObject.getString("event");
