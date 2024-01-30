@@ -15,6 +15,12 @@ subprojects {
     apply plugin: 'org.owasp.dependencycheck'
 }
 
+def getVersionCode(semVer) {
+    def version = semVer.replaceAll("[.]", "").toInteger()
+    println version
+    return version
+}
+
 android {
     namespace = "io.harness.cfsdk"
 
@@ -22,8 +28,8 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 12
-        versionName "1.1.4"
+        versionCode getVersionCode(libs.versions.sdk.get())
+        versionName libs.versions.sdk.get()
         consumerProguardFiles "consumer-rules.pro"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -1,5 +1,14 @@
 rootProject.name = "CFAndroidSDK"
 include ':cfsdk'
 
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            // main sdk version
+            version('sdk', '2.0.0');
+        }
+    }
+}
+
 // uncomment if you want to debug in the IDE
 //include ':examples:tlsexample'
