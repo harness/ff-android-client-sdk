@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -137,9 +138,24 @@ public class AnalyticsManager implements Closeable {
     public void close() {
         log.debug("destroying");
 
-        analyticsPublisherService.sendData(frequencyMap.drainToMap(), getSendingCallback());
+        flushMetrics();
         scheduledExecutorService.shutdown();
         SdkCodes.infoMetricsThreadExited();
+    }
+
+    private void flushMetrics() {
+        // flush pending metrics before we close, this uses network so make sure we're not on the UI thread
+        final CountDownLatch flushMetricsLatch = new CountDownLatch(1);
+        scheduledExecutorService.schedule(() -> {
+            analyticsPublisherService.sendData(frequencyMap.drainToMap(), getSendingCallback());
+            flushMetricsLatch.countDown();
+
+        }, 0, TimeUnit.SECONDS);
+        try {
+            flushMetricsLatch.await(15, TimeUnit.SECONDS);
+        } catch (InterruptedException ex) {
+            log.warn("Timed out waiting for metrics to flush on close", ex);
+        }
     }
 
     protected AnalyticsPublisherServiceCallback getSendingCallback() {
