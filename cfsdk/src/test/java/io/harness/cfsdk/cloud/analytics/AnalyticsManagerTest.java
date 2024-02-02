@@ -38,7 +38,8 @@ public class AnalyticsManagerTest {
         final CountDownLatch latch = new CountDownLatch(BUFFER_SIZE * BUFFER_SIZE);
         final AuthInfo authInfo = Mockito.mock(AuthInfo.class);
         final CfConfiguration config = CfConfiguration.builder().metricsCapacity(BUFFER_SIZE).build();
-        final AnalyticsPublisherService aps = new AnalyticsPublisherService(config, "dummytoken", authInfo);
+        final MetricsApi metricsApi = Mockito.mock(MetricsApi.class);
+        final AnalyticsPublisherService aps = new AnalyticsPublisherService(authInfo, metricsApi);
         final Target target = new Target().identifier("harness");
 
         final AnalyticsManager processor = new AnalyticsManager(config, target, aps) {
@@ -101,7 +102,7 @@ public class AnalyticsManagerTest {
         final CfConfiguration config = CfConfiguration.builder().metricsCapacity(BUFFER_SIZE).build();
         final MetricsApi metricsApi = Mockito.mock(MetricsApi.class);
         final Target target = new Target().identifier("harness");
-        final AnalyticsPublisherService aps = new AnalyticsPublisherService(config, "dummytoken", authInfo);
+        final AnalyticsPublisherService aps = new AnalyticsPublisherService(authInfo, metricsApi);
         final AnalyticsManager processor = new AnalyticsManager(config, target, aps);
 
         final int FLAG_COUNT = 500;

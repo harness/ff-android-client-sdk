@@ -50,8 +50,14 @@ public class AnalyticsPublisherService {
             final CfConfiguration config,
             final String authToken,
             final AuthInfo authInfo) {
+        this(authInfo, makeMetricsApi(config, authToken, authInfo));
+    }
+
+    public AnalyticsPublisherService(
+            final AuthInfo authInfo,
+            final MetricsApi metricsApi) {
         this.authInfo = authInfo;
-        this.metricsApi = makeMetricsApi(config, authToken, authInfo);
+        this.metricsApi = metricsApi;
     }
 
     /**
@@ -203,7 +209,7 @@ public class AnalyticsPublisherService {
         return metricsSent.get();
     }
 
-    MetricsApi makeMetricsApi(CfConfiguration config, String authToken, AuthInfo authInfo) {
+    static MetricsApi makeMetricsApi(CfConfiguration config, String authToken, AuthInfo authInfo) {
 
         final MetricsApi metricsAPI = new MetricsApi();
         final ApiClient api = metricsAPI.getApiClient();

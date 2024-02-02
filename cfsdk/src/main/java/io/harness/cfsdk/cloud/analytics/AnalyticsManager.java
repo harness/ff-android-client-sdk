@@ -101,7 +101,7 @@ public class AnalyticsManager implements Closeable {
 
             log.debug("Metrics thread completed in {}ms, previousMapSize={} newMapSize={}", timeTakenMs, mapSizeBefore, frequencyMap.size());
         } catch (Throwable ex) {
-            log.warn("Exception in metrics thread");
+            log.warn("Exception in metrics thread", ex);
         }
     }
 
