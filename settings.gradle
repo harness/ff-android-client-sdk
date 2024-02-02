@@ -11,3 +11,4 @@ dependencyResolutionManagement {
 }
 
 include ':examples:tlsexample'
+include ':examples:GettingStarted'
