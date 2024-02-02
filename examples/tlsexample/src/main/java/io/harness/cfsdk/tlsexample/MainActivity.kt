@@ -48,55 +48,6 @@ class MainActivity : AppCompatActivity() {
             "-----END CERTIFICATE-----";
 
 
-
-    private var eventsListener = EventsListener { event ->
-        log.info("Event: ${event.eventType}")
-    }
-
-    private val flag1Listener: EvaluationListener = EvaluationListener {
-        val eval = client.boolVariation(flagName, false)
-        log.info("$flagName value: $eval")
-    }
-
-
-
-    private fun authSuccess(authInfo: AuthInfo, result: AuthResult) {
-
-        if (!result.isSuccess) {
-            handleError(result)
-            return
-        }
-
-        val registerEventsOk = client.registerEventsListener(eventsListener)
-        var registerEvaluationsOk = 0
-
-        if (client.registerEvaluationListener("flag1", flag1Listener)) {
-            registerEvaluationsOk++
-        }
-
-        if (registerEventsOk && registerEvaluationsOk > 0) {
-            log.info("$logPrefix Registrations OK")
-        }
-
-        setupWatchTimer()
-
-    }
-
-    private fun handleError(result: AuthResult) {
-        val e = result.error
-        var msg = "$logPrefix Initialization error"
-        e?.let { err ->
-            err.message?.let { errMsg ->
-                msg = errMsg
-            }
-            log.info(msg, err)
-        }
-        runOnUiThread {
-
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -120,9 +71,12 @@ class MainActivity : AppCompatActivity() {
             this,
             sdkKey,
             config,
-            target,
-            this::authSuccess
+            target
         )
+
+        client.waitForInitialization()
+
+        setupWatchTimer()
 
         log.info("init done")
     }
@@ -136,7 +90,7 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         timer.cancel()
         timer.purge()
-        client.destroy()
+        client.close()
     }
 
     private fun setupWatchTimer() {
