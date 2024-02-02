@@ -4,6 +4,9 @@ package io.harness.cfsdk;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+import io.harness.cfsdk.cloud.cache.CloudCache;
+import io.harness.cfsdk.cloud.cache.DefaultCache;
+
 /**
  * Main configuration class used to tune the behaviour of {@link CfClient}. It uses builder pattern.
  */
@@ -29,6 +32,9 @@ public class CfConfiguration {
 
     private long metricsPublishingIntervalInMillis;
     private long metricsServiceAcceptableDurationInMillis;
+    private boolean debugEnabled;
+
+    private CloudCache cache;
 
     protected CfConfiguration(
 
@@ -52,6 +58,7 @@ public class CfConfiguration {
         this.metricsCapacity = DEFAULT_METRICS_CAPACITY;
         this.metricsPublishingIntervalInMillis = MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS * 1000L;
         this.metricsServiceAcceptableDurationInMillis = DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS * 1000L;
+        this.cache = null;
     }
 
     public String getBaseURL() {
@@ -68,7 +75,7 @@ public class CfConfiguration {
         return eventURL;
     }
 
-    public boolean getStreamEnabled() {
+    public boolean isStreamEnabled() {
 
         return streamEnabled;
     }
@@ -96,6 +103,14 @@ public class CfConfiguration {
         return tlsTrustedCerts;
     }
 
+    public boolean isDebugEnabled() {
+        return debugEnabled;
+    }
+
+    public CloudCache getCache() {
+        return cache;
+    }
+
     public static class Builder {
 
         private String baseURL;
@@ -108,6 +123,9 @@ public class CfConfiguration {
         private long metricsPublishingIntervalInMillis = MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS * 1000L;
         private long metricsPublishingAcceptableDurationInMillis = DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS * 1000L;
         private List<X509Certificate> tlsTrustedCerts;
+        private boolean debugEnabled = false;
+
+        private CloudCache cache = null;
 
         /**
          * Sets the base API url
@@ -224,6 +242,16 @@ public class CfConfiguration {
             return this;
         }
 
+        public Builder debug(boolean enabled) {
+            this.debugEnabled = enabled;
+            return this;
+        }
+
+        public Builder cache(CloudCache cache) {
+            this.cache = cache;
+            return this;
+        }
+
         public int getMetricsCapacity() {
 
             return metricsCapacity;
@@ -271,7 +299,15 @@ public class CfConfiguration {
         }
 
         public List<X509Certificate> getTlsTrustedCAs() {
-            return this.tlsTrustedCerts;
+            return tlsTrustedCerts;
+        }
+
+        public boolean isDebugEnabled() {
+            return debugEnabled;
+        }
+
+        public CloudCache getCache() {
+            return cache;
         }
 
         /**
@@ -304,7 +340,8 @@ public class CfConfiguration {
             cfConfiguration.setMetricsCapacity(metricsCapacity);
             cfConfiguration.setMetricsPublishingIntervalInMillis(metricsPublishingIntervalInMillis);
             cfConfiguration.setMetricsServiceAcceptableDurationInMillis(metricsPublishingAcceptableDurationInMillis);
-
+            cfConfiguration.setDebugEnabled(debugEnabled);
+            cfConfiguration.setCache(cache);
             return cfConfiguration;
         }
     }
@@ -341,5 +378,13 @@ public class CfConfiguration {
     public void setMetricsServiceAcceptableDurationInMillis(long durationInMillis) {
 
         this.metricsServiceAcceptableDurationInMillis = durationInMillis;
+    }
+
+    public void setDebugEnabled(boolean enabled) {
+        this.debugEnabled = enabled;
+    }
+
+    private void setCache(CloudCache cache) {
+        this.cache = cache;
     }
 }

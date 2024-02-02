@@ -91,10 +91,9 @@ public class SdkCodes {
       log.warn(sdkErrMsg(7002, reason));
   }
 
-  public static void warnDefaultVariationServed(String identifier, Target target, String def) {
+  public static void warnDefaultVariationServed(String identifier, String def, String reason) {
     if (log.isWarnEnabled()) {
-      String targetId = (target == null) ? "null" : target.getIdentifier();
-      log.warn(sdkErrMsg(6001, String.format("identifier=%s, target=%s, default=%s", identifier, targetId, def)));
+      log.warn(sdkErrMsg(6001, String.format("identifier=%s, default=%s reason=%s", identifier, def, reason)));
     }
   }
 

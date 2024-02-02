@@ -24,6 +24,7 @@ public class AnalyticsManager implements Closeable {
     private final ScheduledExecutorService scheduledExecutorService;
     private final FrequencyMap<Analytics> frequencyMap;
     private final CfConfiguration config;
+    private final Target target;
 
     private static class FrequencyMap<K> {
 
@@ -71,33 +72,40 @@ public class AnalyticsManager implements Closeable {
 
     public AnalyticsManager(
             final CfConfiguration config,
+            final Target target,
             final AnalyticsPublisherService analyticsPublisherService) {
         this.frequencyMap = new FrequencyMap<>();
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         this.analyticsPublisherService = analyticsPublisherService;
         this.config = config;
+        this.target = target;
 
         final long frequencyMs = config.getMetricsPublishingIntervalInMillis();
-        scheduledExecutorService.schedule(() -> Thread.currentThread().setName("Metrics Thread"), 0, TimeUnit.SECONDS);
         scheduledExecutorService.scheduleAtFixedRate(this::postMetricsThread,frequencyMs/2, frequencyMs, TimeUnit.MILLISECONDS);
         SdkCodes.infoMetricsThreadStarted((int)frequencyMs/1000);
     }
 
-    private void postMetricsThread() {
-        long startTime = System.currentTimeMillis();
-        int mapSizeBefore = frequencyMap.size();
+    public void postMetricsThread() {
+        log.debug("Running metrics thread iteration. frequencyMapSize={}", frequencyMap.size());
+        Thread.currentThread().setName("Metrics Thread");
 
-        analyticsPublisherService.sendData(frequencyMap.drainToMap(), getSendingCallback());
+        try {
+            long startTime = System.currentTimeMillis();
+            int mapSizeBefore = frequencyMap.size();
 
-        long timeTakenMs = (System.currentTimeMillis() - startTime);
-        if (timeTakenMs > config.getMetricsServiceAcceptableDurationInMillis())
-            log.warn("Metrics service API duration={}", timeTakenMs);
+            analyticsPublisherService.sendData(frequencyMap.drainToMap(), getSendingCallback());
 
-        log.debug("Metrics thread completed in {}ms, previousMapSize={} newMapSize={}", timeTakenMs, mapSizeBefore, frequencyMap.size());
+            long timeTakenMs = (System.currentTimeMillis() - startTime);
+            if (timeTakenMs > config.getMetricsServiceAcceptableDurationInMillis())
+                log.warn("Metrics service API duration={}", timeTakenMs);
+
+            log.debug("Metrics thread completed in {}ms, previousMapSize={} newMapSize={}", timeTakenMs, mapSizeBefore, frequencyMap.size());
+        } catch (Throwable ex) {
+            log.warn("Exception in metrics thread");
+        }
     }
 
     public void registerEvaluation(
-            final Target target,
             final String evaluationId,
             final Variation variation
     ) {
@@ -153,4 +161,5 @@ public class AnalyticsManager implements Closeable {
     long getQueueSize() {
         return frequencyMap.size();
     }
+
 }

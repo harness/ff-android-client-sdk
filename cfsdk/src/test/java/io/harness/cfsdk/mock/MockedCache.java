@@ -81,7 +81,7 @@ public class MockedCache implements CloudCache {
     }
 
     @Override
-    public void clear() {
+    public void clear(final String env) {
         evaluations.clear();
     }
 

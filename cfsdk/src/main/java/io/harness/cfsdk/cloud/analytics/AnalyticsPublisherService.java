@@ -6,6 +6,8 @@ import static io.harness.cfsdk.AndroidSdkVersion.ANDROID_SDK_VERSION;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
+import io.harness.cfsdk.cloud.openapi.metric.ApiClient;
 import io.harness.cfsdk.cloud.openapi.metric.api.MetricsApi;
 import io.harness.cfsdk.cloud.openapi.metric.model.KeyValue;
 import io.harness.cfsdk.cloud.openapi.metric.model.Metrics;
@@ -21,6 +24,7 @@ import io.harness.cfsdk.cloud.openapi.metric.model.MetricsData;
 import io.harness.cfsdk.cloud.openapi.metric.ApiException;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.common.SdkCodes;
+import io.harness.cfsdk.utils.TlsUtils;
 
 /**
  * This class prepares the message body for metrics and posts it to the server
@@ -44,18 +48,10 @@ public class AnalyticsPublisherService {
 
     public AnalyticsPublisherService(
             final CfConfiguration config,
-            final AuthInfo authInfo,
-            final String authToken
-    ) {
+            final String authToken,
+            final AuthInfo authInfo) {
         this.authInfo = authInfo;
-        this.metricsApi = MetricsApiFactory.create(authToken, config, authInfo);
-    }
-
-    public AnalyticsPublisherService(
-            final AuthInfo authInfo,
-            final MetricsApi metricsAPI) {
-        this.authInfo = authInfo;
-        this.metricsApi = metricsAPI;
+        this.metricsApi = makeMetricsApi(config, authToken, authInfo);
     }
 
     /**
@@ -114,7 +110,7 @@ public class AnalyticsPublisherService {
     private Map<SummaryMetrics, Long> rollUpMetrics(Map<Analytics, Long> detailedMetrics) {
         final Map<SummaryMetrics, Long> summaryMetricsData = new HashMap<>();
 
-        log.debug("roll up: detailed metrics size {}", detailedMetrics.size());
+        log.trace("roll up: detailed metrics size {}", detailedMetrics.size());
 
         for (Map.Entry<Analytics, Long> analytic : detailedMetrics.entrySet()) {
 
@@ -137,7 +133,7 @@ public class AnalyticsPublisherService {
                 log.trace("Summary metrics appended: {}, {}", summaryMetrics, summaryMetricsData.get(summaryMetrics));
         }
 
-        log.debug("roll up: summarised metrics size {}", summaryMetricsData.size());
+        log.trace("roll up: summarised metrics size {}", summaryMetricsData.size());
 
         return summaryMetricsData;
     }
@@ -205,5 +201,25 @@ public class AnalyticsPublisherService {
 
     long getMetricsSent() {
         return metricsSent.get();
+    }
+
+    MetricsApi makeMetricsApi(CfConfiguration config, String authToken, AuthInfo authInfo) {
+
+        final MetricsApi metricsAPI = new MetricsApi();
+        final ApiClient api = metricsAPI.getApiClient();
+
+        api.setBasePath(config.getEventURL());
+        api.addDefaultHeader("Authorization", "Bearer " + authToken);
+        api.setUserAgent("android " + ANDROID_SDK_VERSION);
+        api.addDefaultHeader("Harness-SDK-Info", "Android " + ANDROID_SDK_VERSION + " Client");
+        api.addDefaultHeader("Harness-EnvironmentID", authInfo.getEnvironmentTrackingHeader());
+        TlsUtils.setupTls(api, config);
+
+        if (authInfo.getAccountID() != null) {
+            // Relay Proxy does not include the accountID
+            api.addDefaultHeader("Harness-AccountID", authInfo.getAccountID());
+        }
+
+        return metricsAPI;
     }
 }

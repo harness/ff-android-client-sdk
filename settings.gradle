@@ -10,5 +10,4 @@ dependencyResolutionManagement {
     }
 }
 
-// uncomment if you want to debug in the IDE
-//include ':examples:tlsexample'
+include ':examples:tlsexample'

@@ -11,6 +11,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import static org.mockito.Mockito.*;
 
+import io.harness.cfsdk.mock.MockedCache;
+
 public class CfConfigurationTest {
 
     @Test
@@ -29,13 +31,14 @@ public class CfConfigurationTest {
                 .metricsPublishingAcceptableDurationInMillis(1234)
                 .metricsPublishingIntervalInMillis(60001)
                 .metricsCapacity(123)
+                .cache(new MockedCache())
                 .build();
 
         assertEquals("https://dummy_base_url:1234", config.getBaseURL());
         assertEquals("https://dummy_event_url:1234", config.getEventURL());
         assertEquals("https://dummy_stream_url:1234", config.getStreamURL());
         assertFalse(config.isAnalyticsEnabled());
-        assertFalse(config.getStreamEnabled());
+        assertFalse(config.isStreamEnabled());
         assertEquals(60, config.getPollingInterval());
         assertEquals(1, config.getTlsTrustedCAs().size());
         assertNotNull(config.getTlsTrustedCAs().get(0));
@@ -43,6 +46,7 @@ public class CfConfigurationTest {
         assertEquals(1234, config.getMetricsServiceAcceptableDurationInMillis());
         assertEquals(60001, config.getMetricsPublishingIntervalInMillis());
         assertEquals(123, config.getMetricsCapacity());
+        assertNotNull(config.getCache());
     }
 
 }

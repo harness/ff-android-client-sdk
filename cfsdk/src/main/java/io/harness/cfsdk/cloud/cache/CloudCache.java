@@ -16,5 +16,5 @@ public interface CloudCache {
 
     void saveAllEvaluations(String env, List<Evaluation> evaluations);
 
-    void clear();
+    void clear(String env);
 }

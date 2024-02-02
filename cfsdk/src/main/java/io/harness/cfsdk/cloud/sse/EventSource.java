@@ -54,22 +54,13 @@ public class EventSource implements Callback, AutoCloseable {
       @NonNull String url,
       Map<String, String> headers,
       @NonNull EventsListener eventListener,
-      long sseReadTimeoutMins) {
-    this(url, headers, eventListener, sseReadTimeoutMins, current().nextInt(2000, 5000), null);
-  }
-
-  public EventSource(
-      @NonNull String url,
-      Map<String, String> headers,
-      @NonNull EventsListener eventListener,
       long sseReadTimeoutMins,
-      int retryBackoffDelay,
       List<X509Certificate> trustedCAs) {
     this.url = url;
     this.headers = headers;
     this.eventListener = eventListener;
     this.sseReadTimeoutMins = sseReadTimeoutMins;
-    this.retryBackoffDelay = retryBackoffDelay;
+    this.retryBackoffDelay = current().nextInt(2000, 5000);
     this.trustedCAs = trustedCAs;
     this.loggingInterceptor = new HttpLoggingInterceptor();
   }
@@ -197,7 +188,7 @@ public class EventSource implements Callback, AutoCloseable {
 
       String line;
       while ((line = reader.readUtf8Line()) != null) {
-        log.info("SSE stream data: {}", line);
+        log.debug("SSE stream data: {}", line);
 
         if (line.startsWith("data:")) {
           SdkCodes.infoStreamEventReceived(line.substring(6));
