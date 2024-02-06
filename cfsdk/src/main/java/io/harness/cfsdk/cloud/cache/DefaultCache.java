@@ -3,6 +3,8 @@ package io.harness.cfsdk.cloud.cache;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 
+import static io.harness.cfsdk.AndroidSdkVersion.ANDROID_SDK_VERSION;
+
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -54,10 +56,14 @@ public class DefaultCache implements CloudCache {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             digest.update(targetId.getBytes(UTF_8));
             digest.update(apiKey.getBytes(UTF_8));
-            return "HARNESS_FF_CACHE_" + String.format("%032X", new BigInteger(1, digest.digest()));
+            return "HARNESS_FF_CACHE_" + String.format("%032X", new BigInteger(1, digest.digest())) + getVersionSuffix();
         } catch (NoSuchAlgorithmException ex) {
-            return "HARNESS_FF_CACHE_" + targetId;
+            return "HARNESS_FF_CACHE_" + targetId + getVersionSuffix();
         }
+    }
+
+    private String getVersionSuffix() {
+        return "_v" + ANDROID_SDK_VERSION.replace(".", "");
     }
 
     @Override
