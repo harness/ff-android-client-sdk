@@ -692,8 +692,6 @@ public class CfClient implements Closeable {
             if (networkInfoProvider.isNetworkAvailable()) {
                 evaluationPolling.start(this::reschedule);
             }
-
-            throw new RejectedExecutionException(ex);
         }
     }
 
