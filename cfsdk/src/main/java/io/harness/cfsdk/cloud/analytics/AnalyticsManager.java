@@ -1,5 +1,7 @@
 package io.harness.cfsdk.cloud.analytics;
 
+import android.content.Context;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
+import io.harness.cfsdk.cloud.network.NetworkInfoProvider;
 import io.harness.cfsdk.cloud.openapi.client.model.Variation;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.common.SdkCodes;
@@ -26,6 +29,8 @@ public class AnalyticsManager implements Closeable {
     private final FrequencyMap<Analytics> frequencyMap;
     private final CfConfiguration config;
     private final Target target;
+
+    private final NetworkInfoProvider network;
 
     private static class FrequencyMap<K> {
 
@@ -72,6 +77,7 @@ public class AnalyticsManager implements Closeable {
     }
 
     public AnalyticsManager(
+            final Context context,
             final CfConfiguration config,
             final Target target,
             final AnalyticsPublisherService analyticsPublisherService) {
@@ -80,6 +86,7 @@ public class AnalyticsManager implements Closeable {
         this.analyticsPublisherService = analyticsPublisherService;
         this.config = config;
         this.target = target;
+        this.network = new NetworkInfoProvider(context);
 
         final long frequencyMs = config.getMetricsPublishingIntervalInMillis();
         scheduledExecutorService.scheduleAtFixedRate(this::postMetricsThread,frequencyMs/2, frequencyMs, TimeUnit.MILLISECONDS);
@@ -89,6 +96,11 @@ public class AnalyticsManager implements Closeable {
     public void postMetricsThread() {
         log.debug("Running metrics thread iteration. frequencyMapSize={}", frequencyMap.size());
         Thread.currentThread().setName("Metrics Thread");
+
+        if (!network.isNetworkAvailable()) {
+            log.info("Network is offline, skipping metrics post");
+            return;
+        }
 
         try {
             long startTime = System.currentTimeMillis();

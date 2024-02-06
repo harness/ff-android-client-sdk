@@ -1,8 +1,10 @@
 package io.harness.cfsdk;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import static io.harness.cfsdk.AndroidSdkVersion.ANDROID_SDK_VERSION;
+import static io.harness.cfsdk.cloud.network.NetworkStatus.CONNECTED;
 import static io.harness.cfsdk.utils.CfUtils.EvaluationUtil.areEvaluationsValid;
 
 import android.content.Context;
@@ -30,6 +32,7 @@ import io.harness.cfsdk.cloud.cache.DefaultCache;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
+import io.harness.cfsdk.cloud.network.NetworkInfoProvider;
 import io.harness.cfsdk.cloud.openapi.client.ApiClient;
 import io.harness.cfsdk.cloud.openapi.client.ApiException;
 import io.harness.cfsdk.cloud.openapi.client.api.ClientApi;
@@ -47,6 +50,7 @@ class SdkThread implements Runnable {
 
     private static final String HARNESS_SDK_INFO = String.format("Android %s Client", AndroidSdkVersion.ANDROID_SDK_VERSION);
     private final Duration minimumRefreshIntervalSecs = Duration.ofSeconds(60);
+    private final Context context;
     private final CountDownLatch initLatch = new CountDownLatch(1);
     private final CfConfiguration config;
     private final String apiKey;
@@ -55,6 +59,7 @@ class SdkThread implements Runnable {
     private final Executor callbackExecutor = Executors.newSingleThreadExecutor();
     private final Map<String, Set<EvaluationListener>> evaluationListenerMap;
     private final Set<EventsListener> eventsListenerSet;
+    private final NetworkInfoProvider network;
 
     /* ---- Mutable state ---- */
     private ClientApi api;
@@ -64,6 +69,7 @@ class SdkThread implements Runnable {
     private Instant lastPollTime = Instant.EPOCH;
 
     SdkThread(Context context, String apiKey, CfConfiguration config, Target target, Map<String, Set<EvaluationListener>> evaluationListenerMap, Set<EventsListener> eventsListenerSet)  {
+        this.context = context;
         this.apiKey = apiKey;
         this.config = config;
         this.target = target;
@@ -71,6 +77,7 @@ class SdkThread implements Runnable {
         this.callbackExecutor.execute(() -> Thread.currentThread().setName("CallbackThread"));
         this.evaluationListenerMap = evaluationListenerMap;
         this.eventsListenerSet = eventsListenerSet;
+        this.network = new NetworkInfoProvider(context);
     }
 
     void mainSdkThread(ClientApi api) throws ApiException {
@@ -109,9 +116,18 @@ class SdkThread implements Runnable {
                 SdkCodes.infoPollingStopped();
             }
         }
+
+        if (!isNetworkAvailable()) {
+            throw new NetworkOffline();
+        }
     }
 
     AuthInfo authenticating(ClientApi api, String apiKey, Target target) throws ApiException {
+
+        if (!isNetworkAvailable()) {
+            log.info("Will not auth, network offline");
+            throw new NetworkOffline();
+        }
 
         final AuthenticationRequestTarget authTarget = new AuthenticationRequestTarget();
         authTarget.identifier(target.getIdentifier());
@@ -143,6 +159,10 @@ class SdkThread implements Runnable {
     }
 
     boolean streaming(ClientApi api, AuthInfo authInfo) throws ApiException, InterruptedException {
+        if (!isNetworkAvailable()) {
+            throw new NetworkOffline();
+        }
+
         if (!config.isStreamEnabled()) {
             return false;
         }
@@ -181,8 +201,13 @@ class SdkThread implements Runnable {
                         streamSseEvaluationReload(api, authInfo, statusEvent);
                         break;
                 }
-            } catch (ApiException ex) {
-                handleException("Exception in event handler", ex);
+            } catch (Throwable ex) {
+                if (ex instanceof NetworkOffline) {
+                    log.info("SSE network went offline");
+                } else {
+                    handleException("Exception in event handler", ex);
+                }
+                endStreamLatch.countDown();
             }
         };
 
@@ -287,7 +312,11 @@ class SdkThread implements Runnable {
         } while (true);
     }
 
-    private List<Evaluation> pollOnce(ClientApi api, AuthInfo authInfo) throws ApiException {
+    List<Evaluation> pollOnce(ClientApi api, AuthInfo authInfo) throws ApiException {
+        if (!isNetworkAvailable()) {
+            throw new NetworkOffline();
+        }
+
         final List<Evaluation> evaluations = api.getEvaluations(authInfo.getEnvironment(), target.getIdentifier(), authInfo.getCluster());
 
         for (Evaluation eval : evaluations) {
@@ -305,8 +334,13 @@ class SdkThread implements Runnable {
         final Duration duration = Duration.between(lastPollTime, now);
 
         if (authInfo == null || duration.compareTo(minimumRefreshIntervalSecs) < 0) {
-            log.debug("refreshEvaluations not authenticated or below minimum delay");
+            log.debug("cannot refresh evaluations: not authenticated or below minimum delay");
             return; // not enough seconds elapsed
+        }
+
+        if (!isNetworkAvailable()) {
+            log.debug("cannot refresh evaluations: no network available");
+            return;
         }
 
         if (target == null) {
@@ -326,15 +360,15 @@ class SdkThread implements Runnable {
         lastPollTime = now;
     }
 
-    private void repoSetEvaluation(String env, String flagIdentifier, Evaluation eval) {
+    void repoSetEvaluation(String env, String flagIdentifier, Evaluation eval) {
         cache.saveEvaluation(env, flagIdentifier, eval);
     }
 
-    private void repoRemoveEvaluation(String env, String flagIdentifier) {
+    void repoRemoveEvaluation(String env, String flagIdentifier) {
         cache.removeEvaluation(env, flagIdentifier);
     }
 
-    private void notifyListeners(final Evaluation evaluation) {
+    void notifyListeners(final Evaluation evaluation) {
 
         if (evaluation == null) {
 
@@ -454,12 +488,22 @@ class SdkThread implements Runnable {
         return authInfo;
     }
 
+    boolean isNetworkAvailable() {
+        return network.isNetworkAvailable();
+    }
+
+    static class NetworkOffline extends RuntimeException {}
+
     @Override
     public void run() {
         do {
             try {
                 api = new ClientApi(makeApiClient());
                 mainSdkThread(api);
+            } catch (NetworkOffline ex) {
+                log.trace("Network offline trace", ex);
+                waitForNetworkToGoOnline();
+                continue;
             } catch (Throwable ex) {
                 log.warn("Root SDK exception handler invoked, SDK will be restarted in 1 minute:", ex);
             }
@@ -471,4 +515,28 @@ class SdkThread implements Runnable {
             }
         } while (true);
     }
+
+    private void waitForNetworkToGoOnline() {
+        log.info("Network is offline, SDK going to sleep");
+
+        final CountDownLatch networkLatch = new CountDownLatch(1);
+        final NetworkInfoProvider networkSleeper = new NetworkInfoProvider(context);
+
+        networkSleeper.register(status -> {
+            if (status == CONNECTED) {
+                networkLatch.countDown();
+            }
+        });
+
+        try {
+            if (!networkLatch.await(1, MINUTES)) {
+                log.info("Network connected, wake up SDK");
+            } else {
+                log.info("Restart SDK/Check network");
+            }
+        } catch (InterruptedException e) {
+            log.info("Network sleep interrupted", e);
+        }
+    }
+
 }

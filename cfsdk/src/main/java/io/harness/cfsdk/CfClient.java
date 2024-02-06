@@ -93,7 +93,7 @@ public class CfClient implements Closeable, Client {
                     throw new IllegalArgumentException("Event URL is null or empty");
                 }
                 sdkThread.waitForInitialization(0);
-                metricsThread = new AnalyticsManager(configuration, target, new AnalyticsPublisherService(configuration, sdkThread.getBearerToken(), sdkThread.getAuthInfo()));
+                metricsThread = new AnalyticsManager(context, configuration, target, new AnalyticsPublisherService(configuration, sdkThread.getBearerToken(), sdkThread.getAuthInfo()));
             }
 
         } catch (Exception e) {
