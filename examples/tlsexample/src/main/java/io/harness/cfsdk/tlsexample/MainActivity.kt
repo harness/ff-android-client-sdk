@@ -136,7 +136,7 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         timer.cancel()
         timer.purge()
-        client.destroy()
+        client.close()
     }
 
     private fun setupWatchTimer() {
