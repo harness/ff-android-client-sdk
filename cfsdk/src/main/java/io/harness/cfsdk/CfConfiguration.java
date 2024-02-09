@@ -242,6 +242,12 @@ public class CfConfiguration {
             return this;
         }
 
+        /**
+         * Enable extended logging including full stack traces of warnings.
+         * Please enable this when diagnosing faults or contacting Harness support.
+         * @param enabled Enable extended logging
+         * @return This builder
+         */
         public Builder debug(boolean enabled) {
             this.debugEnabled = enabled;
             return this;

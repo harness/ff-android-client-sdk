@@ -111,20 +111,20 @@ class SdkThread implements Runnable {
                 polling(api, authInfo, pollDelayInSeconds);
 
             } catch (Throwable ex) {
-                handleException("Polling failed", ex);
+                logExceptionAndWarn("Polling failed", ex);
             } finally {
                 SdkCodes.infoPollingStopped();
             }
         }
 
-        if (!isNetworkAvailable()) {
+        if (networkUnavailable()) {
             throw new NetworkOffline();
         }
     }
 
     AuthInfo authenticating(ClientApi api, String apiKey, Target target) throws ApiException {
 
-        if (!isNetworkAvailable()) {
+        if (networkUnavailable()) {
             log.info("Will not auth, network offline");
             throw new NetworkOffline();
         }
@@ -159,7 +159,7 @@ class SdkThread implements Runnable {
     }
 
     boolean streaming(ClientApi api, AuthInfo authInfo) throws ApiException, InterruptedException {
-        if (!isNetworkAvailable()) {
+        if (networkUnavailable()) {
             throw new NetworkOffline();
         }
 
@@ -205,7 +205,7 @@ class SdkThread implements Runnable {
                 if (ex instanceof NetworkOffline) {
                     log.info("SSE network went offline");
                 } else {
-                    handleException("Exception in event handler", ex);
+                    logExceptionAndWarn("Exception in event handler", ex);
                 }
                 endStreamLatch.countDown();
             }
@@ -313,7 +313,7 @@ class SdkThread implements Runnable {
     }
 
     List<Evaluation> pollOnce(ClientApi api, AuthInfo authInfo) throws ApiException {
-        if (!isNetworkAvailable()) {
+        if (networkUnavailable()) {
             throw new NetworkOffline();
         }
 
@@ -338,7 +338,7 @@ class SdkThread implements Runnable {
             return; // not enough seconds elapsed
         }
 
-        if (!isNetworkAvailable()) {
+        if (networkUnavailable()) {
             log.debug("cannot refresh evaluations: no network available");
             return;
         }
@@ -371,8 +371,7 @@ class SdkThread implements Runnable {
     void notifyListeners(final Evaluation evaluation) {
 
         if (evaluation == null) {
-
-            log.error("Evaluation is null");
+            logExceptionAndWarn("Evaluation null for notifyListeners", new Exception());
             return;
         }
 
@@ -418,10 +417,10 @@ class SdkThread implements Runnable {
         }
     }
 
-    void handleException(String msg, Throwable ex) {
+    void logExceptionAndWarn(String msg, Throwable ex) {
         log.warn(msg);
         if (config.isDebugEnabled()) {
-            log.trace(msg + " STACKTRACE", ex);
+            log.warn(msg + " STACKTRACE", ex);
         }
     }
 
@@ -441,7 +440,7 @@ class SdkThread implements Runnable {
         try {
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
-            handleException("Failed to get host", e);
+            logExceptionAndWarn("Failed to get host", e);
             return "UnknownHost";
         }
     }
@@ -460,7 +459,7 @@ class SdkThread implements Runnable {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            log.warn("waitForInit interrupted", e);
+            logExceptionAndWarn("waitForInit interrupted", e);
         }
         log.warn("Failed to initialize within the {}ms timeout window. Defaults will be served.", timeoutMs);
         return false;
@@ -488,8 +487,8 @@ class SdkThread implements Runnable {
         return authInfo;
     }
 
-    boolean isNetworkAvailable() {
-        return network.isNetworkAvailable();
+    boolean networkUnavailable() {
+        return !network.isNetworkAvailable();
     }
 
     static class NetworkOffline extends RuntimeException {}
@@ -505,7 +504,7 @@ class SdkThread implements Runnable {
                 waitForNetworkToGoOnline();
                 continue;
             } catch (Throwable ex) {
-                log.warn("Root SDK exception handler invoked, SDK will be restarted in 1 minute:", ex);
+                logExceptionAndWarn("Root SDK exception handler invoked, SDK will be restarted in 1 minute:", ex);
             }
             /* should the sdk thread abort unexpectedly it will be restarted here */
             try {
