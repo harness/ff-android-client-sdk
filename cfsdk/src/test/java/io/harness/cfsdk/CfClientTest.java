@@ -36,6 +36,8 @@ import static io.harness.cfsdk.cloud.sse.StatusEvent.EVENT_TYPE.SSE_RESUME;
 import static io.harness.cfsdk.cloud.sse.StatusEvent.EVENT_TYPE.SSE_START;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 
 import androidx.annotation.NonNull;
 
@@ -208,6 +210,7 @@ public class CfClientTest {
                 .enableAnalytics(false)
                 .enableStream(true)
                 .cache(new MockedCache())
+                .debug(true)
                 .build());
     }
 
@@ -220,6 +223,7 @@ public class CfClientTest {
                 .enableAnalytics(false)
                 .enableStream(true)
                 .cache(new MockedCache())
+                .debug(true)
                 .build());
     }
 
@@ -232,6 +236,7 @@ public class CfClientTest {
                 .enableAnalytics(false)
                 .enableStream(true)
                 .cache(new MockedCache())
+                .debug(true)
                 .build());
     }
 
@@ -246,10 +251,8 @@ public class CfClientTest {
 
             final CfConfiguration config = configCallback.apply(mockSvr.getHostName(), mockSvr.getPort());
 
-            final Context mockContext = mock(Context.class);
-
             client.initialize(
-                    mockContext,
+                    makeMockContextWithNetworkOnline(),
                     "dummykey",
                     config,
                     DUMMY_TARGET
@@ -279,12 +282,11 @@ public class CfClientTest {
                     .enableAnalytics(false)
                     .enableStream(true)
                     .cache(cache)
+                    .debug(true)
                     .build();
 
-            final Context mockContext = mock(Context.class);
-
             client.initialize(
-                    mockContext,
+                    makeMockContextWithNetworkOnline(),
                     "dummykey",
                     config,
                     DUMMY_TARGET
@@ -311,14 +313,14 @@ public class CfClientTest {
     }
 
     /*
-     * Same as above, but with network on (MockedNetworkInfoProvider.create())
+     * Same as above, but with network on
      */
     @Test
     public void shouldGetFlag_FromCacheAlways_WhenNetworkOnline() throws Exception {
         final MockWebServerDispatcher dispatcher = new MockWebServerDispatcher();
         final MockedCache cache = new MockedCache();
 
-        runEvaluation_WithClientCallback(dispatcher, cache, MockedNetworkInfoProvider.create(), client -> {
+        runEvaluation_WithClientCallback(dispatcher, cache, makeMockContextWithNetworkOnline(), client -> {
             for (int i = 0; i < 60; i++) {
                 boolean eval = client.boolVariation("testFlag", false);
                 assertTrue(eval);
@@ -371,11 +373,10 @@ public class CfClientTest {
             when(config.getMetricsCapacity()).thenReturn(DEFAULT_METRICS_CAPACITY);
             when(config.getTlsTrustedCAs()).thenReturn(Collections.singletonList(localCert.certificate()));
             when(config.getCache()).thenReturn(makeMockCache());
-            final Context mockContext = mock(Context.class);
-            final CountDownLatch authLatch = new CountDownLatch(1);
+            when(config.isDebugEnabled()).thenReturn(true);
 
             client.initialize(
-                    mockContext,
+                    makeMockContextWithNetworkOnline(),
                     "dummykey",
                     config,
                     DUMMY_TARGET
@@ -395,15 +396,17 @@ public class CfClientTest {
     }
 
 
-    private void runEvaluation_WithClientCallback(MockWebServerDispatcher dispatcher, MockedCache cache, NetworkInfoProviding networkInfoProvider, Consumer<CfClient> callback) throws Exception {
-        runEvaluation(dispatcher, cache, networkInfoProvider, null, callback, false);
+
+
+    private void runEvaluation_WithClientCallback(MockWebServerDispatcher dispatcher, MockedCache cache, Context context, Consumer<CfClient> callback) throws Exception {
+        runEvaluation(dispatcher, cache, context, null, callback, false);
     }
 
-    private void runEvaluation_WithEventsCallback(MockWebServerDispatcher dispatcher, MockedCache cache, NetworkInfoProviding networkInfoProvider, EventsListener eventListener) throws Exception {
-        runEvaluation(dispatcher, cache, networkInfoProvider, eventListener, null, true);
+    private void runEvaluation_WithEventsCallback(MockWebServerDispatcher dispatcher, MockedCache cache, Context context, EventsListener eventListener) throws Exception {
+        runEvaluation(dispatcher, cache, context, eventListener, null, true);
     }
 
-    private void runEvaluation(MockWebServerDispatcher dispatcher, MockedCache cache, NetworkInfoProviding networkInfoProvider, EventsListener eventListener, Consumer<CfClient> callback, boolean streamEnabled) throws Exception {
+    private void runEvaluation(MockWebServerDispatcher dispatcher, MockedCache cache, Context context, EventsListener eventListener, Consumer<CfClient> callback, boolean streamEnabled) throws Exception {
 
         try (MockWebServer mockSvr = new MockWebServer()) {
             mockSvr.setDispatcher(dispatcher);
@@ -418,11 +421,11 @@ public class CfClientTest {
                     .enableAnalytics(false)
                     .enableStream(streamEnabled)
                     .cache(cache)
+                    .debug(true)
                     .build();
 
-            final Context mockContext = mock(Context.class);
             client.initialize(
-                    mockContext,
+                    context,
                     "dummykey",
                     config,
                     DUMMY_TARGET
@@ -453,11 +456,10 @@ public class CfClientTest {
             mockSvr.setDispatcher(dispatcher);
             mockSvr.start();
 
-            final Context mockContext = mock(Context.class);
             final CfConfiguration config = configCallback.apply(mockSvr.getHostName(), mockSvr.getPort());
             final CfClient client = new CfClient();
             client.initialize(
-                    mockContext,
+                    makeMockContextWithNetworkOnline(),
                     "dummykey",
                     config,
                     DUMMY_TARGET
@@ -499,7 +501,7 @@ public class CfClientTest {
                     .build();
 
             CfClient client = new CfClient();
-            client.initialize(null, "dummyapikey", config, DUMMY_TARGET);
+            client.initialize(makeMockContextWithNetworkOnline(), "dummyapikey", config, DUMMY_TARGET);
             client.waitForInitialization(30_000);
             client.refreshEvaluations();
 
@@ -513,5 +515,27 @@ public class CfClientTest {
             dispatcher.assertEndpointConnectionOrTimeout(30, ALL_EVALUATIONS_ENDPOINT, 2);
             assertEquals(2, dispatcher.getUrlAccessCount(ALL_EVALUATIONS_ENDPOINT)); // auth, first poll
         }
+    }
+
+
+    private Context makeMockContextWithNetwork(boolean networkEnabled) {
+        final NetworkInfo networkInfo = mock(NetworkInfo.class);
+        when(networkInfo.isConnected()).thenReturn(networkEnabled);
+
+        final ConnectivityManager connectivityManager = mock(ConnectivityManager.class);
+        when(connectivityManager.getActiveNetworkInfo()).thenReturn(networkInfo);
+
+        final Context mockContext = mock(Context.class);
+        when(mockContext.getSystemService(Context.CONNECTIVITY_SERVICE)).thenReturn(connectivityManager);
+
+        return mockContext;
+    }
+
+    private Context makeMockContextWithNetworkOnline() {
+        return makeMockContextWithNetwork(true);
+    }
+
+    private Context makeMockContextWithNetworkOffline() {
+        return makeMockContextWithNetwork(false);
     }
 }
