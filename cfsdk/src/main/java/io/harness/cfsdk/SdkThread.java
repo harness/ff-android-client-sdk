@@ -172,7 +172,7 @@ class SdkThread implements Runnable {
         pollOnce(api, authInfo);
 
         final EventsListener eventsListener = statusEvent -> {
-            log.debug("SSE event received: {}", statusEvent.getEventType());
+            log.debug("streaming() SSE event received: {}", statusEvent.getEventType());
 
             try {
                 switch (statusEvent.getEventType()) {
@@ -203,16 +203,16 @@ class SdkThread implements Runnable {
                 }
             } catch (Throwable ex) {
                 if (ex instanceof NetworkOffline) {
-                    log.info("SSE network went offline");
+                    log.info("streaming() SSE network went offline");
                 } else {
-                    logExceptionAndWarn("Exception in event handler", ex);
+                    logExceptionAndWarn("streaming() Exception in event handler: " + ex.getMessage(), ex);
                 }
                 endStreamLatch.countDown();
             }
         };
 
         final String streamUrl = config.getStreamURL() + "?cluster=" + authInfo.getCluster();
-        try (EventSource eventSource = new EventSource(streamUrl, makeHeadersFrom(bearerToken, apiKey, authInfo), eventsListener, 1, config.getTlsTrustedCAs())) {
+        try (EventSource eventSource = new EventSource(streamUrl, makeHeadersFrom(bearerToken, apiKey, authInfo), eventsListener, 1, config)) {
             eventSource.start(sseRescheduled);
 
             endStreamLatch.await();
@@ -229,7 +229,7 @@ class SdkThread implements Runnable {
     }
 
     void streamSseResume(ClientApi api, AuthInfo authInfo) throws ApiException {
-        log.debug("SSE connection resumed, reloading all evaluations");
+        log.debug("streaming() SSE connection resumed, reloading all evaluations");
         final List<Evaluation> resumedEvaluations = pollOnce(api, authInfo);
         final StatusEvent resumeEvent = new StatusEvent(StatusEvent.EVENT_TYPE.SSE_RESUME, resumedEvaluations);
         sendEvent(resumeEvent);
@@ -261,7 +261,7 @@ class SdkThread implements Runnable {
                     sendEvent(evalChangeEvent);
                     notifyListeners(evaluation);
                 } else {
-                    log.warn("EVALUATION_CHANGE event failed to get evaluation for target '{}' from server", target.getIdentifier());
+                    log.warn("streaming() EVALUATION_CHANGE event failed to get evaluation for target '{}' from server", target.getIdentifier());
                 }
             }
         }
@@ -287,7 +287,7 @@ class SdkThread implements Runnable {
             sendEvent(preEvalReloadEvent);
 
         } else {
-            log.debug("Reloading all evaluations");
+            log.debug("streaming() Reloading all evaluations");
             final List<Evaluation> fetchedEvaluations = pollOnce(api, authInfo);
             for (int i = 0; i < fetchedEvaluations.size(); i++) {
                 notifyListeners(fetchedEvaluations.get(i));
@@ -525,15 +525,16 @@ class SdkThread implements Runnable {
 
         networkSleeper.register(status -> {
             if (status == CONNECTED) {
+                log.debug("got network event: {}", status);
                 networkLatch.countDown();
             }
         });
 
         try {
-            if (!networkLatch.await(1, MINUTES)) {
-                log.info("Network connected, wake up SDK");
-            } else {
+            if (networkLatch.await(1, MINUTES)) {
                 log.info("Restart SDK/Check network");
+            } else {
+                log.info("Network connected, wake up SDK");
             }
         } catch (InterruptedException e) {
             logExceptionAndWarn("Network sleep interrupted", e);
