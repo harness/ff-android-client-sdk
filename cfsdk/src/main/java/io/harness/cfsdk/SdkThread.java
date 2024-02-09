@@ -425,12 +425,12 @@ class SdkThread implements Runnable {
     }
 
     ApiClient makeApiClient() {
-        ApiClient apiClient = new ApiClient();
-        apiClient.setBasePath(config.getBaseURL());
-        apiClient.setDebugging(false);
-        apiClient.setUserAgent("android " + ANDROID_SDK_VERSION);
-        apiClient.addDefaultHeader("Hostname", getHostname());
-        apiClient.addDefaultHeader("Harness-SDK-Info", "Android " + ANDROID_SDK_VERSION + " Client");
+        final ApiClient apiClient = new ApiClient()
+            .setBasePath(config.getBaseURL())
+            .setDebugging(false)
+            .setUserAgent("android " + ANDROID_SDK_VERSION)
+            .addDefaultHeader("Hostname", getHostname())
+            .addDefaultHeader("Harness-SDK-Info", "Android " + ANDROID_SDK_VERSION + " Client");
 
         TlsUtils.setupTls(apiClient, config);
         return apiClient;
@@ -491,7 +491,7 @@ class SdkThread implements Runnable {
         return !network.isNetworkAvailable();
     }
 
-    static class NetworkOffline extends RuntimeException {}
+    static class NetworkOffline extends RuntimeException { NetworkOffline() { super("No Internet"); }}
 
     @Override
     public void run() {
@@ -500,7 +500,9 @@ class SdkThread implements Runnable {
                 api = new ClientApi(makeApiClient());
                 mainSdkThread(api);
             } catch (NetworkOffline ex) {
-                log.trace("Network offline trace", ex);
+                if (config.isDebugEnabled()) {
+                    log.debug("Network offline trace", ex);
+                }
                 waitForNetworkToGoOnline();
                 continue;
             } catch (Throwable ex) {
@@ -534,7 +536,7 @@ class SdkThread implements Runnable {
                 log.info("Restart SDK/Check network");
             }
         } catch (InterruptedException e) {
-            log.info("Network sleep interrupted", e);
+            logExceptionAndWarn("Network sleep interrupted", e);
         }
     }
 

@@ -103,11 +103,13 @@ public class CfClient implements Closeable, Client {
 
     @Override
     public boolean waitForInitialization(long timeoutMs) {
+        if (sdkThread == null) throw new IllegalStateException("SDK not initialized");
         return sdkThread.waitForInitialization(timeoutMs);
     }
 
     @Override
     public void waitForInitialization() throws InterruptedException {
+        if (sdkThread == null) throw new IllegalStateException("SDK not initialized");
         sdkThread.waitForInitialization(0L);
     }
 
