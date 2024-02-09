@@ -17,6 +17,7 @@ import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -118,7 +119,7 @@ public class EventSource implements Callback, AutoCloseable {
   public void start(boolean isRescheduled) {
     log.info("EventSource connecting with url {}", url);
     if (log.isDebugEnabled()) {
-      log.debug("EventSource headers {}", headers);
+      log.debug("EventSource headers {}", redactHeaders(headers));
     }
 
     this.streamClient = makeStreamClient(sseReadTimeoutMins, trustedCAs);
@@ -276,5 +277,12 @@ public class EventSource implements Callback, AutoCloseable {
     if (config.isDebugEnabled()) {
       log.warn(msg + " STACKTRACE", ex);
     }
+  }
+
+  private Map<String, String> redactHeaders(Map<String, String> map) {
+    final Map<String, String> cloned = new HashMap<>(map);
+    cloned.put("Authorization", "*");
+    cloned.put("API-Key", "*");
+    return cloned;
   }
 }
