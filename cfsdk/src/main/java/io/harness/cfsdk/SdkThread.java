@@ -269,7 +269,7 @@ class SdkThread implements Runnable {
 
     void streamSseEvaluationRemove(ClientApi api, AuthInfo authInfo, StatusEvent statusEvent) {
         final Evaluation eval = statusEvent.extractEvaluationPayload();
-        repoRemoveEvaluation(authInfo.getEnvironmentIdentifier(), target.getIdentifier());
+        repoRemoveEvaluation(authInfo.getEnvironmentIdentifier(), eval.getFlag());
         final StatusEvent evalRemoveEvent = new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_REMOVE, eval);
         sendEvent(evalRemoveEvent);
         notifyListeners(eval);
