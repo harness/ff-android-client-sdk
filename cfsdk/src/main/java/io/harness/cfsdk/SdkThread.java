@@ -323,6 +323,8 @@ class SdkThread implements Runnable {
             repoSetEvaluation(authInfo.getEnvironmentIdentifier(), eval.getFlag(), eval);
         }
 
+        log.debug("Poll got {} evaluations", evaluations.size());
+
         // Notify users that evaluations have been reloaded. This happens first on client init,
         // then if polling is enabled, on each interval.
         sendEvent(new StatusEvent(StatusEvent.EVENT_TYPE.EVALUATION_RELOAD, evaluations));
