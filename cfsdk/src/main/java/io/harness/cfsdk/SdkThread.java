@@ -534,9 +534,9 @@ class SdkThread implements Runnable {
 
         try {
             if (networkLatch.await(1, MINUTES)) {
-                log.info("Restart SDK/Check network");
-            } else {
                 log.info("Network connected, wake up SDK");
+            } else {
+                log.info("Wake up SDK/check network");
             }
         } catch (InterruptedException e) {
             logExceptionAndWarn("Network sleep interrupted", e);
