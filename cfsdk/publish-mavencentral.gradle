@@ -37,7 +37,7 @@ artifacts {
 ext {
     PUBLISH_GROUP_ID = "io.harness"
     PUBLISH_ARTIFACT_ID = "ff-android-client-sdk"
-    PUBLISH_VERSION = "2.0.0"
+    PUBLISH_VERSION = libs.versions.sdk.get()
 }
 
 

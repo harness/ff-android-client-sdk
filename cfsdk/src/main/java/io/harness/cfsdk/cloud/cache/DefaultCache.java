@@ -63,7 +63,7 @@ public class DefaultCache implements CloudCache {
     }
 
     private String getVersionSuffix() {
-        return "_v" + ANDROID_SDK_VERSION.replace(".", "");
+        return "_v" + ANDROID_SDK_VERSION.replace("-SNAPSHOT", "").replace(".", "");
     }
 
     @Override
