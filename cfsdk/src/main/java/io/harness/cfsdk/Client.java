@@ -2,8 +2,12 @@ package io.harness.cfsdk;
 
 import android.content.Context;
 
+import androidx.annotation.Nullable;
+
 import org.json.JSONObject;
 
+import io.harness.cfsdk.cloud.cache.CloudCache;
+import io.harness.cfsdk.cloud.events.AuthCallback;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.sse.EventsListener;
@@ -123,5 +127,35 @@ public interface Client extends AutoCloseable {
      * @since 1.2.0
      */
     void close();
+
+    /**
+     * Deprecated. Use {@link io.harness.cfsdk.CfClient#initialize(Context, String, CfConfiguration, Target)} instead.
+     * Kept for source compatibility with 1.x.x projects and will be removed in a future version.
+     * Authentication callback has been removed you should instead wait for authentication to complete using {@link CfClient#waitForInitialization()}.
+     * If you need to pass in a different cache use  {@link io.harness.cfsdk.CfConfiguration.Builder#cache(CloudCache)} instead of this method.
+     */
+    @Deprecated
+    void initialize(final Context context, final String apiKey, final CfConfiguration config,
+                           final Target target, final CloudCache cloudCache, @Nullable final AuthCallback authCallback) throws IllegalStateException;
+
+
+    /**
+     * Deprecated. Use {@link io.harness.cfsdk.CfClient#initialize(Context, String, CfConfiguration, Target)} instead.
+     * Kept for source compatibility with 1.x.x projects and will be removed in a future version.
+     * Authentication callback has been removed you should instead wait for authentication to complete using {@link CfClient#waitForInitialization()}.
+     */
+    @Deprecated
+    void initialize(final Context context, final String apiKey, final CfConfiguration config,
+                           final Target target, final AuthCallback authCallback) throws IllegalStateException;
+
+
+    /**
+     * Deprecated. Use {@link io.harness.cfsdk.CfClient#initialize(Context, String, CfConfiguration, Target)} instead.
+     * Kept for source compatibility with 1.x.x projects and will be removed in a future version.
+     * If you need to pass in a different cache use  {@link io.harness.cfsdk.CfConfiguration.Builder#cache(CloudCache)} instead of this method.
+     */
+    @Deprecated
+    void initialize(final Context context, final String apiKey, final CfConfiguration config,
+                           final Target target, final CloudCache cloudCache) throws IllegalStateException;
 
 }

@@ -1,16 +1,11 @@
 package io.harness.cfsdk.tlsexample
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import ch.qos.logback.classic.android.BasicLogcatConfigurator
-import io.harness.cfsdk.CfClient
+import io.harness.cfsdk.FfClient
 import io.harness.cfsdk.CfConfiguration
-import io.harness.cfsdk.cloud.events.AuthResult
-import io.harness.cfsdk.cloud.events.EvaluationListener
-import io.harness.cfsdk.cloud.model.AuthInfo
 import io.harness.cfsdk.cloud.model.Target
-import io.harness.cfsdk.cloud.sse.EventsListener
 import org.bouncycastle.cert.X509CertificateHolder
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter
 import org.bouncycastle.jce.provider.BouncyCastleProvider

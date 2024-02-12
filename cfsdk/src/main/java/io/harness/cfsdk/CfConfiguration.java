@@ -390,7 +390,7 @@ public class CfConfiguration {
         this.debugEnabled = enabled;
     }
 
-    private void setCache(CloudCache cache) {
+    void setCache(CloudCache cache) {
         this.cache = cache;
     }
 }

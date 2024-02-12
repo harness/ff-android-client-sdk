@@ -5,7 +5,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static io.harness.cfsdk.utils.CfUtils.Text.isEmpty;
 
 import android.content.Context;
-
+import androidx.annotation.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
+import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
 import io.harness.cfsdk.cloud.analytics.AnalyticsPublisherService;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
@@ -30,7 +30,7 @@ import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 import io.harness.cfsdk.cloud.openapi.client.model.Variation;
 import io.harness.cfsdk.cloud.sse.EventsListener;
 import io.harness.cfsdk.common.SdkCodes;
-
+import io.harness.cfsdk.cloud.events.AuthCallback;
 public class CfClient implements Closeable, Client {
 
     private static final Logger log = LoggerFactory.getLogger(CfClient.class);
@@ -59,15 +59,17 @@ public class CfClient implements Closeable, Client {
 
     @Override
     public void initialize(
-
             final Context context,
             final String apiKey,
             final CfConfiguration configuration,
             final Target target
 
     ) throws IllegalStateException {
+        initializeInternal(context, apiKey, configuration, target, null, null);
+    }
 
-        this.configuration = configuration;
+    private void initializeInternal(final Context context, final String apiKey, final CfConfiguration config, final Target target, final CloudCache cloudCache, @Nullable final AuthCallback authCallback) {
+        this.configuration = config;
 
         try {
             if (apiKey == null || apiKey.trim().isEmpty()) {
@@ -83,9 +85,13 @@ public class CfClient implements Closeable, Client {
                 throw new IllegalArgumentException("Target not valid");
             }
 
+            if (cloudCache != null) {
+                configuration.setCache(cloudCache);
+            }
+
             setTargetDefaults(target);
 
-            sdkThread = new SdkThread(context, apiKey, configuration, target, evaluationListenerSet, eventsListenerSet);
+            sdkThread = new SdkThread(context, apiKey, configuration, target, evaluationListenerSet, eventsListenerSet, authCallback);
             threadExecutor.execute(sdkThread);
 
             if (configuration.isAnalyticsEnabled()) {
@@ -256,6 +262,27 @@ public class CfClient implements Closeable, Client {
         if (sdkThread != null) {
             threadExecutor.submit(() -> sdkThread.refreshEvaluations());
         }
+    }
+
+    @Deprecated
+    @Override
+    public void initialize(final Context context, final String apiKey, final CfConfiguration config,
+            final Target target, final CloudCache cloudCache, @Nullable final AuthCallback authCallback) throws IllegalStateException {
+        initializeInternal(context, apiKey, config, target, cloudCache, authCallback);
+    }
+
+    @Deprecated
+    @Override
+    public void initialize(final Context context, final String apiKey, final CfConfiguration config,
+                           final Target target, final AuthCallback authCallback) throws IllegalStateException {
+        initializeInternal(context, apiKey, config, target, null, authCallback);
+    }
+
+    @Deprecated
+    @Override
+    public void initialize(final Context context, final String apiKey, final CfConfiguration config,
+            final Target target, final CloudCache cloudCache) throws IllegalStateException {
+        initializeInternal(context, apiKey, config, target, cloudCache, null);
     }
 
     @Override

@@ -29,6 +29,8 @@ import java.util.concurrent.TimeUnit;
 import io.harness.cfsdk.cloud.AuthResponseDecoder;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.cache.DefaultCache;
+import io.harness.cfsdk.cloud.events.AuthCallback;
+import io.harness.cfsdk.cloud.events.AuthResult;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
@@ -60,6 +62,7 @@ class SdkThread implements Runnable {
     private final Map<String, Set<EvaluationListener>> evaluationListenerMap;
     private final Set<EventsListener> eventsListenerSet;
     private final NetworkInfoProvider network;
+    private final AuthCallback authCallback;
 
     /* ---- Mutable state ---- */
     private ClientApi api;
@@ -68,7 +71,7 @@ class SdkThread implements Runnable {
     private boolean sseRescheduled = false;
     private Instant lastPollTime = Instant.EPOCH;
 
-    SdkThread(Context context, String apiKey, CfConfiguration config, Target target, Map<String, Set<EvaluationListener>> evaluationListenerMap, Set<EventsListener> eventsListenerSet)  {
+    SdkThread(Context context, String apiKey, CfConfiguration config, Target target, Map<String, Set<EvaluationListener>> evaluationListenerMap, Set<EventsListener> eventsListenerSet, AuthCallback authCallback)  {
         this.context = context;
         this.apiKey = apiKey;
         this.config = config;
@@ -78,6 +81,7 @@ class SdkThread implements Runnable {
         this.evaluationListenerMap = evaluationListenerMap;
         this.eventsListenerSet = eventsListenerSet;
         this.network = new NetworkInfoProvider(context);
+        this.authCallback = authCallback;
     }
 
     void mainSdkThread(ClientApi api) throws ApiException {
@@ -153,6 +157,10 @@ class SdkThread implements Runnable {
 
             SdkCodes.infoSdkAuthOk();
             initLatch.countDown();
+
+            if (authCallback != null) {
+                authCallback.authorizationSuccess(ai, new AuthResult(true));
+            }
         }
 
         return authInfo;
