@@ -331,7 +331,4 @@ public class CfClient implements Closeable, Client {
             throw new RuntimeException(e);
         }
     }
-
-    CfClient(Target target, AuthInfo authInfo) { /* tests only */
-    }
 }
