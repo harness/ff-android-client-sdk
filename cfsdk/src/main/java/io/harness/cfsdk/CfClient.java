@@ -48,7 +48,6 @@ public class CfClient implements Closeable, Client {
     static CfClient getInstance() {
         if (CfClient.instance == null) {
             synchronized (CfClient.class) {
-
                 if (CfClient.instance == null) {
                     CfClient.instance = new CfClient();
                 }
@@ -289,21 +288,17 @@ public class CfClient implements Closeable, Client {
     public void close() {
         log.debug("Closing SDK");
 
-        try {
-            if (metricsThread != null) {
-                metricsThread.close();
-            }
-
-            threadExecutor.shutdown();
-            if (!threadExecutor.awaitTermination(10, SECONDS)) {
-                log.warn("SDK threads did not terminate quickly enough, forcing shutdown");
-                threadExecutor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        if (metricsThread != null) {
+            metricsThread.close();
         }
 
-        instance = null;
+        threadExecutor.shutdownNow();
+
+        synchronized (CfClient.class) {
+            if (instance == this) {
+                instance = null;
+            }
+        }
     }
 
     void setTargetDefaults(Target target) {

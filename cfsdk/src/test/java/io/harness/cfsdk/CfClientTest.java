@@ -247,18 +247,18 @@ public class CfClientTest {
             mockSvr.setDispatcher(dispatcher);
             mockSvr.start();
 
-            final CfClient client = new CfClient();
+            try (final CfClient client = new CfClient()) {
+                final CfConfiguration config = configCallback.apply(mockSvr.getHostName(), mockSvr.getPort());
 
-            final CfConfiguration config = configCallback.apply(mockSvr.getHostName(), mockSvr.getPort());
+                client.initialize(
+                        makeMockContextWithNetworkOnline(),
+                        "dummykey",
+                        config,
+                        DUMMY_TARGET
+                );
 
-            client.initialize(
-                    makeMockContextWithNetworkOnline(),
-                    "dummykey",
-                    config,
-                    DUMMY_TARGET
-            );
-
-            dispatcher.assertEndpointConnectionOrTimeout(30, "/api/1.0/stream?cluster=1");
+                dispatcher.assertEndpointConnectionOrTimeout(30, "/api/1.0/stream?cluster=1");
+            }
         }
     }
 
@@ -267,48 +267,49 @@ public class CfClientTest {
         final MockWebServerDispatcher dispatcher = new EvalEndpointDispatcher_ForCacheMiss();
         final MockedCache cache = new MockedCache();
 
-
         try (MockWebServer mockSvr = new MockWebServer()) {
             mockSvr.setDispatcher(dispatcher);
             mockSvr.start();
 
             final EventsListenerCounter eventCounter = new EventsListenerCounter(11); // Make sure this number matches assertions total below
-            final CfClient client = new CfClient();
-            client.registerEventsListener(eventCounter);
+            try (final CfClient client = new CfClient()) {
+                client.registerEventsListener(eventCounter);
 
-            final CfConfiguration config = CfConfiguration.builder()
-                    .baseUrl(makeServerUrl(mockSvr.getHostName(), mockSvr.getPort()))
-                    .eventUrl(makeServerUrl(mockSvr.getHostName(), mockSvr.getPort()))
-                    .enableAnalytics(false)
-                    .enableStream(true)
-                    .cache(cache)
-                    .debug(true)
-                    .build();
+                final CfConfiguration config = CfConfiguration.builder()
+                        .baseUrl(makeServerUrl(mockSvr.getHostName(), mockSvr.getPort()))
+                        .eventUrl(makeServerUrl(mockSvr.getHostName(), mockSvr.getPort()))
+                        .enableAnalytics(false)
+                        .enableStream(true)
+                        .cache(cache)
+                        .debug(true)
+                        .build();
 
-            client.initialize(
-                    makeMockContextWithNetworkOnline(),
-                    "dummykey",
-                    config,
-                    DUMMY_TARGET
-            );
+                client.initialize(
+                        makeMockContextWithNetworkOnline(),
+                        "dummykey",
+                        config,
+                        DUMMY_TARGET
+                );
 
-            eventCounter.waitForAllEventsOrTimeout(30);
+                eventCounter.waitForAllEventsOrTimeout(30);
 
-            assertEquals((Long) 1L, (Long) eventCounter.getCountFor(SSE_START));
-            assertEquals((Long) 7L, (Long) eventCounter.getCountFor(EVALUATION_RELOAD));
-            assertEquals((Long) 1L, (Long) eventCounter.getCountFor(EVALUATION_CHANGE));
-            assertEquals((Long) 1L, (Long) eventCounter.getCountFor(EVALUATION_REMOVE));
-            assertEquals((Long) 1L, (Long) eventCounter.getCountFor(SSE_END));
-            assertEquals((Long) 0L, (Long) eventCounter.getCountForUnknown());
+                assertEquals((Long) 1L, (Long) eventCounter.getCountFor(SSE_START));
+                assertEquals((Long) 7L, (Long) eventCounter.getCountFor(EVALUATION_RELOAD));
+                assertEquals((Long) 1L, (Long) eventCounter.getCountFor(EVALUATION_CHANGE));
+                assertEquals((Long) 1L, (Long) eventCounter.getCountFor(EVALUATION_REMOVE));
+                assertEquals((Long) 1L, (Long) eventCounter.getCountFor(SSE_END));
+                assertEquals((Long) 0L, (Long) eventCounter.getCountForUnknown());
 
 
-            Thread.sleep(1000);
+                Thread.sleep(1000);
 
-            // An SSE flag update should cause the evaluations endpoint to be queried, and the cache to be updated once
-            // There will be no cache hits on that target since it will always go out to the server (SSE events don't include the actual state)
-            assertEquals(1, dispatcher.getUrlAccessCount(MockWebServerDispatcher.EVALUATION_ENDPOINT));
-            assertEquals(1, cache.getCacheSavedCountForEvaluation("testFlag"));
-            assertEquals(0, cache.getCacheHitCountForEvaluation("testFlag"));
+                // An SSE flag update should cause the evaluations endpoint to be queried, and the cache to be updated once
+                // There will be no cache hits on that target since it will always go out to the server (SSE events don't include the actual state)
+                assertEquals(1, dispatcher.getUrlAccessCount(MockWebServerDispatcher.EVALUATION_ENDPOINT));
+                assertEquals(1, cache.getCacheSavedCountForEvaluation("testFlag"));
+                assertEquals(0, cache.getCacheHitCountForEvaluation("testFlag"));
+
+            }
         }
     }
 
@@ -362,36 +363,38 @@ public class CfClientTest {
             final String url = makeSecureServerUrl(mockSvr.getHostName(), mockSvr.getPort());
             log.debug("mock TLS server running on {}:{}", mockSvr.getHostName(), mockSvr.getPort());
 
-            final CfClient client = new CfClient();
-            final CfConfiguration config = mock(CfConfiguration.class);
-            when(config.getBaseURL()).thenReturn(url);
-            when(config.getStreamURL()).thenReturn(url + "/stream");
-            when(config.getEventURL()).thenReturn(url);
-            when(config.isAnalyticsEnabled()).thenReturn(true);
-            when(config.isStreamEnabled()).thenReturn(true);
-            when(config.getMetricsPublishingIntervalInMillis()).thenReturn(1000L); // Force the publish time to be within the timeout
-            when(config.getMetricsCapacity()).thenReturn(DEFAULT_METRICS_CAPACITY);
-            when(config.getTlsTrustedCAs()).thenReturn(Collections.singletonList(localCert.certificate()));
-            when(config.getCache()).thenReturn(makeMockCache());
-            when(config.isDebugEnabled()).thenReturn(true);
+            try (final CfClient client = new CfClient()) {
+                final CfConfiguration config = mock(CfConfiguration.class);
+                when(config.getBaseURL()).thenReturn(url);
+                when(config.getStreamURL()).thenReturn(url + "/stream");
+                when(config.getEventURL()).thenReturn(url);
+                when(config.isAnalyticsEnabled()).thenReturn(true);
+                when(config.isStreamEnabled()).thenReturn(true);
+                when(config.getMetricsPublishingIntervalInMillis()).thenReturn(1000L); // Force the publish time to be within the timeout
+                when(config.getMetricsCapacity()).thenReturn(DEFAULT_METRICS_CAPACITY);
+                when(config.getTlsTrustedCAs()).thenReturn(Collections.singletonList(localCert.certificate()));
+                when(config.getCache()).thenReturn(makeMockCache());
+                when(config.isDebugEnabled()).thenReturn(true);
 
-            client.initialize(
-                    makeMockContextWithNetworkOnline(),
-                    "dummykey",
-                    config,
-                    DUMMY_TARGET
-            );
+                client.initialize(
+                        makeMockContextWithNetworkOnline(),
+                        "dummykey",
+                        config,
+                        DUMMY_TARGET
+                );
 
-            assertTrue(client.waitForInitialization(30_000));
+                assertTrue(client.waitForInitialization(30_000));
 
-            for (int i = 0; i < 10; i++) {
-                client.boolVariation("anyone@anywhere.com", false); // need at least 1 eval for metrics to push
-                MILLISECONDS.sleep(100);
+                for (int i = 0; i < 10; i++) {
+                    client.boolVariation("anyone@anywhere.com", false); // need at least 1 eval for metrics to push
+                    MILLISECONDS.sleep(100);
+                }
+
+                dispatcher.assertEndpointConnectionOrTimeout(30, MockWebServerDispatcher.AUTH_ENDPOINT);
+                dispatcher.assertEndpointConnectionOrTimeout(30, MockWebServerDispatcher.STREAM_ENDPOINT);
+                dispatcher.assertEndpointConnectionOrTimeout(30, MockWebServerDispatcher.METRICS_ENDPOINTS);
+
             }
-
-            dispatcher.assertEndpointConnectionOrTimeout(30, MockWebServerDispatcher.AUTH_ENDPOINT);
-            dispatcher.assertEndpointConnectionOrTimeout(30, MockWebServerDispatcher.STREAM_ENDPOINT);
-            dispatcher.assertEndpointConnectionOrTimeout(30, MockWebServerDispatcher.METRICS_ENDPOINTS);
         }
     }
 
@@ -412,32 +415,33 @@ public class CfClientTest {
             mockSvr.setDispatcher(dispatcher);
             mockSvr.start();
 
-            final CfClient client = new CfClient();
-            client.registerEventsListener(eventListener);
+            try (final CfClient client = new CfClient()) {
+                client.registerEventsListener(eventListener);
 
-            final CfConfiguration config = CfConfiguration.builder()
-                    .baseUrl(makeServerUrl(mockSvr.getHostName(), mockSvr.getPort()))
-                    .eventUrl(makeServerUrl(mockSvr.getHostName(), mockSvr.getPort()))
-                    .enableAnalytics(false)
-                    .enableStream(streamEnabled)
-                    .cache(cache)
-                    .debug(true)
-                    .build();
+                final CfConfiguration config = CfConfiguration.builder()
+                        .baseUrl(makeServerUrl(mockSvr.getHostName(), mockSvr.getPort()))
+                        .eventUrl(makeServerUrl(mockSvr.getHostName(), mockSvr.getPort()))
+                        .enableAnalytics(false)
+                        .enableStream(streamEnabled)
+                        .cache(cache)
+                        .debug(true)
+                        .build();
 
-            client.initialize(
-                    context,
-                    "dummykey",
-                    config,
-                    DUMMY_TARGET
-            );
+                client.initialize(
+                        context,
+                        "dummykey",
+                        config,
+                        DUMMY_TARGET
+                );
 
-            assertTrue(client.waitForInitialization(30_000));
-            assertEquals(0, cache.getCacheHitCountForEvaluation("anyone@anywhere.com"));
+                assertTrue(client.waitForInitialization(30_000));
+                assertEquals(0, cache.getCacheHitCountForEvaluation("anyone@anywhere.com"));
 
-            log.debug("Auth completed");
+                log.debug("Auth completed");
 
-            if (callback != null) {
-                callback.accept(client);
+                if (callback != null) {
+                    callback.accept(client);
+                }
             }
         }
     }
@@ -457,26 +461,28 @@ public class CfClientTest {
             mockSvr.start();
 
             final CfConfiguration config = configCallback.apply(mockSvr.getHostName(), mockSvr.getPort());
-            final CfClient client = new CfClient();
-            client.initialize(
-                    makeMockContextWithNetworkOnline(),
-                    "dummykey",
-                    config,
-                    DUMMY_TARGET
-            );
+            try (final CfClient client = new CfClient()) {
+                client.initialize(
+                        makeMockContextWithNetworkOnline(),
+                        "dummykey",
+                        config,
+                        DUMMY_TARGET
+                );
 
-            client.waitForInitialization(30_000);
+                client.waitForInitialization(30_000);
 
-            boolean boolResult = client.boolVariation("bool1", false);
-            String strResult = client.stringVariation("string1", "");
-            double numResult = client.numberVariation("number1", 0);
-            JSONObject jsonResult = client.jsonVariation("json1", new JSONObject("{}"));
+                boolean boolResult = client.boolVariation("bool1", false);
+                String strResult = client.stringVariation("string1", "");
+                double numResult = client.numberVariation("number1", 0);
+                JSONObject jsonResult = client.jsonVariation("json1", new JSONObject("{}"));
 
-            assertTrue(boolResult);
-            assertEquals("str", strResult);
-            assertEquals(123, numResult, .0);
-            assertNotNull("default (or wrong) json returned", jsonResult.get("flag"));
-            assertEquals("on", jsonResult.get("flag"));
+                assertTrue(boolResult);
+                assertEquals("str", strResult);
+                assertEquals(123, numResult, .0);
+                assertNotNull("default (or wrong) json returned", jsonResult.get("flag"));
+                assertEquals("on", jsonResult.get("flag"));
+
+            }
         }
     }
 
@@ -500,20 +506,21 @@ public class CfClientTest {
                     .cache(new MockedCache())
                     .build();
 
-            CfClient client = new CfClient();
-            client.initialize(makeMockContextWithNetworkOnline(), "dummyapikey", config, DUMMY_TARGET);
-            client.waitForInitialization(30_000);
-            client.refreshEvaluations();
-
-            for (int i = 0; i < 1000; i++) {
+            try (CfClient client = new CfClient()) {
+                client.initialize(makeMockContextWithNetworkOnline(), "dummyapikey", config, DUMMY_TARGET);
+                client.waitForInitialization(30_000);
                 client.refreshEvaluations();
-            }
 
-            // Assert soft polling works correctly
-            // getAllEvaluations should only be invoked once every 60s even if caller spams the method
-            // 2 for counting first poll after auth
-            dispatcher.assertEndpointConnectionOrTimeout(30, ALL_EVALUATIONS_ENDPOINT, 2);
-            assertEquals(2, dispatcher.getUrlAccessCount(ALL_EVALUATIONS_ENDPOINT)); // auth, first poll
+                for (int i = 0; i < 1000; i++) {
+                    client.refreshEvaluations();
+                }
+
+                // Assert soft polling works correctly
+                // getAllEvaluations should only be invoked once every 60s even if caller spams the method
+                // 2 for counting first poll after auth
+                dispatcher.assertEndpointConnectionOrTimeout(30, ALL_EVALUATIONS_ENDPOINT, 2);
+                assertEquals(2, dispatcher.getUrlAccessCount(ALL_EVALUATIONS_ENDPOINT)); // auth, first poll
+            }
         }
     }
 
