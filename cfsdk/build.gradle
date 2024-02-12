@@ -16,7 +16,7 @@ subprojects {
 }
 
 def getVersionCode(semVer) {
-    def version = semVer.replaceAll("[.]", "").toInteger()
+    def version = semVer.replace("-SNAPSHOT", "").replaceAll("[.]", "").toInteger()
     println version
     return version
 }
