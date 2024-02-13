@@ -439,7 +439,7 @@ class SdkThread implements Runnable {
     void logExceptionAndWarn(String msg, Throwable ex) {
         log.warn(msg + " " + ex.getMessage());
         if (config.isDebugEnabled()) {
-            log.warn(msg + " STACKTRACE", ex);
+            log.warn(msg + " STACKTRACE ", ex);
         }
     }
 
