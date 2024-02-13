@@ -142,7 +142,16 @@ class SdkThread implements Runnable {
         final AuthenticationRequest authRequest = new AuthenticationRequest();
         authRequest.apiKey(apiKey);
         authRequest.setTarget(authTarget);
-        bearerToken = api.authenticate(authRequest).getAuthToken();
+
+        try {
+            bearerToken = api.authenticate(authRequest).getAuthToken();
+        } catch (ApiException ex) {
+            // 1.x.x backwards compatibility - this catch can be removed once the deprecated AuthCallback and AuthResult are removed
+            if (authCallback != null && ex.getCode() != 200) {
+                authCallback.authorizationSuccess(null, new AuthResult(false, ex));
+            }
+            throw ex;
+        }
 
         addHeader(api, "Authorization", "Bearer " + bearerToken);
 
