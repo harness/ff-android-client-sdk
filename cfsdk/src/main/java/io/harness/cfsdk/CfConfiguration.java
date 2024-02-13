@@ -75,6 +75,15 @@ public class CfConfiguration {
         return eventURL;
     }
 
+
+    /**
+     * Deprecated. Use {@link #isStreamEnabled()} instead
+     */
+    @Deprecated
+    public boolean getStreamEnabled() {
+        return streamEnabled;
+    }
+
     public boolean isStreamEnabled() {
 
         return streamEnabled;
