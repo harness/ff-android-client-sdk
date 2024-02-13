@@ -45,7 +45,7 @@ public class CfClient implements Closeable, Client {
     public CfClient() {
     }
 
-    static CfClient getInstance() {
+    public static CfClient getInstance() {
         if (CfClient.instance == null) {
             synchronized (CfClient.class) {
                 if (CfClient.instance == null) {
