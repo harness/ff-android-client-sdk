@@ -1,6 +1,7 @@
 package io.harness.cfsdk.tlsexample
 
 import android.os.Bundle
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import ch.qos.logback.classic.android.BasicLogcatConfigurator
 import io.harness.cfsdk.CfClient
@@ -79,6 +80,9 @@ class MainActivity : AppCompatActivity() {
     private fun readEvaluations(client: CfClient, logPrefix: String) {
         val value = client.boolVariation(flagName, false)
         log.info("$logPrefix flag $flagName: $value")
+
+        val tv1: TextView = findViewById(R.id.textView1)
+        runOnUiThread { tv1.text = "$flagName=$value" }
     }
 
     override fun onDestroy() {
