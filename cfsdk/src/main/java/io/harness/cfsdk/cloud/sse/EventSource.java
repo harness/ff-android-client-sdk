@@ -17,6 +17,7 @@ import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -24,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.*;
 
 import io.harness.cfsdk.AndroidSdkVersion;
+import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 import io.harness.cfsdk.cloud.network.NewRetryInterceptor;
 import io.harness.cfsdk.common.SdkCodes;
@@ -40,38 +42,30 @@ public class EventSource implements Callback, AutoCloseable {
 
   private static final Logger log = LoggerFactory.getLogger(EventSource.class);
   private final EventsListener eventListener;
-  private final Gson gson = new Gson();
   private final HttpLoggingInterceptor loggingInterceptor;
   private final long retryBackoffDelay;
   private final String url;
   private final Map<String, String> headers;
   private final long sseReadTimeoutMins;
   private final List<X509Certificate> trustedCAs;
+  private final CfConfiguration config;
   private OkHttpClient streamClient;
   private Call call;
 
   public EventSource(
-      @NonNull String url,
-      Map<String, String> headers,
-      @NonNull EventsListener eventListener,
-      long sseReadTimeoutMins) {
-    this(url, headers, eventListener, sseReadTimeoutMins, current().nextInt(2000, 5000), null);
-  }
-
-  public EventSource(
-      @NonNull String url,
-      Map<String, String> headers,
-      @NonNull EventsListener eventListener,
-      long sseReadTimeoutMins,
-      int retryBackoffDelay,
-      List<X509Certificate> trustedCAs) {
+          @NonNull String url,
+          Map<String, String> headers,
+          @NonNull EventsListener eventListener,
+          long sseReadTimeoutMins,
+          CfConfiguration config) {
     this.url = url;
     this.headers = headers;
     this.eventListener = eventListener;
     this.sseReadTimeoutMins = sseReadTimeoutMins;
-    this.retryBackoffDelay = retryBackoffDelay;
-    this.trustedCAs = trustedCAs;
+    this.retryBackoffDelay = current().nextInt(2000, 5000);
+    this.trustedCAs = config.getTlsTrustedCAs();
     this.loggingInterceptor = new HttpLoggingInterceptor();
+    this.config = config;
   }
 
   protected OkHttpClient makeStreamClient(long sseReadTimeoutMins, List<X509Certificate> trustedCAs) {
@@ -117,7 +111,7 @@ public class EventSource implements Callback, AutoCloseable {
       }
     } catch (GeneralSecurityException | IOException ex) {
       String msg = "Failed to setup TLS on SSE endpoint: " + ex.getMessage();
-      log.warn(msg, ex);
+      logExceptionAndWarn(msg, ex);
       throw new RuntimeException(msg, ex);
     }
   }
@@ -125,7 +119,7 @@ public class EventSource implements Callback, AutoCloseable {
   public void start(boolean isRescheduled) {
     log.info("EventSource connecting with url {}", url);
     if (log.isDebugEnabled()) {
-      log.debug("EventSource headers {}", headers);
+      log.debug("EventSource headers {}", redactHeaders(headers));
     }
 
     this.streamClient = makeStreamClient(sseReadTimeoutMins, trustedCAs);
@@ -176,7 +170,7 @@ public class EventSource implements Callback, AutoCloseable {
   @Override // Callback
   public void onFailure(@NotNull Call call, @NotNull IOException e) {
     SdkCodes.warnStreamDisconnected(e.getMessage());
-    log.warn("SSE stream error", e);
+    logExceptionAndWarn("SSE stream error", e);
     eventListener.onEventReceived(makeSseEndEvent());
   }
 
@@ -197,7 +191,7 @@ public class EventSource implements Callback, AutoCloseable {
 
       String line;
       while ((line = reader.readUtf8Line()) != null) {
-        log.info("SSE stream data: {}", line);
+        log.debug("SSE stream data: {}", line);
 
         if (line.startsWith("data:")) {
           SdkCodes.infoStreamEventReceived(line.substring(6));
@@ -208,7 +202,7 @@ public class EventSource implements Callback, AutoCloseable {
       throw new SSEStreamException("End of SSE stream");
     } catch (Throwable ex) {
       SdkCodes.warnStreamDisconnected(ex.getMessage());
-      log.warn("SSE stream aborted", ex);
+      logExceptionAndWarn("SSE stream aborted", ex);
       eventListener.onEventReceived(makeSseEndEvent());
     }
   }
@@ -274,9 +268,21 @@ public class EventSource implements Callback, AutoCloseable {
       }
 
     } catch (JSONException e) {
-
-      log.error(e.getMessage(), e);
+      logExceptionAndWarn(e.getMessage(), e);
     }
   }
 
+  void logExceptionAndWarn(String msg, Throwable ex) {
+    log.warn(msg);
+    if (config.isDebugEnabled()) {
+      log.warn(msg + " STACKTRACE", ex);
+    }
+  }
+
+  private Map<String, String> redactHeaders(Map<String, String> map) {
+    final Map<String, String> cloned = new HashMap<>(map);
+    cloned.put("Authorization", "*");
+    cloned.put("API-Key", "*");
+    return cloned;
+  }
 }

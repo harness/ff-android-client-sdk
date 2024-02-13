@@ -3,7 +3,10 @@ package io.harness.cfsdk.cloud;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static io.harness.cfsdk.cloud.cache.DefaultCache.METADATA_KEY_LAST_UPDATED;
+
 import android.content.Context;
 import org.junit.Test;
 
@@ -19,6 +22,7 @@ public class DefaultCacheTest {
     static class TestBackendCache implements DefaultCache.InternalCache {
 
         private final Map<String, Map<String, Evaluation>> map = new HashMap<>();
+        Map<String, String> metadata;
 
         @Override
         public void saveAll(String key, Map<String, Evaluation> evaluations) {
@@ -39,6 +43,11 @@ public class DefaultCacheTest {
         @Override
         public void init(Context appContext) {
         }
+
+        @Override
+        public void updateMetadata(String cacheId, Map<String, String> metadata) {
+            this.metadata = metadata;
+        }
     }
 
     private TestBackendCache backingCache = new TestBackendCache();
@@ -47,7 +56,7 @@ public class DefaultCacheTest {
     public void testCache() {
 
         Context mockContext = mock(Context.class);
-        DefaultCache cache = new DefaultCache(mockContext, backingCache);
+        DefaultCache cache = new DefaultCache(mockContext, backingCache, "dummyTargetId", "dummyApyKey");
 
         String env = "dummyenv";
 
@@ -81,7 +90,7 @@ public class DefaultCacheTest {
 
         assertEquals(5, cache.getAllEvaluations(env).size());
 
-        cache.clear();
+        cache.clear(env);
 
         assertEquals(0, cache.getAllEvaluations(env).size());
 
@@ -91,6 +100,11 @@ public class DefaultCacheTest {
         assertNull(cache.getEvaluation(env, "dummykey4"));
         assertNull(cache.getEvaluation(env, "dummykey5"));
         assertNull(cache.getEvaluation(env, "dummykey6"));
+
+        assertNotNull(backingCache.metadata);
+        assertEquals(1, backingCache.metadata.size());
+        assertTrue(backingCache.metadata.containsKey(METADATA_KEY_LAST_UPDATED + '.' + env));
+
     }
 
 }

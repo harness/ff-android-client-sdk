@@ -37,9 +37,10 @@ public class TestUtils {
                 .addHeader("Content-Type", "application/json; charset=UTF-8");
     }
 
-    static String makeBasicEvaluationsListJson() {
+    static String makeBasicEvaluationsListJson(List<Evaluation> moreEvaluations) {
         final List<Evaluation> list = new ArrayList<>();
         list.add(new Evaluation().flag("testFlag").kind("boolean").value("true").identifier("anyone@anywhere.com"));
+        list.addAll(moreEvaluations);
 
         return new Gson().toJson(list);
     }

@@ -40,7 +40,7 @@ public class SdkCodesTest {
 
 
             //.builder().identifier("test").isPrivate(false).build();
-            warnDefaultVariationServed("id2", target, "defaultVal2");
+            warnDefaultVariationServed("id2", "defaultVal2", "reason");
         } catch (Exception e) {
              fail("should not throw exception" + e);
         }

@@ -1,17 +1,21 @@
 package io.harness.cfsdk.cloud.analytics;
 
+import android.content.Context;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
+import io.harness.cfsdk.cloud.network.NetworkInfoProvider;
 import io.harness.cfsdk.cloud.openapi.client.model.Variation;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.common.SdkCodes;
@@ -24,6 +28,9 @@ public class AnalyticsManager implements Closeable {
     private final ScheduledExecutorService scheduledExecutorService;
     private final FrequencyMap<Analytics> frequencyMap;
     private final CfConfiguration config;
+    private final Target target;
+
+    private final NetworkInfoProvider network;
 
     private static class FrequencyMap<K> {
 
@@ -70,34 +77,48 @@ public class AnalyticsManager implements Closeable {
     }
 
     public AnalyticsManager(
+            final Context context,
             final CfConfiguration config,
+            final Target target,
             final AnalyticsPublisherService analyticsPublisherService) {
         this.frequencyMap = new FrequencyMap<>();
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         this.analyticsPublisherService = analyticsPublisherService;
         this.config = config;
+        this.target = target;
+        this.network = new NetworkInfoProvider(context);
 
         final long frequencyMs = config.getMetricsPublishingIntervalInMillis();
-        scheduledExecutorService.schedule(() -> Thread.currentThread().setName("Metrics Thread"), 0, TimeUnit.SECONDS);
         scheduledExecutorService.scheduleAtFixedRate(this::postMetricsThread,frequencyMs/2, frequencyMs, TimeUnit.MILLISECONDS);
         SdkCodes.infoMetricsThreadStarted((int)frequencyMs/1000);
     }
 
-    private void postMetricsThread() {
-        long startTime = System.currentTimeMillis();
-        int mapSizeBefore = frequencyMap.size();
+    public void postMetricsThread() {
+        log.debug("Running metrics thread iteration. frequencyMapSize={}", frequencyMap.size());
+        Thread.currentThread().setName("Metrics Thread");
 
-        analyticsPublisherService.sendData(frequencyMap.drainToMap(), getSendingCallback());
+        if (!network.isNetworkAvailable()) {
+            log.info("Network is offline, skipping metrics post");
+            return;
+        }
 
-        long timeTakenMs = (System.currentTimeMillis() - startTime);
-        if (timeTakenMs > config.getMetricsServiceAcceptableDurationInMillis())
-            log.warn("Metrics service API duration={}", timeTakenMs);
+        try {
+            long startTime = System.currentTimeMillis();
+            int mapSizeBefore = frequencyMap.size();
 
-        log.debug("Metrics thread completed in {}ms, previousMapSize={} newMapSize={}", timeTakenMs, mapSizeBefore, frequencyMap.size());
+            analyticsPublisherService.sendData(frequencyMap.drainToMap(), getSendingCallback());
+
+            long timeTakenMs = (System.currentTimeMillis() - startTime);
+            if (timeTakenMs > config.getMetricsServiceAcceptableDurationInMillis())
+                log.warn("Metrics service API duration={}", timeTakenMs);
+
+            log.debug("Metrics thread completed in {}ms, previousMapSize={} newMapSize={}", timeTakenMs, mapSizeBefore, frequencyMap.size());
+        } catch (Throwable ex) {
+            log.warn("Exception in metrics thread", ex);
+        }
     }
 
     public void registerEvaluation(
-            final Target target,
             final String evaluationId,
             final Variation variation
     ) {
@@ -129,9 +150,24 @@ public class AnalyticsManager implements Closeable {
     public void close() {
         log.debug("destroying");
 
-        analyticsPublisherService.sendData(frequencyMap.drainToMap(), getSendingCallback());
+        flushMetrics();
         scheduledExecutorService.shutdown();
         SdkCodes.infoMetricsThreadExited();
+    }
+
+    private void flushMetrics() {
+        // flush pending metrics before we close, this uses network so make sure we're not on the UI thread
+        final CountDownLatch flushMetricsLatch = new CountDownLatch(1);
+        scheduledExecutorService.schedule(() -> {
+            analyticsPublisherService.sendData(frequencyMap.drainToMap(), getSendingCallback());
+            flushMetricsLatch.countDown();
+
+        }, 0, TimeUnit.SECONDS);
+        try {
+            flushMetricsLatch.await(15, TimeUnit.SECONDS);
+        } catch (InterruptedException ex) {
+            log.warn("Timed out waiting for metrics to flush on close", ex);
+        }
     }
 
     protected AnalyticsPublisherServiceCallback getSendingCallback() {
@@ -153,4 +189,5 @@ public class AnalyticsManager implements Closeable {
     long getQueueSize() {
         return frequencyMap.size();
     }
+
 }

@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
 import io.harness.cfsdk.cloud.openapi.metric.ApiException;
 import io.harness.cfsdk.cloud.openapi.client.model.Variation;
@@ -35,7 +36,7 @@ public class AnalyticsPublisherServiceTest {
 
         doThrow(new ApiException("dummy")).when(metricsApi).postMetrics(any(), any(), any());
 
-        final AnalyticsPublisherService service = new AnalyticsPublisherService(authInfo, metricsApi);
+        final AnalyticsPublisherService service = new AnalyticsPublisherService(Mockito.mock(CfConfiguration.class), "dummytoken", authInfo);
         final AtomicBoolean result = new AtomicBoolean(true);
 
         final Analytics analytics = new AnalyticsBuilder()
@@ -58,7 +59,7 @@ public class AnalyticsPublisherServiceTest {
 
         doThrow(new ApiException("dummy")).when(metricsApi).postMetrics(anyString(), anyString(), any(Metrics.class));
 
-        final AnalyticsPublisherService service = new AnalyticsPublisherService(authInfo, metricsApi);
+        final AnalyticsPublisherService service = new AnalyticsPublisherService(Mockito.mock(CfConfiguration.class), "dummytoken", authInfo);
         final AtomicBoolean result = new AtomicBoolean(false);
 
         service.sendData(new HashMap<>(), result::set);
@@ -70,7 +71,7 @@ public class AnalyticsPublisherServiceTest {
         final AuthInfo authInfo = Mockito.mock(AuthInfo.class);
         final MetricsApi metricsApi = Mockito.mock(MetricsApi.class);
 
-        final AnalyticsPublisherService service = new AnalyticsPublisherService(authInfo, metricsApi);
+        final AnalyticsPublisherService service = new AnalyticsPublisherService(Mockito.mock(CfConfiguration.class), "dummytoken", authInfo);
 
         final Map<Analytics, Long> freqMap = new HashMap<>();
         final Target target = new Target().identifier("dummy1");

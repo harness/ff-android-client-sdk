@@ -44,7 +44,7 @@ buildscript {
 
 In app module's [build.gradle](https://github.com/harness/ff-android-client-sdk/blob/main/examples/GettingStarted/app/build.gradle#L41) file add dependency for Harness's SDK
 
-`implementation 'io.harness:ff-android-client-sdk:1.2.5'`
+`implementation 'io.harness:ff-android-client-sdk:2.0.0'`
 
 
 ### Code Sample
@@ -73,46 +73,28 @@ class MainActivity : AppCompatActivity() {
     // e.g. FF_API_KEY='my key' ./gradlew installDebug
     private val apiKey: String = BuildConfig.FF_API_KEY
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        printMessage("Starting SDK")
+        val client = CfClient()
+        client.use {
+            client.initialize(this, apiKey, sdkConfiguration, target)
+            client.waitForInitialization()
+            Log.i("SDKInit", "Successfully initialized client")
 
-        if (flagName.equals("null")) { flagName = "harnessappdemodarkmode" }
+            // Get initial value of flag and display it
+            var flagValue: Boolean = client.boolVariation(flagName, false)
+            printMessage("$flagName : $flagValue")
 
-        // Create Default Configuration for the SDK.  We can use this to disable streaming,
-        // change the URL the client connects to etc
-        val sdkConfiguration = CfConfiguration.builder().enableStream(true).build()
-
-        // Create a target (different targets can get different results based on rules.  This include a custom attribute 'location')
-        val target = Target().identifier("ff-android").name("FF Android")
-        target.attributes["location"] = "emea"
-
-        // Init the default instance of the Feature Flag Client
-        CfClient.getInstance().initialize(this, apiKey, sdkConfiguration, target)
-        { info, result ->
-            if (result.isSuccess) {
-                Log.i("SDKInit", "Successfully initialized client: " +info)
-
-                // Get initial value of flag and display it
-                var flagValue : Boolean = CfClient.getInstance().boolVariation(flagName, false)
-                printMessage("$flagName : $flagValue")
-
-                // Setup Listener to handle different events emitted by the SDK
-                CfClient.getInstance().registerEventsListener { event ->
-                    when (event.eventType) {
-                        // Setup Listener to handle flag change events.  This fires when a flag is modified.
-                        StatusEvent.EVENT_TYPE.EVALUATION_CHANGE, StatusEvent.EVENT_TYPE.EVALUATION_RELOAD -> {
-                            Log.i("SDKEvent", "received event for flag")
-                            flagValue = CfClient.getInstance().boolVariation(flagName, false)
-                            printMessage("$flagName : $flagValue")
-                        }
-                        else -> Log.i("SDKEvent", "Got ${event.eventType.name}")
+            // Setup Listener to handle different events emitted by the SDK
+            client.registerEventsListener { event ->
+                when (event.eventType) {
+                    // Setup Listener to handle flag change events.  This fires when a flag is modified.
+                    StatusEvent.EVENT_TYPE.EVALUATION_CHANGE -> {
+                        Log.i("SDKEvent", "received ${event.eventType} event for flag")
+                        event.extractEvaluationPayload()
+                        flagValue = client.boolVariation(flagName, false)
+                        printMessage("$flagName : $flagValue")
                     }
+                    else -> Log.i("SDKEvent", "Got ${event.eventType.name}")
                 }
-            } else {
-                Log.e("SDKInit", "Failed to initialize client", result.error)
-                result.error.message?.let { printMessage(it) }
             }
         }
     }
@@ -141,8 +123,7 @@ $ANDROID_SDK/emulator/emulator @Pixel_4.4_API_32
 
 #### Build the project
 ```shell
-cd examples/GettingStarted
-./gradlew build
+./gradlew build -xtest
 ```
 <br>
 
@@ -151,7 +132,7 @@ You must provide the FF_API_KEY which will be compiled in.
 You can also optionally override the flag that will be evaluated
 by providing FF_FLAG_NAME
 ```shell
-FF_FLAG_NAME="harnessappdemodarkmode" FF_API_KEY="dca85a82-2860-4b12-8bf9-584f3da5ceb8" ./gradlew installDebug
+FF_FLAG_NAME="harnessappdemodarkmode" FF_API_KEY="dca85a82-2860-4b12-8bf9-584f3da5ceb8" ./gradlew :examples:GettingStarted:installDebug
 ```
 <br>
 The app should show the configured flags current value.  As you toggle the flag in the Harrness UI you will see the

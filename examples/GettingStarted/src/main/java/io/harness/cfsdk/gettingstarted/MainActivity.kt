@@ -43,30 +43,32 @@ class MainActivity : AppCompatActivity() {
         target.attributes["location"] = "emea"
 
         // Init the default instance of the Feature Flag Client
-        CfClient.getInstance().initialize(this, apiKey, sdkConfiguration, target)
-        { info, result ->
-            if (result.isSuccess) {
-                Log.i("SDKInit", "Successfully initialized client: " + info)
+
+        val client = CfClient()
+        client.use {
+            client.initialize(this, apiKey, sdkConfiguration, target)
+            if (client.waitForInitialization(60_000)) {
+                Log.i("SDKInit", "Successfully initialized client")
 
                 // Get initial value of flag and display it
-                var flagValue: Boolean = CfClient.getInstance().boolVariation(flagName, false)
+                var flagValue: Boolean = client.boolVariation(flagName, false)
                 printMessage("$flagName : $flagValue")
 
                 // Setup Listener to handle different events emitted by the SDK
-                CfClient.getInstance().registerEventsListener { event ->
+                client.registerEventsListener { event ->
                     when (event.eventType) {
                         // Setup Listener to handle flag change events.  This fires when a flag is modified.
                         StatusEvent.EVENT_TYPE.EVALUATION_CHANGE -> {
                             Log.i("SDKEvent", "received ${event.eventType} event for flag")
                             event.extractEvaluationPayload()
-                            flagValue = CfClient.getInstance().boolVariation(flagName, false)
+                            flagValue = client.boolVariation(flagName, false)
                             printMessage("$flagName : $flagValue")
                         }
 
                         StatusEvent.EVENT_TYPE.EVALUATION_RELOAD -> {
                             Log.i("SDKEvent", "received ${event.eventType} event for flag")
                             event.extractEvaluationListPayload()
-                            flagValue = CfClient.getInstance().boolVariation(flagName, false)
+                            flagValue = client.boolVariation(flagName, false)
                             printMessage("$flagName : $flagValue")
                         }
                         // There's been an interruption SSE stream which has since resumed, which means the
@@ -74,7 +76,7 @@ class MainActivity : AppCompatActivity() {
                         // bool variation to get the most up to date evaluation value.
                         StatusEvent.EVENT_TYPE.SSE_RESUME -> {
                             Log.i("SDKEvent", "received ${event.eventType} event for flag")
-                            flagValue = CfClient.getInstance().boolVariation(flagName, false)
+                            flagValue = client.boolVariation(flagName, false)
                             printMessage("$flagName : $flagValue")
                         }
 
@@ -82,9 +84,9 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             } else {
-                Log.e("SDKInit", "Failed to initialize client", result.error)
-                result.error.message?.let { printMessage(it) }
+                Log.e("SDKInit", "Timed out waiting for client to initialize")
             }
+
         }
     }
 

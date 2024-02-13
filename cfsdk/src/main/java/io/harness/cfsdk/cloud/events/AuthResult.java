@@ -2,7 +2,9 @@ package io.harness.cfsdk.cloud.events;
 
 /**
  * Authentication result.
+ * This class will be removed in a future version of the SDK.
  */
+@Deprecated
 public class AuthResult {
 
     private boolean success;

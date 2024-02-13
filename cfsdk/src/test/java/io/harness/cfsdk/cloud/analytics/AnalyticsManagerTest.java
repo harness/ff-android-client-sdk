@@ -20,6 +20,8 @@ import io.harness.cfsdk.cloud.openapi.metric.api.MetricsApi;
 
 import static org.junit.Assert.*;
 
+import android.content.Context;
+
 @SuppressWarnings("BusyWait")
 public class AnalyticsManagerTest {
     private static final Logger log = LoggerFactory.getLogger(AnalyticsManagerTest.class);
@@ -40,8 +42,9 @@ public class AnalyticsManagerTest {
         final CfConfiguration config = CfConfiguration.builder().metricsCapacity(BUFFER_SIZE).build();
         final MetricsApi metricsApi = Mockito.mock(MetricsApi.class);
         final AnalyticsPublisherService aps = new AnalyticsPublisherService(authInfo, metricsApi);
+        final Target target = new Target().identifier("harness");
 
-        final AnalyticsManager processor = new AnalyticsManager(config, aps) {
+        final AnalyticsManager processor = new AnalyticsManager(Mockito.mock(Context.class), config, target, aps) {
             @Override
             protected AnalyticsPublisherServiceCallback getSendingCallback() {
                 return (success) -> {
@@ -52,7 +55,6 @@ public class AnalyticsManagerTest {
         };
 
         final ExecutorService WORKER_THREAD_POOL = Executors.newFixedThreadPool(BUFFER_SIZE);
-        final Target target = new Target().identifier("harness");
         final Variation variation = new Variation().identifier("true").value("true");
 
         for (int i = 1; i <= BUFFER_SIZE; i++) {
@@ -60,7 +62,7 @@ public class AnalyticsManagerTest {
             WORKER_THREAD_POOL.submit(() -> {
                     Thread.currentThread().setName(name);
                     for (int j = 1; j <= BUFFER_SIZE; j++) {
-                        processor.registerEvaluation(target, "bool-flag", variation);
+                        processor.registerEvaluation("bool-flag", variation);
 
                         processor.flush();
                     }
@@ -101,30 +103,26 @@ public class AnalyticsManagerTest {
         final AuthInfo authInfo = Mockito.mock(AuthInfo.class);
         final CfConfiguration config = CfConfiguration.builder().metricsCapacity(BUFFER_SIZE).build();
         final MetricsApi metricsApi = Mockito.mock(MetricsApi.class);
+        final Target target = new Target().identifier("harness");
         final AnalyticsPublisherService aps = new AnalyticsPublisherService(authInfo, metricsApi);
-        final AnalyticsManager processor = new AnalyticsManager(config, aps);
+        final AnalyticsManager processor = new AnalyticsManager(Mockito.mock(Context.class), config, target, aps);
 
-        final int TARGET_COUNT = 100;
         final int FLAG_COUNT = 500;
         final int VARIATION_COUNT = 4;
-
         long maxQueueMapSize = 0;
 
-        for (int t = 0; t < TARGET_COUNT; t++) {
-            Target target = new Target().identifier("harness" + t);
-            for (int f = 0; f < FLAG_COUNT; f++) {
-                Variation feature = new Variation().identifier("bool-flag" + f);
-                for (int v = 0; v < VARIATION_COUNT; v++) {
-                    Variation variation =
-                            new Variation().identifier("true" + v).name("name" + v).value("true");
+        for (int f = 0; f < FLAG_COUNT; f++) {
+            Variation feature = new Variation().identifier("bool-flag" + f);
+            for (int v = 0; v < VARIATION_COUNT; v++) {
+                Variation variation =
+                        new Variation().identifier("true" + v).name("name" + v).value("true");
 
-                    processor.registerEvaluation(target, feature.getIdentifier(), variation);
+                processor.registerEvaluation(feature.getIdentifier(), variation);
 
-                    maxQueueMapSize = Math.max(maxQueueMapSize, processor.getQueueSize());
-                }
+                maxQueueMapSize = Math.max(maxQueueMapSize, processor.getQueueSize());
             }
 
-            if (t % 10 == 0) {
+            if (f % 10 == 0) {
                 log.info(
                         "Metrics frequency map (cur: {} max: {}) Events sent ({}) Events pending ({})",
                         processor.getQueueSize(),
@@ -136,9 +134,10 @@ public class AnalyticsManagerTest {
             }
         }
 
+
         processor.flush();
 
-        int waitingForCount = TARGET_COUNT * FLAG_COUNT * VARIATION_COUNT;
+        int waitingForCount = FLAG_COUNT * VARIATION_COUNT;
         waitForAllMetricEventsToArrive(processor, waitingForCount);
 
         assertEquals(waitingForCount, processor.getMetricsSent());
