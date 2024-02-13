@@ -250,7 +250,7 @@ public class CfClient implements Closeable, Client {
             pushToMetrics(evaluationId, evaluation);
             return parsedVal;
         } catch (JSONException e) {
-            log.error("Error parsing evaluation value as JSONObject: " + e.getMessage(), e);
+            log.warn("Error parsing evaluation value as JSONObject: " + e.getMessage(), e);
             SdkCodes.warnDefaultVariationServed(evaluationId, defaultValue.toString(), "JSONException: " + e.getMessage());
             return defaultValue;
         }
