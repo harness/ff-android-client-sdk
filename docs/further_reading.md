@@ -27,18 +27,35 @@ You can provide options by adding them to the SDK Configuration.
 
 
 ## Logging Configuration
-We use Android Log, for details on how to use Android Log including selectively log based on levels see the [official guide here](https://source.android.com/devices/tech/debug/understanding-logging#log-standards)
-The SDK uses the simple class names as tags.  You can enable log levels for each of them using the following tags
+We use SLF4J. For more information see https://www.slf4j.org/.
 
-* CfClient - main client logs
-* AnalyticsManager - logs for analytics
-* SSEListener - logs relating to the SEE stream
-* DefaultApi - logs for http requests
-
-You can enable a level for any one of these tags using the following command:
-```shell
-adb shell setprop log.tag.<tag_name> VERBOSE
+To enable it add the following dependencies to your Gradle build file. You can use any framework you prefer, here we are using `logback-android` and `BasicLogcatConfigurator` to bridge SLF4J to Logcat.
 ```
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'com.github.tony19:logback-android:3.0.0'
+```
+
+Then add a configurator to you app
+```
+    companion object {
+        init {
+            BasicLogcatConfigurator.configureDefaultContext()
+        }
+    }
+```
+
+Logs can be defined for classes like so
+```
+private val log: Logger = LoggerFactory.getLogger(MainActivity::class.java)
+...
+log.info("my log message")
+```
+
+Log items will be visible in Android Studio's Logcat tab for each emulator you are running.
+
+A full example can be found [here](https://github.com/harness/ff-android-client-sdk/blob/main/examples/tlsexample/src/main/java/io/harness/cfsdk/tlsexample/MainActivity.kt)
+
+
 
 ## Recommended reading
 
@@ -64,14 +81,13 @@ val sdkConfiguration = CfConfiguration.builder()
 
 val target = Target().identifier("target")
 
-CfClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration, target) 
-{ info, result ->
+CfClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration, target)
 
-    if (result.isSuccess) {
-        
+if (CfClient.getInstance().waitForInitialization(15_000)) {
         // Congratulations your SDK has been initialized with success!
         // After this callback is executed, You are ready to use the SDK!                        
-    }
+} else {
+        // Timeout - check logcat for reason - SDK will attempt to reauthenticate in the background and serve defaults in the mean time
 }
 ```
 
@@ -84,30 +100,6 @@ CfClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration, tar
 The Public API exposes a few methods that you can utilize:
 
 * `initialize(...)`
-
-```
-public void initialize(
-
-            final Context context,
-            final String apiKey,
-            final CfConfiguration configuration,
-            final Target target,
-            final AuthCallback authCallback
-
-) throws IllegalStateException
-```
-
-```
-public void initialize(
-
-        final Context context,
-        final String apiKey,
-        final CfConfiguration configuration,
-        final Target target,
-        final CloudCache cloudCache
-
-) throws IllegalStateException
-```
 
 ```
 public void initialize(
@@ -132,7 +124,9 @@ public void initialize(
 
 * `public void unregisterEventsListener(EventsListener observer)`
 
-* `public void destroy()`
+* `public void refreshEvaluations()`
+
+* `public void close()`
 
 <br><br>
 
@@ -232,7 +226,7 @@ Otherwise, the default metrics endpoint URL will be used.
 ## _Shutting down the SDK_
 To avoid potential memory leak, when SDK is no longer needed (when the app is closed, for example), a caller should call this method:
 ```Kotlin
-CfClient.getInstance().destroy()
+CfClient.getInstance().close()
 ```
 
 ## Cloning the SDK repository
@@ -242,21 +236,3 @@ In order to clone SDK repository properly perform cloning like in the following 
 ```
 git clone --recurse-submodules git@github.com:harness/ff-android-client-sdk.git
 ``` 
-
-## Using SDK in unit tests
-
-To be able to use the SDK in unit tests it is required to set SDKs logging to the console output:
-
-```Kotlin
-CfLog.testModeOn()
-```
-
-`testModeOn` will turn on the use of the system output logging strategy.
-
-On the other hand, to turn on the usage of the Android [log class](https://developer.android.com/reference/android/util/Log) use:
-
-```Kotlin
-CfLog.runtimeModeOn()
-``` 
-
-Standard Android logging is the default logging strategy so turning on runtime mode is not required. 
