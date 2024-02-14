@@ -149,7 +149,9 @@ For release builds, Android uses ProGuard to apply optimizations that can affect
 
 Please add the following rule to your ProGuard configuration to ensure proper functionality when running your Android app from a release build
 
+```
 -keep class io.harness.cfsdk.** { *; }
+```
 
 ### Running the example with docker
 You will need to install the Android SDK in order to run the emulator, but if you wish to avoid installing Java, Gradle etc
