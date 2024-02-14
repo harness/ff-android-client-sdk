@@ -27,6 +27,7 @@ To use this SDK, make sure you've:
 - [Java 11](https://www.oracle.com/java/technologies/downloads/#java11) or newer <br>
 - [Gradle 8.3](https://gradle.org/releases/) or newer <br>
 - Android Studio Hedgehog is needed to support Android Gradle Plugin 8.2.x when not building SDK source code from command line
+- Projects that consume this library will need Desugaring support enabled to support older phones. Please read https://developer.android.com/studio/write/java8-support#library-desugaring
 
 To follow along with our test code sample, make sure you’ve:
 - [Created a Feature Flag](https://ngdocs.harness.io/article/1j7pdkqh7j-create-a-feature-flag) on the Harness Platform called harnessappdemodarkmode
@@ -171,7 +172,6 @@ Further examples and config options are in the further reading section:
 
 [Further Reading](docs/further_reading.md)<br>
 [Getting Started Example](examples/GettingStarted)<br>
-[Advanced Example](https://github.com/drone/ff-android-client-sample)
 
 
 -------------------------
