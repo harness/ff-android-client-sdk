@@ -132,7 +132,7 @@ You must provide the FF_API_KEY which will be compiled in.
 You can also optionally override the flag that will be evaluated
 by providing FF_FLAG_NAME
 ```shell
-FF_FLAG_NAME="harnessappdemodarkmode" FF_API_KEY="dca85a82-2860-4b12-8bf9-584f3da5ceb8" ./gradlew :examples:GettingStarted:installDebug
+FF_FLAG_NAME="harnessappdemodarkmode" FF_API_KEY=<YOUR_API_KEY> ./gradlew :examples:GettingStarted:installDebug
 ```
 <br>
 The app should show the configured flags current value.  As you toggle the flag in the Harrness UI you will see the
