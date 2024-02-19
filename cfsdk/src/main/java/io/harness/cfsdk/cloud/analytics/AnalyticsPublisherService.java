@@ -1,6 +1,7 @@
 package io.harness.cfsdk.cloud.analytics;
 
 
+import static java.util.concurrent.ThreadLocalRandom.current;
 import static io.harness.cfsdk.AndroidSdkVersion.ANDROID_SDK_VERSION;
 
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
+import io.harness.cfsdk.cloud.network.NewRetryInterceptor;
 import io.harness.cfsdk.cloud.openapi.metric.ApiClient;
 import io.harness.cfsdk.cloud.openapi.metric.api.MetricsApi;
 import io.harness.cfsdk.cloud.openapi.metric.model.KeyValue;
@@ -25,6 +27,7 @@ import io.harness.cfsdk.cloud.openapi.metric.ApiException;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.common.SdkCodes;
 import io.harness.cfsdk.utils.TlsUtils;
+import okhttp3.OkHttpClient;
 
 /**
  * This class prepares the message body for metrics and posts it to the server
@@ -210,11 +213,12 @@ public class AnalyticsPublisherService {
     }
 
     static MetricsApi makeMetricsApi(CfConfiguration config, String authToken, AuthInfo authInfo) {
+        final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.addInterceptor(new NewRetryInterceptor(current().nextInt(2000, 5000)));
 
-        final MetricsApi metricsAPI = new MetricsApi();
-        final ApiClient api = metricsAPI.getApiClient();
-
+        final ApiClient api = new ApiClient(builder.build());
         api.setBasePath(config.getEventURL());
+        api.setDebugging(config.isDebugEnabled());
         api.addDefaultHeader("Authorization", "Bearer " + authToken);
         api.setUserAgent("android " + ANDROID_SDK_VERSION);
         api.addDefaultHeader("Harness-SDK-Info", "Android " + ANDROID_SDK_VERSION + " Client");
@@ -226,6 +230,6 @@ public class AnalyticsPublisherService {
             api.addDefaultHeader("Harness-AccountID", authInfo.getAccountID());
         }
 
-        return metricsAPI;
+        return new MetricsApi(api);
     }
 }
