@@ -63,7 +63,7 @@ public class NewRetryInterceptor implements Interceptor {
 
       } catch (Exception ex) {
         log.trace("Error while attempting to make request", ex);
-        msg = ex.getMessage();
+        msg = ex.getClass().getSimpleName() + ": " + ex.getMessage();
         response = makeErrorResp(chain, msg);
         successful = false;
         if (!shouldRetryException(ex)) {
@@ -147,7 +147,7 @@ public class NewRetryInterceptor implements Interceptor {
 
   private Response makeErrorResp(Chain chain, String msg) {
     return new Response.Builder()
-        .code(404) /* dummy response: real reason is in the message */
+        .code(400) /* dummy response: real reason is in the message */
         .request(chain.request())
         .protocol(Protocol.HTTP_2)
         .message(msg)
