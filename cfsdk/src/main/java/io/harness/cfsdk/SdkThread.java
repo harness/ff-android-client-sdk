@@ -1,5 +1,6 @@
 package io.harness.cfsdk;
 
+import static java.util.concurrent.ThreadLocalRandom.current;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -35,6 +36,7 @@ import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkInfoProvider;
+import io.harness.cfsdk.cloud.network.NewRetryInterceptor;
 import io.harness.cfsdk.cloud.openapi.client.ApiClient;
 import io.harness.cfsdk.cloud.openapi.client.ApiException;
 import io.harness.cfsdk.cloud.openapi.client.api.ClientApi;
@@ -46,6 +48,7 @@ import io.harness.cfsdk.cloud.sse.EventsListener;
 import io.harness.cfsdk.cloud.sse.StatusEvent;
 import io.harness.cfsdk.common.SdkCodes;
 import io.harness.cfsdk.utils.TlsUtils;
+import okhttp3.OkHttpClient;
 
 class SdkThread implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(SdkThread.class);
@@ -444,9 +447,12 @@ class SdkThread implements Runnable {
     }
 
     ApiClient makeApiClient() {
-        final ApiClient apiClient = new ApiClient()
+        final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.addInterceptor(new NewRetryInterceptor(current().nextInt(2000, 5000)));
+
+        final ApiClient apiClient = new ApiClient(builder.build())
             .setBasePath(config.getBaseURL())
-            .setDebugging(false)
+            .setDebugging(config.isDebugEnabled())
             .setUserAgent("android " + ANDROID_SDK_VERSION)
             .addDefaultHeader("Hostname", getHostname())
             .addDefaultHeader("Harness-SDK-Info", "Android " + ANDROID_SDK_VERSION + " Client");
