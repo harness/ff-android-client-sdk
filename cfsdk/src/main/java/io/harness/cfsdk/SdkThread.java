@@ -66,6 +66,7 @@ class SdkThread implements Runnable {
     private final Set<EventsListener> eventsListenerSet;
     private final NetworkInfoProvider network;
     private final AuthCallback authCallback;
+    private final NetworkInfoProvider networkSleeper;
 
     /* ---- Mutable state ---- */
     private ClientApi api;
@@ -85,6 +86,7 @@ class SdkThread implements Runnable {
         this.eventsListenerSet = eventsListenerSet;
         this.network = new NetworkInfoProvider(context);
         this.authCallback = authCallback;
+        this.networkSleeper = new NetworkInfoProvider(context);
     }
 
     void mainSdkThread(ClientApi api) throws ApiException {
@@ -546,12 +548,12 @@ class SdkThread implements Runnable {
         log.info("Network is offline, SDK going to sleep");
 
         final CountDownLatch networkLatch = new CountDownLatch(1);
-        final NetworkInfoProvider networkSleeper = new NetworkInfoProvider(context);
 
         networkSleeper.register(status -> {
             if (status == CONNECTED) {
                 log.debug("got network event: {}", status);
                 networkLatch.countDown();
+                networkSleeper.unregisterAll();
             }
         });
 
