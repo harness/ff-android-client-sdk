@@ -105,7 +105,7 @@ public class CfClient implements Closeable, Client {
                     throw new IllegalArgumentException("Event URL is null or empty");
                 }
                 threadExecutor.submit(() -> {
-                    sdkThread.waitForInitialization(0);
+                    boolean result = sdkThread.waitForInitialization(configuration.getInitialzationTimeout());
                     metricsThread = new AnalyticsManager(context, configuration, target, new AnalyticsPublisherService(configuration, sdkThread.getBearerToken(), sdkThread.getAuthInfo()));
                 });
             }
@@ -116,15 +116,24 @@ public class CfClient implements Closeable, Client {
     }
 
     @Override
+    public boolean waitForInitialization() {
+        if (sdkThread == null) throw new IllegalStateException("SDK not initialized");
+        return sdkThread.waitForInitialization(configuration.getInitialzationTimeout());
+    }
+
+    /**
+     * @deprecated
+     * Since 2.0.2, use zero args  {@link #waitForInitialization()} ()}instead and set the
+     * timeout using `CfConfiguration` builder `setInitializationTimeout`.  The `timeoutMS` will
+     * be ignored in this method and will solely look for the the config option. If this is not set,
+     * then SDK initialization will not timeout.
+     *
+     * Will be removed in a future release
+     */
+    @Override
     public boolean waitForInitialization(long timeoutMs) {
         if (sdkThread == null) throw new IllegalStateException("SDK not initialized");
         return sdkThread.waitForInitialization(timeoutMs);
-    }
-
-    @Override
-    public void waitForInitialization() throws InterruptedException {
-        if (sdkThread == null) throw new IllegalStateException("SDK not initialized");
-        sdkThread.waitForInitialization(0L);
     }
 
     @Override

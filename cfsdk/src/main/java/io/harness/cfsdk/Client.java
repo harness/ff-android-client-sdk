@@ -38,7 +38,7 @@ public interface Client extends AutoCloseable {
      * @throws InterruptedException if the thread was interrupted while waiting
      * @since 1.2.0
      */
-    void waitForInitialization() throws InterruptedException;
+    boolean waitForInitialization() throws InterruptedException;
 
     /**
      * Retrieve the current state of a boolean feature flag
