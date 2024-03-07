@@ -15,6 +15,7 @@ public class CfConfiguration {
     public static final int DEFAULT_METRICS_CAPACITY = 1024;
     public static final int MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS = 60;
     public static final int DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS = 10;
+    public static final int DEFAULT_INITIALIZATION_TIMEOUT_IN_MILLISECONDS = 0;
 
     private static final String BASE_URL = "https://config.ff.harness.io/api/1.0";
     private static final String EVENT_URL = "https://events.ff.harness.io/api/1.0";
@@ -35,6 +36,7 @@ public class CfConfiguration {
     private boolean debugEnabled;
 
     private CloudCache cache;
+    private int initialzationTimeout;
 
     protected CfConfiguration(
 
@@ -59,6 +61,7 @@ public class CfConfiguration {
         this.metricsPublishingIntervalInMillis = MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS * 1000L;
         this.metricsServiceAcceptableDurationInMillis = DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS * 1000L;
         this.cache = null;
+        this.initialzationTimeout = DEFAULT_INITIALIZATION_TIMEOUT_IN_MILLISECONDS;
     }
 
     public String getBaseURL() {
@@ -119,6 +122,9 @@ public class CfConfiguration {
     public CloudCache getCache() {
         return cache;
     }
+    public int getInitialzationTimeout() {
+        return initialzationTimeout;
+    }
 
     public static class Builder {
 
@@ -135,6 +141,7 @@ public class CfConfiguration {
         private boolean debugEnabled = false;
 
         private CloudCache cache = null;
+        private int initialzationTimeout = DEFAULT_INITIALIZATION_TIMEOUT_IN_MILLISECONDS;
 
         /**
          * Sets the base API url
@@ -267,6 +274,11 @@ public class CfConfiguration {
             return this;
         }
 
+        public Builder initialzationTimeout(int initialzationTimeout) {
+            this.initialzationTimeout = initialzationTimeout;
+            return this;
+        }
+
         public int getMetricsCapacity() {
 
             return metricsCapacity;
@@ -325,6 +337,10 @@ public class CfConfiguration {
             return cache;
         }
 
+        public int getInitialzationTimeout(){
+            return initialzationTimeout;
+        }
+
         /**
          * Build the configuration instance.
          *
@@ -357,6 +373,7 @@ public class CfConfiguration {
             cfConfiguration.setMetricsServiceAcceptableDurationInMillis(metricsPublishingAcceptableDurationInMillis);
             cfConfiguration.setDebugEnabled(debugEnabled);
             cfConfiguration.setCache(cache);
+            cfConfiguration.setInitialzationTimeout(initialzationTimeout);
             return cfConfiguration;
         }
     }
@@ -397,6 +414,10 @@ public class CfConfiguration {
 
     public void setDebugEnabled(boolean enabled) {
         this.debugEnabled = enabled;
+    }
+
+    public void setInitialzationTimeout(int initialzationTimeout) {
+        this.initialzationTimeout = initialzationTimeout;
     }
 
     void setCache(CloudCache cache) {
