@@ -472,6 +472,36 @@ class SdkThread implements Runnable {
         }
     }
 
+    boolean waitForInitialization() {
+        try {
+            SdkCodes.infoSdkWaitingForInit();
+
+            int timeoutMs = config.getInitialzationTimeout();
+            if (timeoutMs <= 0) {
+                initLatch.await();
+                return true;
+            }
+
+            if (initLatch.await(timeoutMs, TimeUnit.MILLISECONDS)) {
+                return true;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logExceptionAndWarn("waitForInit interrupted", e);
+        }
+        log.warn("Failed to initialize within the {}ms timeout window. Defaults will be served.", config.getInitialzationTimeout());
+        return false;
+    }
+
+    /**
+     * @deprecated
+     * Since 2.0.2, use zero args  {@link #waitForInitialization()} ()}instead and set the
+     * timeout using `CfConfiguration` builder `setInitializationTimeout`.  The `timeoutMS` will
+     * be ignored in this method and will solely look for the the config option. If this is not set,
+     * then SDK initialization will not timeout.
+     *
+     * Will be removed in a future release
+     */
     boolean waitForInitialization(long timeoutMs) {
         try {
             SdkCodes.infoSdkWaitingForInit();
