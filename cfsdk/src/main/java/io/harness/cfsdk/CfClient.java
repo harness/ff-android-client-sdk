@@ -114,7 +114,7 @@ public class CfClient implements Closeable, Client {
             log.warn(e.getMessage(), e);
         }
     }
-
+    
     @Override
     public boolean waitForInitialization() {
         if (sdkThread == null) throw new IllegalStateException("SDK not initialized");

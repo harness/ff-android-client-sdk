@@ -14,6 +14,9 @@ import io.harness.cfsdk.cloud.sse.EventsListener;
 
 public interface Client extends AutoCloseable {
 
+    void initialize(final Context context, final String apiKey, final CfConfiguration config,
+                    final Target target, final AuthCallback authCallback) throws IllegalStateException;
+
     void initialize(
             Context context,
             String apiKey,
@@ -24,6 +27,7 @@ public interface Client extends AutoCloseable {
 
     /**
      * Wait for the SDK to authenticate and populate its cache.
+     *
      * @param timeoutMs Timeout in milliseconds to wait for SDK to initialize
      * @return Returns true if successfully initialized else false if timed out or something went
      * wrong. If false is returned, your code may proceed to use xVariation functions however
@@ -35,6 +39,7 @@ public interface Client extends AutoCloseable {
     /**
      * Wait for the SDK to authenticate and populate it cache. This version waits indefinitely, if
      * you require control over startup time then use {@link #waitForInitialization(long) waitForInitialization(timeoutMs)}
+     *
      * @throws InterruptedException if the thread was interrupted while waiting
      * @since 1.2.0
      */
@@ -42,6 +47,7 @@ public interface Client extends AutoCloseable {
 
     /**
      * Retrieve the current state of a boolean feature flag
+     *
      * @param evaluationId The identifier of the flag as configured in the UI.
      * @param defaultValue A default value to return if an error is detected or SDK is not
      *                     authenticated.
@@ -51,6 +57,7 @@ public interface Client extends AutoCloseable {
 
     /**
      * Retrieve the current state of a string feature flag
+     *
      * @param evaluationId The identifier of the flag as configured in the UI.
      * @param defaultValue A default value to return if an error is detected or SDK is not
      *                     authenticated.
@@ -60,6 +67,7 @@ public interface Client extends AutoCloseable {
 
     /**
      * Retrieve the current state of a number feature flag
+     *
      * @param evaluationId The identifier of the flag as configured in the UI.
      * @param defaultValue A default value to return if an error is detected or SDK is not
      *                     authenticated.
@@ -69,6 +77,7 @@ public interface Client extends AutoCloseable {
 
     /**
      * Retrieve the current state of a JSON feature flag
+     *
      * @param evaluationId The identifier of the flag as configured in the UI.
      * @param defaultValue A default value to return if an error is detected or SDK is not
      *                     authenticated.
@@ -124,6 +133,7 @@ public interface Client extends AutoCloseable {
      * Clears the occupied resources and shut's down the sdk.
      * After calling this method, the {@link #initialize} must be called again. It will also
      * remove any registered event listeners.
+     *
      * @since 1.2.0
      */
     void close();
@@ -136,17 +146,7 @@ public interface Client extends AutoCloseable {
      */
     @Deprecated
     void initialize(final Context context, final String apiKey, final CfConfiguration config,
-                           final Target target, final CloudCache cloudCache, @Nullable final AuthCallback authCallback) throws IllegalStateException;
-
-
-    /**
-     * Deprecated. Use {@link io.harness.cfsdk.CfClient#initialize(Context, String, CfConfiguration, Target)} instead.
-     * Kept for source compatibility with 1.x.x projects and will be removed in a future version.
-     * Authentication callback has been removed you should instead wait for authentication to complete using {@link CfClient#waitForInitialization()}.
-     */
-    @Deprecated
-    void initialize(final Context context, final String apiKey, final CfConfiguration config,
-                           final Target target, final AuthCallback authCallback) throws IllegalStateException;
+                    final Target target, final CloudCache cloudCache, @Nullable final AuthCallback authCallback) throws IllegalStateException;
 
 
     /**
@@ -156,6 +156,6 @@ public interface Client extends AutoCloseable {
      */
     @Deprecated
     void initialize(final Context context, final String apiKey, final CfConfiguration config,
-                           final Target target, final CloudCache cloudCache) throws IllegalStateException;
+                    final Target target, final CloudCache cloudCache) throws IllegalStateException;
 
 }
