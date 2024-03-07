@@ -151,7 +151,7 @@ class SdkThread implements Runnable {
         try {
             bearerToken = api.authenticate(authRequest).getAuthToken();
         } catch (ApiException ex) {
-            // 1.x.x backwards compatibility - this catch can be removed once the deprecated AuthCallback and AuthResult are removed
+            // If AuthCallBack is being used to initialize the SDK
             if (authCallback != null && ex.getCode() != 200) {
                 authCallback.authorizationSuccess(null, new AuthResult(false, ex));
             }

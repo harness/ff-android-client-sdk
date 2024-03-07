@@ -57,6 +57,13 @@ public class CfClient implements Closeable, Client {
     }
 
     @Override
+    public void initialize(final Context context, final String apiKey, final CfConfiguration config,
+                           final Target target, final AuthCallback authCallback) throws IllegalStateException {
+        initializeInternal(context, apiKey, config, target, null, authCallback);
+    }
+
+
+    @Override
     public void initialize(
             final Context context,
             final String apiKey,
@@ -97,8 +104,10 @@ public class CfClient implements Closeable, Client {
                 if (isEmpty(configuration.getEventURL())) {
                     throw new IllegalArgumentException("Event URL is null or empty");
                 }
-                sdkThread.waitForInitialization(0);
-                metricsThread = new AnalyticsManager(context, configuration, target, new AnalyticsPublisherService(configuration, sdkThread.getBearerToken(), sdkThread.getAuthInfo()));
+                threadExecutor.submit(() -> {
+                    sdkThread.waitForInitialization(0);
+                    metricsThread = new AnalyticsManager(context, configuration, target, new AnalyticsPublisherService(configuration, sdkThread.getBearerToken(), sdkThread.getAuthInfo()));
+                });
             }
 
         } catch (Exception e) {
@@ -268,13 +277,6 @@ public class CfClient implements Closeable, Client {
     public void initialize(final Context context, final String apiKey, final CfConfiguration config,
             final Target target, final CloudCache cloudCache, @Nullable final AuthCallback authCallback) throws IllegalStateException {
         initializeInternal(context, apiKey, config, target, cloudCache, authCallback);
-    }
-
-    @Deprecated
-    @Override
-    public void initialize(final Context context, final String apiKey, final CfConfiguration config,
-                           final Target target, final AuthCallback authCallback) throws IllegalStateException {
-        initializeInternal(context, apiKey, config, target, null, authCallback);
     }
 
     @Deprecated
