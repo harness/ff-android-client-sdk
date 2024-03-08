@@ -2,8 +2,8 @@
 buildscript {
 
     ext {
-        kotlin_version = "1.7.20"
-        okhttp3_version = "4.11.0"
+        kotlin_version = "1.9.10"
+        okhttp3_version = "4.12.0"
     }
 
     repositories {
