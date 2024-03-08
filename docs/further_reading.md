@@ -2,18 +2,73 @@
 
 Covers advanced topics (different config options and scenarios)
 
+## Client Initialization Options
+### Overview
+The Harness Feature Flags SDK for Android supports flexible initialization strategies to accommodate different application startup requirements. You can choose between an asynchronous (non-blocking) or synchronous (blocking) approach to initialize the SDK.
+
+### Asynchronous (Non-Blocking) Initialization
+To avoid blocking the main thread, the SDK provides asynchronous initialization options. This method allows your application to remain responsive while the SDK initializes in the background.
+
+#### Using callback
+Usage:
+
+```Kotlin
+val client = CfClient()
+client.initialize(this, apiKey, sdkConfiguration, target)
+{ info, result ->
+    if (result.isSuccess) {
+        Log.i("SDKInit", "Successfully initialized client: " + info)
+}  else {
+        Log.e("SDKInit", "Failed to initialize client", result.error)
+    } 
+}
+```
+This non-blocking approach utilizes a callback to notify the application of the SDK's readiness or any errors encountered during initialization.
+* You might get multiple callbacks if there was a failure and the SDK attempts to retry authentication.
+
+#### Without using a callback
+If you don't want to use a callback, you can simply initialize the SDK. Defaults will be served for any variation calls until the SDK can complete initialization.
+```Kotlin
+val client = CfClient()
+client.initialize(this, apiKey, sdkConfiguration, target)
+```
+
+
+### Synchronous (Blocking) Initialization
+For scenarios where it's critical to have feature flags loaded and evaluated before proceeding, the SDK offers a blocking initialization method.
+This approach ensures that the SDK is fully authenticated and the feature flags are populated from the cache or network before moving forward.
+
+This will block the UI thread, so use synchros initialization only if absolutely required.
+
+Usage:
+
+```kotlin
+client.initialize(context, apiKey, configuration, target);
+boolean isInitialized = client.waitForInitialization(timeoutMs);
+if (isInitialized) {
+    Log.i("SDKInit", "Successfully initialized client)
+}  else {
+    Log.e("SDKInit", "Failed to initialize client")
+} 
+```
+
+
+After invoking `initialize(...)`, calling `waitForInitialization(long timeoutMs)` blocks the calling thread until the SDK completes its authentication process or until the specified timeout elapses. A timeoutMs value of 0 waits indefinitely.
+Use this method cautiously to prevent blocking the main UI thread, which can lead to a poor user experience.
+
+
 ## Configuration Options
 The following configuration options are available to control the behaviour of the SDK.
 You can provide options by adding them to the SDK Configuration.
 
 ```Kotlin
         val sdkConfiguration = CfConfiguration.builder()
-            .baseUrl("https://config.ff.harness.io/api/1.0")
-            .eventUrl("https://events.ff.harness.io/api/1.0")
-            .pollingInterval(60)
-            .enableStream(true)
-            .enableAnalytics(true)
-            .build()
+    .baseUrl("https://config.ff.harness.io/api/1.0")
+    .eventUrl("https://events.ff.harness.io/api/1.0")
+    .pollingInterval(60)
+    .enableStream(true)
+    .enableAnalytics(true)
+    .build()
 ```
 
 
@@ -84,10 +139,10 @@ val target = Target().identifier("target")
 CfClient.getInstance().initialize(context, "YOUR_API_KEY", sdkConfiguration, target)
 
 if (CfClient.getInstance().waitForInitialization(15_000)) {
-        // Congratulations your SDK has been initialized with success!
-        // After this callback is executed, You are ready to use the SDK!                        
+    // Congratulations your SDK has been initialized with success!
+    // After this callback is executed, You are ready to use the SDK!                        
 } else {
-        // Timeout - check logcat for reason - SDK will attempt to reauthenticate in the background and serve defaults in the mean time
+    // Timeout - check logcat for reason - SDK will attempt to reauthenticate in the background and serve defaults in the mean time
 }
 ```
 
@@ -188,11 +243,11 @@ Triggered event will have one of the following types:
 
 ```Java
 public enum EVENT_TYPE {
-        SSE_START, 
-        SSE_RESUME
-        SSE_END, 
-        EVALUATION_CHANGE,
-        EVALUATION_RELOAD
+    SSE_START,
+    SSE_RESUME
+    SSE_END,
+    EVALUATION_CHANGE,
+    EVALUATION_RELOAD
     }
 ```
 Following table provides summary on possible event types and corresponding responses.
@@ -214,11 +269,11 @@ To avoid unexpected behaviour, when listener is not needed anymore, a caller sho
 Metrics API endpoint can be changed like this:
 ```kotlin
 val remoteConfiguration = CfConfiguration.builder()
-            .enableStream(true)
-            .pollingInterval(60)
-            .enableAnalytics(true)
-            .eventUrl(METRICS_API_EVENTS_URL)
-            .build()
+    .enableStream(true)
+    .pollingInterval(60)
+    .enableAnalytics(true)
+    .eventUrl(METRICS_API_EVENTS_URL)
+    .build()
 ```
 
 Otherwise, the default metrics endpoint URL will be used.

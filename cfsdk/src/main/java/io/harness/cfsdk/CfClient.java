@@ -110,6 +110,10 @@ public class CfClient implements Closeable, Client {
 
     @Override
     public boolean waitForInitialization(long timeoutMs) {
+        if (timeoutMs < 2000) {
+            timeoutMs = 2000;
+        }
+
         if (sdkThread == null) throw new IllegalStateException("SDK not initialized");
         return sdkThread.waitForInitialization(timeoutMs);
     }
@@ -160,8 +164,14 @@ public class CfClient implements Closeable, Client {
         return eventsListenerSet.remove(observer);
     }
 
+
     @Override
     public boolean boolVariation(String evaluationId, boolean defaultValue) {
+        if (sdkThread == null) {
+            SdkCodes.warnDefaultVariationServed(evaluationId, String.valueOf(defaultValue), "initialize() not called");
+            return defaultValue;
+        }
+
         final StringBuilder failureReason = new StringBuilder();
         final Evaluation evaluation = sdkThread.getEvaluationById(evaluationId, failureReason);
 
@@ -180,6 +190,11 @@ public class CfClient implements Closeable, Client {
 
     @Override
     public String stringVariation(String evaluationId, String defaultValue) {
+        if (sdkThread == null) {
+            SdkCodes.warnDefaultVariationServed(evaluationId, String.valueOf(defaultValue), "initialize() not called");
+            return defaultValue;
+        }
+
         final StringBuilder failureReason = new StringBuilder();
         final Evaluation evaluation = sdkThread.getEvaluationById(evaluationId, failureReason);
 
@@ -198,6 +213,11 @@ public class CfClient implements Closeable, Client {
 
     @Override
     public double numberVariation(String evaluationId, double defaultValue) {
+        if (sdkThread == null) {
+            SdkCodes.warnDefaultVariationServed(evaluationId, String.valueOf(defaultValue), "initialize() not called");
+            return defaultValue;
+        }
+
         final StringBuilder failureReason = new StringBuilder();
         final Evaluation evaluation = sdkThread.getEvaluationById(evaluationId, failureReason);
 
@@ -223,6 +243,11 @@ public class CfClient implements Closeable, Client {
 
     @Override
     public JSONObject jsonVariation(String evaluationId, JSONObject defaultValue) {
+        if (sdkThread == null) {
+            SdkCodes.warnDefaultVariationServed(evaluationId, String.valueOf(defaultValue), "initialize() not called");
+            return defaultValue;
+        }
+
         final StringBuilder failureReason = new StringBuilder();
         final Evaluation evaluation = sdkThread.getEvaluationById(evaluationId, failureReason);
 
@@ -272,7 +297,6 @@ public class CfClient implements Closeable, Client {
         initializeInternal(context, apiKey, config, target, cloudCache, authCallback);
     }
 
-    @Deprecated
     @Override
     public void initialize(final Context context, final String apiKey, final CfConfiguration config,
                            final Target target, final AuthCallback authCallback) throws IllegalStateException {

@@ -45,7 +45,7 @@ buildscript {
 
 In app module's [build.gradle](https://github.com/harness/ff-android-client-sdk/blob/main/examples/GettingStarted/app/build.gradle#L41) file add dependency for Harness's SDK
 
-`implementation 'io.harness:ff-android-client-sdk:2.0.0'`
+`implementation 'io.harness:ff-android-client-sdk:2.0.2'`
 
 
 ### Code Sample
@@ -143,6 +143,10 @@ value update.
 ![Alt Text](docs/images/android_sdk.gif)
 
 <br>
+
+### Client Initialzation 
+For more information on initialzation options, see [Client Initialzation Options](docs/further_reading.md#client-initialization-options)<br>
+
 
 ### Release builds and ProGuard
 For release builds, Android uses ProGuard to apply optimizations that can affect the behavior of the SDK.

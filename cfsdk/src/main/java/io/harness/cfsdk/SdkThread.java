@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.harness.cfsdk.cloud.AuthResponseDecoder;
 import io.harness.cfsdk.cloud.cache.CloudCache;
@@ -69,11 +70,11 @@ class SdkThread implements Runnable {
     private final NetworkInfoProvider networkSleeper;
 
     /* ---- Mutable state ---- */
+    private final AtomicReference<Instant> lastPollTime = new AtomicReference<>(Instant.EPOCH);
     private ClientApi api;
     private String bearerToken;
     private AuthInfo authInfo;
     private boolean sseRescheduled = false;
-    private Instant lastPollTime = Instant.EPOCH;
 
     SdkThread(Context context, String apiKey, CfConfiguration config, Target target, Map<String, Set<EvaluationListener>> evaluationListenerMap, Set<EventsListener> eventsListenerSet, AuthCallback authCallback)  {
         this.context = context;
@@ -355,7 +356,7 @@ class SdkThread implements Runnable {
 
     public void refreshEvaluations() {
         final Instant now = Instant.now();
-        final Duration duration = Duration.between(lastPollTime, now);
+        final Duration duration = Duration.between(lastPollTime.getAndSet(now), now); // called outside SDK thread
 
         if (authInfo == null || duration.compareTo(minimumRefreshIntervalSecs) < 0) {
             log.debug("cannot refresh evaluations: not authenticated or below minimum delay");
@@ -381,7 +382,7 @@ class SdkThread implements Runnable {
             throw new RuntimeException(e);
         }
 
-        lastPollTime = now;
+        lastPollTime.set(now);
     }
 
     void repoSetEvaluation(String env, String flagIdentifier, Evaluation eval) {
