@@ -42,6 +42,9 @@ allprojects {
     apply plugin: 'org.owasp.dependencycheck'
 
       dependencyCheck {
+
+        nvd.apiKey = project.findProperty("FF_NVD_API_KEY")
+
         format = "JSON"
         analyzers {
             // full list https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration.html
