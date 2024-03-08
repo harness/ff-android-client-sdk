@@ -164,8 +164,14 @@ public class CfClient implements Closeable, Client {
         return eventsListenerSet.remove(observer);
     }
 
+
     @Override
     public boolean boolVariation(String evaluationId, boolean defaultValue) {
+        if (sdkThread == null) {
+            SdkCodes.warnDefaultVariationServed(evaluationId, String.valueOf(defaultValue), "initialize() not called");
+            return defaultValue;
+        }
+
         final StringBuilder failureReason = new StringBuilder();
         final Evaluation evaluation = sdkThread.getEvaluationById(evaluationId, failureReason);
 
@@ -184,6 +190,11 @@ public class CfClient implements Closeable, Client {
 
     @Override
     public String stringVariation(String evaluationId, String defaultValue) {
+        if (sdkThread == null) {
+            SdkCodes.warnDefaultVariationServed(evaluationId, String.valueOf(defaultValue), "initialize() not called");
+            return defaultValue;
+        }
+
         final StringBuilder failureReason = new StringBuilder();
         final Evaluation evaluation = sdkThread.getEvaluationById(evaluationId, failureReason);
 
@@ -202,6 +213,11 @@ public class CfClient implements Closeable, Client {
 
     @Override
     public double numberVariation(String evaluationId, double defaultValue) {
+        if (sdkThread == null) {
+            SdkCodes.warnDefaultVariationServed(evaluationId, String.valueOf(defaultValue), "initialize() not called");
+            return defaultValue;
+        }
+
         final StringBuilder failureReason = new StringBuilder();
         final Evaluation evaluation = sdkThread.getEvaluationById(evaluationId, failureReason);
 
@@ -227,6 +243,11 @@ public class CfClient implements Closeable, Client {
 
     @Override
     public JSONObject jsonVariation(String evaluationId, JSONObject defaultValue) {
+        if (sdkThread == null) {
+            SdkCodes.warnDefaultVariationServed(evaluationId, String.valueOf(defaultValue), "initialize() not called");
+            return defaultValue;
+        }
+
         final StringBuilder failureReason = new StringBuilder();
         final Evaluation evaluation = sdkThread.getEvaluationById(evaluationId, failureReason);
 
