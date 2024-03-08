@@ -14,6 +14,17 @@ import io.harness.cfsdk.cloud.sse.EventsListener;
 
 public interface Client extends AutoCloseable {
 
+    /**
+     * Initialize the SDK.
+     * If using this call you should generally call {@link #waitForInitialization(long) waitForInitialization(timeoutMs)} afterwards to block the calling
+     * thread to ensure that authentication has completed. Or else you may get default variations served. Alternatively if you don't want to block with
+     * waitForInitialization(...) you can use the callback version here {@link CfClient#initialize(Context, String, CfConfiguration, Target, AuthCallback)}
+     * @param context The application context, used for any Android-specific initialization (not null).
+     * @param apiKey The API key required to authenticate with the service (not null or empty).
+     * @param configuration The configuration settings for the SDK, including endpoints and feature flags (not null).
+     * @param target The target user or entity for which feature flags and configurations will be evaluated (not null).
+     * @throws IllegalStateException if the SDK has already been initialized or if any preconditions are not met (e.g., null parameters).
+     */
     void initialize(
             Context context,
             String apiKey,
@@ -23,8 +34,11 @@ public interface Client extends AutoCloseable {
     ) throws IllegalStateException;
 
     /**
-     * Wait for the SDK to authenticate and populate its cache.
-     * @param timeoutMs Timeout in milliseconds to wait for SDK to initialize
+     * Wait for the SDK to authenticate and populate its cache. This version blocks the calling thread until timeoutMs elapses.
+     * Alternatively if you prefer not to block the calling thread you can provide a callback via
+     * {@link CfClient#initialize(Context, String, CfConfiguration, Target, AuthCallback)} to be notified when the SDK is ready.
+     * @param timeoutMs Timeout in milliseconds to wait for SDK to initialize. Try to avoid setting this to very low values (below
+     *                  2 seconds) as network conditions can affect the time it takes to authenticate.
      * @return Returns true if successfully initialized else false if timed out or something went
      * wrong. If false is returned, your code may proceed to use xVariation functions however
      * default variations may be served (SDKCODE 2001). For failure cause check logs leading up.
@@ -33,7 +47,7 @@ public interface Client extends AutoCloseable {
     boolean waitForInitialization(long timeoutMs);
 
     /**
-     * Wait for the SDK to authenticate and populate it cache. This version waits indefinitely, if
+     * Wait for the SDK to authenticate and populate it cache. This version blocks the calling thread and waits indefinitely, if
      * you require control over startup time then use {@link #waitForInitialization(long) waitForInitialization(timeoutMs)}
      * @throws InterruptedException if the thread was interrupted while waiting
      * @since 1.2.0
@@ -140,14 +154,15 @@ public interface Client extends AutoCloseable {
 
 
     /**
-     * Deprecated. Use {@link io.harness.cfsdk.CfClient#initialize(Context, String, CfConfiguration, Target)} instead.
-     * Kept for source compatibility with 1.x.x projects and will be removed in a future version.
-     * Authentication callback has been removed you should instead wait for authentication to complete using {@link CfClient#waitForInitialization()}.
+     * Initialize the SDK with an {@link io.harness.cfsdk.cloud.events.AuthCallback}.
+     * Same as {@link CfClient#initialize(Context, String, CfConfiguration, Target)} but with a callback parameter.
+     * You can use this initialize function to provide a lambda that will be called when authentication completes instead
+     * of using {@link CfClient#waitForInitialization()}. The callback may be called on the context of the internal SDK thread
+     * and you should avoid blocking this for too long and exit the callback quickly.
+     * You might get multiple {@link io.harness.cfsdk.cloud.events.AuthResult} (set to false) if there was a failure and the SDK attempts to retry authentication.
      */
-    @Deprecated
     void initialize(final Context context, final String apiKey, final CfConfiguration config,
                            final Target target, final AuthCallback authCallback) throws IllegalStateException;
-
 
     /**
      * Deprecated. Use {@link io.harness.cfsdk.CfClient#initialize(Context, String, CfConfiguration, Target)} instead.

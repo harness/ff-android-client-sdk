@@ -270,7 +270,6 @@ public class CfClient implements Closeable, Client {
         initializeInternal(context, apiKey, config, target, cloudCache, authCallback);
     }
 
-    @Deprecated
     @Override
     public void initialize(final Context context, final String apiKey, final CfConfiguration config,
                            final Target target, final AuthCallback authCallback) throws IllegalStateException {
