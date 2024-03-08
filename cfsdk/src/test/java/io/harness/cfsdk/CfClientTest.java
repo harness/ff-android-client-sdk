@@ -383,12 +383,11 @@ public class CfClientTest {
                         DUMMY_TARGET
                 );
 
-                assertTrue(client.waitForInitialization(30_000));
-
                 for (int i = 0; i < 10; i++) {
                     client.boolVariation("anyone@anywhere.com", false); // need at least 1 eval for metrics to push
                     MILLISECONDS.sleep(100);
                 }
+                assertTrue(client.waitForInitialization(30_000));
 
                 dispatcher.assertEndpointConnectionOrTimeout(30, MockWebServerDispatcher.AUTH_ENDPOINT);
                 dispatcher.assertEndpointConnectionOrTimeout(30, MockWebServerDispatcher.STREAM_ENDPOINT);
