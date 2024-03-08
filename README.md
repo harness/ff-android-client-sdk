@@ -45,7 +45,7 @@ buildscript {
 
 In app module's [build.gradle](https://github.com/harness/ff-android-client-sdk/blob/main/examples/GettingStarted/app/build.gradle#L41) file add dependency for Harness's SDK
 
-`implementation 'io.harness:ff-android-client-sdk:2.0.0'`
+`implementation 'io.harness:ff-android-client-sdk:2.0.2'`
 
 
 ### Code Sample
