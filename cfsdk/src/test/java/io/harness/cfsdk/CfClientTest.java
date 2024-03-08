@@ -370,7 +370,7 @@ public class CfClientTest {
                 when(config.getEventURL()).thenReturn(url);
                 when(config.isAnalyticsEnabled()).thenReturn(true);
                 when(config.isStreamEnabled()).thenReturn(true);
-                when(config.getMetricsPublishingIntervalInMillis()).thenReturn(1000L); // Force the publish time to be within the timeout
+                when(config.getMetricsPublishingIntervalInMillis()).thenReturn(5000L); // Force the publish time to be within the timeout
                 when(config.getMetricsCapacity()).thenReturn(DEFAULT_METRICS_CAPACITY);
                 when(config.getTlsTrustedCAs()).thenReturn(Collections.singletonList(localCert.certificate()));
                 when(config.getCache()).thenReturn(makeMockCache());
@@ -383,10 +383,11 @@ public class CfClientTest {
                         DUMMY_TARGET
                 );
 
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i < 100; i++) {
                     client.boolVariation("anyone@anywhere.com", false); // need at least 1 eval for metrics to push
-                    MILLISECONDS.sleep(100);
+                    MILLISECONDS.sleep(10);
                 }
+
                 assertTrue(client.waitForInitialization(30_000));
 
                 dispatcher.assertEndpointConnectionOrTimeout(30, MockWebServerDispatcher.AUTH_ENDPOINT);
