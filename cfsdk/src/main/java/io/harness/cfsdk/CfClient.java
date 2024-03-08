@@ -37,7 +37,7 @@ public class CfClient implements Closeable, Client {
     private static volatile CfClient instance;
     private final Set<EventsListener> eventsListenerSet = Collections.synchronizedSet(new LinkedHashSet<>());
     private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet = new ConcurrentHashMap<>();
-    private final ExecutorService threadExecutor = Executors.newFixedThreadPool(2);
+    private final ExecutorService threadExecutor = Executors.newFixedThreadPool(3);
     private SdkThread sdkThread;
     private AnalyticsManager metricsThread;
     private CfConfiguration configuration;
@@ -97,8 +97,10 @@ public class CfClient implements Closeable, Client {
                 if (isEmpty(configuration.getEventURL())) {
                     throw new IllegalArgumentException("Event URL is null or empty");
                 }
-                sdkThread.waitForInitialization(0);
-                metricsThread = new AnalyticsManager(context, configuration, target, new AnalyticsPublisherService(configuration, sdkThread.getBearerToken(), sdkThread.getAuthInfo()));
+                threadExecutor.submit(() -> {
+                    sdkThread.waitForInitialization(0);
+                    metricsThread = new AnalyticsManager(context, configuration, target, new AnalyticsPublisherService(configuration, sdkThread.getBearerToken(), sdkThread.getAuthInfo()));
+                });
             }
 
         } catch (Exception e) {
