@@ -4,29 +4,37 @@ Covers advanced topics (different config options and scenarios)
 
 ## Client Initialization Options
 ### Overview
-The Harness Feature Flags SDK for Android supports flexible initialization strategies to accommodate different application startup requirements. You can choose between an asynchronous (non-blocking) or synchronous (blocking) approach to initialize the SDK, 
-ensuring that feature flag evaluations are ready when you need them.
+The Harness Feature Flags SDK for Android supports flexible initialization strategies to accommodate different application startup requirements. You can choose between an asynchronous (non-blocking) or synchronous (blocking) approach to initialize the SDK. 
 
 ### Asynchronous (Non-Blocking) Initialization
-To avoid blocking the main thread, especially important for UI applications, the SDK provides an asynchronous initialization option. This method allows your application to remain responsive while the SDK initializes in the background.
+To avoid blocking the main thread, especially important for UI applications, the SDK provides asynchronous initialization options. This method allows your application to remain responsive while the SDK initializes in the background.
 
+#### Using callback
 Usage:
 
 ```Kotlin
-            CfClient.getInstance().initialize(this, "apiKey", sdkConfiguration, target)
-            { info, result ->
-                if (result.isSuccess) {
-                    Log.i("SDKInit", "Successfully initialized client: " + info)
-            }  else {
-                    Log.e("SDKInit", "Failed to initialize client", result.error)
-                    result.error.message?.let { printMessage(it) }
-                } }
+val client = CfClient()
+client.initialize(this, apiKey, sdkConfiguration, target)
+{ info, result ->
+    if (result.isSuccess) {
+        Log.i("SDKInit", "Successfully initialized client: " + info)
+}  else {
+        Log.e("SDKInit", "Failed to initialize client", result.error)
+    } 
+}
 ```
 This non-blocking approach utilizes a callback to notify the application of the SDK's readiness or any errors encountered during initialization.
 * You might get multiple callbacks if there was a failure and the SDK attempts to retry authentication.
 
+#### Without using a callback
+If you don't want to use a callback, you can simply initialize the SDK. Defaults will be served for any variation calls until the SDK can complete initialization.
+```Kotlin
+val client = CfClient()
+client.initialize(this, apiKey, sdkConfiguration, target)
+```
 
-Synchronous (Blocking) Initialization
+
+### Synchronous (Blocking) Initialization
 For scenarios where it's critical to have feature flags loaded and evaluated before proceeding, the SDK offers a blocking initialization method. 
 This approach ensures that the SDK is fully authenticated and the feature flags are populated from the cache or network before moving forward. 
 
@@ -37,6 +45,11 @@ Usage:
 ```kotlin
 client.initialize(context, apiKey, configuration, target);
 boolean isInitialized = client.waitForInitialization(timeoutMs);
+if (isInitialized) {
+    Log.i("SDKInit", "Successfully initialized client)
+}  else {
+    Log.e("SDKInit", "Failed to initialize client")
+} 
 ```
 
 
