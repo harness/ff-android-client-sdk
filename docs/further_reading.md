@@ -2,6 +2,57 @@
 
 Covers advanced topics (different config options and scenarios)
 
+## Client Initialization Options
+### Overview
+The Harness Feature Flags SDK for Android supports flexible initialization strategies to accommodate different application startup requirements. You can choose between an asynchronous (non-blocking) or synchronous (blocking) approach to initialize the SDK, 
+ensuring that feature flag evaluations are ready when you need them.
+
+### Asynchronous (Non-Blocking) Initialization
+To avoid blocking the main thread, especially important for UI applications, the SDK provides an asynchronous initialization option. This method allows your application to remain responsive while the SDK initializes in the background.
+
+Usage:
+
+```Kotlin
+            CfClient.getInstance().initialize(this, "apiKey", sdkConfiguration, target)
+            { info, result ->
+                if (result.isSuccess) {
+                    Log.i("SDKInit", "Successfully initialized client: " + info)
+            }  else {
+                    Log.e("SDKInit", "Failed to initialize client", result.error)
+                    result.error.message?.let { printMessage(it) }
+                } }
+```
+This non-blocking approach utilizes a callback to notify the application of the SDK's readiness or any errors encountered during initialization.
+* You might get multiple callbacks if there was a failure and the SDK attempts to retry authentication.
+
+
+Synchronous (Blocking) Initialization
+For scenarios where it's critical to have feature flags loaded and evaluated before proceeding, the SDK offers a blocking initialization method. 
+This approach ensures that the SDK is fully authenticated and the feature flags are populated from the cache or network before moving forward. 
+
+This will block the UI thread, so use synchros initialization only if absolutely required. 
+
+Usage:
+
+```kotlin
+client.initialize(context, apiKey, configuration, target);
+boolean isInitialized = client.waitForInitialization(timeoutMs);
+```
+
+
+After invoking `initialize(...)`, calling waitForInitialization(long timeoutMs) blocks the calling thread until the SDK completes its authentication process or until the specified timeout elapses. A timeoutMs value of 0 waits indefinitely. 
+Use this method cautiously to prevent blocking the main UI thread, which can lead to a poor user experience.
+
+
+### Choosing the Right Approach
+Blocking Initialization is suitable for backend services or applications where ensuring feature flag availability before proceeding is crucial.
+Non-Blocking Initialization is recommended for user-facing applications where maintaining a responsive UI is critical. This approach allows feature flag evaluations to proceed with default values until the SDK is fully initialized.
+Additional Considerations
+Cached Flag Data: If the SDK has cached flag data from a previous execution, variation methods will return cached data until fresh data is fetched.
+Timeouts: Set a reasonable timeout for blocking initialization to avoid extended delays, especially under poor network conditions.
+Thread Management: Avoid calling blocking initialization on the main UI thread. Utilize background threads or the SDK's asynchronous initialization to enhance user experience.
+
+
 ## Configuration Options
 The following configuration options are available to control the behaviour of the SDK.
 You can provide options by adding them to the SDK Configuration.

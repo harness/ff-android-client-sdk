@@ -144,6 +144,10 @@ value update.
 
 <br>
 
+### Client Initialzation 
+For more information on initialzation options, see [Client Initialzation Options](docs/further_reading.md#client-initialization-options)<br>
+
+
 ### Release builds and ProGuard
 For release builds, Android uses ProGuard to apply optimizations that can affect the behavior of the SDK.
 
