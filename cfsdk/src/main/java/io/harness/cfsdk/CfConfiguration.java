@@ -27,7 +27,6 @@ public class CfConfiguration {
     private final boolean streamEnabled;
     private boolean pollingEnabled;
 
-
     private int metricsCapacity;
     private final int pollingInterval;
     private final List<X509Certificate> tlsTrustedCerts;
