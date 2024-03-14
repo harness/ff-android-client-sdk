@@ -418,9 +418,12 @@ class SdkThread implements Runnable {
             Thread.currentThread().setName("RegisteredListenersThread");
             log.debug("send event {} to registered listeners", statusEvent.getEventType());
 
-            for (final EventsListener listener : eventsListenerSet) {
-                listener.onEventReceived(statusEvent);
+            synchronized(eventsListenerSet) {
+                for (final EventsListener listener : eventsListenerSet) {
+                    listener.onEventReceived(statusEvent);
+                }
             }
+
         });
     }
 
