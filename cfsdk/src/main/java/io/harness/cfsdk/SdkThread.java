@@ -111,7 +111,7 @@ class SdkThread implements Runnable {
             fallbackToPolling = true;
         }
 
-        if (fallbackToPolling) {
+        if (fallbackToPolling && config.isPollingEnabled()) {
             log.debug("SSE stream {}, falling back to polling mode", config.isStreamEnabled() ? "failed" : "disabled");
 
             try {

@@ -25,6 +25,8 @@ public class CfConfiguration {
 
     private final boolean analyticsEnabled;
     private final boolean streamEnabled;
+    private boolean pollingEnabled;
+
 
     private int metricsCapacity;
     private final int pollingInterval;
@@ -44,7 +46,8 @@ public class CfConfiguration {
             boolean streamEnabled,
             boolean analyticsEnabled,
             int pollingInterval,
-            List<X509Certificate> tlsTrustedCerts
+            List<X509Certificate> tlsTrustedCerts,
+            boolean pollingEnabled
 
     ) {
 
@@ -59,6 +62,7 @@ public class CfConfiguration {
         this.metricsPublishingIntervalInMillis = MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS * 1000L;
         this.metricsServiceAcceptableDurationInMillis = DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS * 1000L;
         this.cache = null;
+        this.pollingEnabled = pollingEnabled;
     }
 
     public String getBaseURL() {
@@ -87,6 +91,10 @@ public class CfConfiguration {
     public boolean isStreamEnabled() {
 
         return streamEnabled;
+    }
+
+    public boolean isPollingEnabled() {
+        return pollingEnabled;
     }
 
     /**
@@ -128,6 +136,7 @@ public class CfConfiguration {
         private int pollingInterval;
         private int metricsCapacity = DEFAULT_METRICS_CAPACITY;
         private boolean streamEnabled = true;
+        private boolean pollingEnabled = true;
         private boolean analyticsEnabled = true;
         private long metricsPublishingIntervalInMillis = MIN_METRICS_PUBLISHING_INTERVAL_IN_SECONDS * 1000L;
         private long metricsPublishingAcceptableDurationInMillis = DEFAULT_METRICS_PUBLISHING_ACCEPTABLE_DURATION_IN_SECONDS * 1000L;
@@ -197,6 +206,18 @@ public class CfConfiguration {
             this.streamEnabled = streamEnabled;
             return this;
         }
+
+        /**
+         * Configuration to explicitly enable or disable polling.
+         *
+         * @param pollingEnabled True == Polling is enabled.
+         * @return Builder instance.
+         */
+        public Builder enablePolling(boolean pollingEnabled) {
+            this.pollingEnabled = pollingEnabled;
+            return this;
+        }
+
 
         /**
          * Polling interval to use when getting new evaluation data from server
@@ -303,6 +324,11 @@ public class CfConfiguration {
             return streamEnabled;
         }
 
+        public boolean isPollingEnabled() {
+
+            return pollingEnabled;
+        }
+
         public boolean isAnalyticsEnabled() {
 
             return analyticsEnabled;
@@ -349,7 +375,7 @@ public class CfConfiguration {
 
             final CfConfiguration cfConfiguration = new CfConfiguration(
 
-                    baseURL, streamURL, eventURL, streamEnabled, analyticsEnabled, pollingInterval, tlsTrustedCerts
+                    baseURL, streamURL, eventURL, streamEnabled, analyticsEnabled, pollingInterval, tlsTrustedCerts, pollingEnabled
             );
 
             cfConfiguration.setMetricsCapacity(metricsCapacity);
