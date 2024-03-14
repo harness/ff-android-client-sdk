@@ -18,6 +18,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -418,12 +419,14 @@ class SdkThread implements Runnable {
             Thread.currentThread().setName("RegisteredListenersThread");
             log.debug("send event {} to registered listeners", statusEvent.getEventType());
 
-            for (final EventsListener listener : eventsListenerSet) {
-                listener.onEventReceived(statusEvent);
+            final List<EventsListener> toNotify;
+            synchronized (eventsListenerSet) {
+                toNotify = new ArrayList<>(eventsListenerSet);
             }
+
+            toNotify.forEach(l -> l.onEventReceived(statusEvent));
         });
     }
-
     Map<String, String> makeHeadersFrom(String token, String apiKey, AuthInfo authInfo) {
         return new HashMap<String, String>() {{
             put("Authorization", "Bearer " + token);
