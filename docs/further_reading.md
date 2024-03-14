@@ -71,7 +71,7 @@ If `pollingEnabled` is `false`, streaming will attempt to reconnect without fall
 In polling mode, the SDK will periodically check with the Feature Flags service to retrieve updates for feature flags. The frequency of these checks can be adjusted using the SDK's configurations.
 
 ### No Streaming or Polling
-If both streaming and polling modes are disabled (`streamEnabled: false` and `pollingEnabled: false`),
+If both streaming and polling modes are disabled (`enableStream: false` and `enablePolling: false`),
 the SDK will not automatically fetch feature flag updates after the initial fetch.
 This means that after the initial load, any changes made to the feature flags on the Harness server will not be reflected in the application until the SDK is re-initialized or one of the modes is re-enabled.
 
