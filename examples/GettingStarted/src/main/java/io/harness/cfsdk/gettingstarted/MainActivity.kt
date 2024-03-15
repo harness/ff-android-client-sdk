@@ -25,6 +25,11 @@ class MainActivity : AppCompatActivity() {
     // e.g. FF_API_KEY='my key' ./gradlew installDebug
     private val apiKey: String = BuildConfig.FF_API_KEY
 
+    enum class InitMethod {
+        CALLBACK,
+        WAIT_FOR_INIT,
+        NON_BLOCKING
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         if (streamingEnabled && pollingEnabled) {
             setupEventListener()
         }
-        
+
 
         when (method) {
             InitMethod.CALLBACK -> initializeWithCallback(sdkConfiguration, target)
@@ -124,22 +129,22 @@ class MainActivity : AppCompatActivity() {
         client.initialize(this, apiKey, config, target)
 
         val flagValue: Boolean = client.boolVariation(flagName, false)
-        updateTextField("Using callback: $flagName : $flagValue")
+        updateTextField("Using non-blocking: $flagName : $flagValue")
     }
 
     // Blocking option - will block UI thread! Use callback approach above if you don't require
     // blocking option.
     private fun initializeWithWaitForInit(config: CfConfiguration, target: Target) {
 
-            client.initialize(this, apiKey, config, target)
-            val success = client.waitForInitialization(60_000)
+        client.initialize(this, apiKey, config, target)
+        val success = client.waitForInitialization(60_000)
 
-                if (success) {
-                    val flagValue: Boolean = client.boolVariation(flagName, false)
-                    updateTextField("Using callback: $flagName : $flagValue")
-                } else {
-                    updateTextField("WaitForInit: SDK initialization timed out")
-                }
+        if (success) {
+            val flagValue: Boolean = client.boolVariation(flagName, false)
+            updateTextField("Using callback: $flagName : $flagValue")
+        } else {
+            updateTextField("WaitForInit: SDK initialization timed out")
+        }
 
     }
 
@@ -148,9 +153,5 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread { tv1.text = msg }
     }
 
-    enum class InitMethod {
-        CALLBACK,
-        WAIT_FOR_INIT,
-        NON_BLOCKING
-    }
+
 }
