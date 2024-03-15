@@ -542,6 +542,7 @@ class SdkThread implements Runnable {
                 continue;
             } catch (ApiException ex) {
                 if (ex.getCode() == 403) {
+                    SdkCodes.warnAuthFailedSrvDefaults(ex.getMessage());
                     log.error("Received a 403 Forbidden response. Stopping SDK re-authentication attempts and defaults will be served.", ex);
                     break;
                 } else {
