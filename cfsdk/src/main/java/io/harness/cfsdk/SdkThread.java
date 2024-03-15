@@ -18,6 +18,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +76,8 @@ class SdkThread implements Runnable {
     private String bearerToken;
     private AuthInfo authInfo;
     private boolean sseRescheduled = false;
+    // Used for emitting the initialize callback only once
+    private boolean isAuthSuccessfulOnce = false;
 
     SdkThread(Context context, String apiKey, CfConfiguration config, Target target, Map<String, Set<EvaluationListener>> evaluationListenerMap, Set<EventsListener> eventsListenerSet, AuthCallback authCallback)  {
         this.context = context;
@@ -111,7 +114,7 @@ class SdkThread implements Runnable {
             fallbackToPolling = true;
         }
 
-        if (fallbackToPolling) {
+        if (fallbackToPolling && config.isPollingEnabled()) {
             log.debug("SSE stream {}, falling back to polling mode", config.isStreamEnabled() ? "failed" : "disabled");
 
             try {
@@ -152,8 +155,7 @@ class SdkThread implements Runnable {
         try {
             bearerToken = api.authenticate(authRequest).getAuthToken();
         } catch (ApiException ex) {
-            // 1.x.x backwards compatibility - this catch can be removed once the deprecated AuthCallback and AuthResult are removed
-            if (authCallback != null && ex.getCode() != 200) {
+            if (authCallback != null && ex.getCode() != 200 && !isAuthSuccessfulOnce) {
                 authCallback.authorizationSuccess(null, new AuthResult(false, ex));
             }
             throw ex;
@@ -173,11 +175,14 @@ class SdkThread implements Runnable {
             SdkCodes.infoSdkAuthOk();
             initLatch.countDown();
 
-            if (authCallback != null) {
-                authCallback.authorizationSuccess(ai, new AuthResult(true));
+            // Only emit this callback once
+            if (!isAuthSuccessfulOnce) {
+                isAuthSuccessfulOnce = true;
+                if (authCallback != null) {
+                    authCallback.authorizationSuccess(ai, new AuthResult(true));
+                }
             }
         }
-
         return authInfo;
     }
 
@@ -418,12 +423,14 @@ class SdkThread implements Runnable {
             Thread.currentThread().setName("RegisteredListenersThread");
             log.debug("send event {} to registered listeners", statusEvent.getEventType());
 
-            for (final EventsListener listener : eventsListenerSet) {
-                listener.onEventReceived(statusEvent);
+            final List<EventsListener> toNotify;
+            synchronized (eventsListenerSet) {
+                toNotify = new ArrayList<>(eventsListenerSet);
             }
+
+            toNotify.forEach(l -> l.onEventReceived(statusEvent));
         });
     }
-
     Map<String, String> makeHeadersFrom(String token, String apiKey, AuthInfo authInfo) {
         return new HashMap<String, String>() {{
             put("Authorization", "Bearer " + token);
@@ -533,10 +540,26 @@ class SdkThread implements Runnable {
                 }
                 waitForNetworkToGoOnline();
                 continue;
+            } catch (ApiException ex) {
+                if (ex.getCode() == 403) {
+                    SdkCodes.warnAuthFailedSrvDefaults(ex.getMessage());
+                    break;
+                } else {
+                    logExceptionAndWarn("API exception encountered, SDK will be restarted in 1 minute:", ex);
+                }
             } catch (Throwable ex) {
                 logExceptionAndWarn("Root SDK exception handler invoked, SDK will be restarted in 1 minute:", ex);
             }
-            /* should the sdk thread abort unexpectedly it will be restarted here */
+
+            /* should the sdk thread abort, it will conditionally be restarted here */
+
+            // If both streaming and polling are disabled, then we don't need the sdk thread to run anymore
+            if (!config.isStreamEnabled() && !config.isPollingEnabled()) {
+                log.info("Streaming and Polling are disabled. Initial setup complete. Exiting SDK main thread.");
+                break;
+            }
+
+            // Restart the thread here as it has aborted unexpectedly
             try {
                 TimeUnit.MINUTES.sleep(1);
             } catch (InterruptedException e) {

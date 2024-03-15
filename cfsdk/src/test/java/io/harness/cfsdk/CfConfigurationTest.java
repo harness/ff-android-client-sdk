@@ -26,6 +26,7 @@ public class CfConfigurationTest {
                 .streamUrl("https://dummy_stream_url:1234")
                 .enableAnalytics(false)
                 .enableStream(false)
+                .enablePolling(false)
                 .pollingInterval(60)
                 .tlsTrustedCAs(Collections.singletonList(mockX509))
                 .metricsPublishingAcceptableDurationInMillis(1234)
@@ -39,6 +40,7 @@ public class CfConfigurationTest {
         assertEquals("https://dummy_stream_url:1234", config.getStreamURL());
         assertFalse(config.isAnalyticsEnabled());
         assertFalse(config.isStreamEnabled());
+        assertFalse(config.isPollingEnabled());
         assertEquals(60, config.getPollingInterval());
         assertEquals(1, config.getTlsTrustedCAs().size());
         assertNotNull(config.getTlsTrustedCAs().get(0));

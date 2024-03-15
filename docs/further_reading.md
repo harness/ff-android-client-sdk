@@ -23,8 +23,10 @@ client.initialize(this, apiKey, sdkConfiguration, target)
     } 
 }
 ```
-This non-blocking approach utilizes a callback to notify the application of the SDK's readiness or any errors encountered during initialization.
-* You might get multiple callbacks if there was a failure and the SDK attempts to retry authentication.
+This approach is non-blocking and leverages a callback mechanism to inform the application about the SDK's initialization status. Here's how it works:
+* Success Callback: This callback is invoked once when the SDK is successfully initialized. It signifies that the SDK is ready for use. 
+
+* Failure Callback: This callback may be invoked multiple times if the SDK encounters errors during the initialization process. Each invocation provides an error detailing the cause of failure. The SDK will automatically attempt to retry authentication, leading to multiple invocations of this callback until a successful initialization occurs.
 
 #### Without using a callback
 If you don't want to use a callback, you can simply initialize the SDK. Defaults will be served for any variation calls until the SDK can complete initialization.
@@ -56,6 +58,29 @@ if (isInitialized) {
 After invoking `initialize(...)`, calling `waitForInitialization(long timeoutMs)` blocks the calling thread until the SDK completes its authentication process or until the specified timeout elapses. A timeoutMs value of 0 waits indefinitely.
 Use this method cautiously to prevent blocking the main UI thread, which can lead to a poor user experience.
 
+## Streaming and Polling Mode
+
+By default, Harness Feature Flags SDK has streaming enabled and polling enabled. Both modes can be toggled according to your preference using the SDK's configuration.
+
+### Streaming Mode
+Streaming mode establishes a continuous connection between your application and the Feature Flags service.
+This allows for real-time updates on feature flags without requiring periodic checks.
+If an error occurs while streaming and `pollingEnabled` is set to `true`,
+the SDK will automatically fall back to polling mode until streaming can be reestablished.
+If `pollingEnabled` is `false`, streaming will attempt to reconnect without falling back to polling.
+
+### Polling Mode
+In polling mode, the SDK will periodically check with the Feature Flags service to retrieve updates for feature flags. The frequency of these checks can be adjusted using the SDK's configurations.
+
+### No Streaming or Polling
+If both streaming and polling modes are disabled (`enableStream: false` and `enablePolling: false`),
+the SDK will not automatically fetch feature flag updates after the initial fetch.
+This means that after the initial load, any changes made to the feature flags on the Harness server will not be reflected in the application until the SDK is re-initialized or one of the modes is re-enabled.
+
+This configuration might be useful in specific scenarios where you want to ensure a consistent set of feature flags
+for a session or when the application operates in an environment where regular updates are not necessary. However, it's essential to be aware that this configuration can lead to outdated flag evaluations if the flags change on the server.
+
+To configure the modes see [Configuration options](#configuration-options)
 
 ## Configuration Options
 The following configuration options are available to control the behaviour of the SDK.
@@ -67,6 +92,7 @@ You can provide options by adding them to the SDK Configuration.
     .eventUrl("https://events.ff.harness.io/api/1.0")
     .pollingInterval(60)
     .enableStream(true)
+    .enablePolling(true)
     .enableAnalytics(true)
     .build()
 ```
