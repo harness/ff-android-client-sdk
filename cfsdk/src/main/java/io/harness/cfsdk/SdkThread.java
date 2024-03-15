@@ -155,7 +155,7 @@ class SdkThread implements Runnable {
         try {
             bearerToken = api.authenticate(authRequest).getAuthToken();
         } catch (ApiException ex) {
-            if (authCallback != null && ex.getCode() != 200) {
+            if (authCallback != null && ex.getCode() != 200 && !isAuthSuccessfulOnce) {
                 authCallback.authorizationSuccess(null, new AuthResult(false, ex));
             }
             throw ex;
