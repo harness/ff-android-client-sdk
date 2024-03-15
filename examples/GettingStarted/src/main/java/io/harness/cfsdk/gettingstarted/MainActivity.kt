@@ -36,7 +36,9 @@ class MainActivity : AppCompatActivity() {
     private fun initializeSdk(method: InitMethod) {
         logMessage("initializing SDK using ${method.toString().lowercase()}")
         // Common configuration and target setup
-        val sdkConfiguration = CfConfiguration.builder().enableStream(true).enablePolling(true).build()
+        val streamingEnabled = true
+        val pollingEnabled = true
+        val sdkConfiguration = CfConfiguration.builder().enableStream(streamingEnabled).enablePolling(pollingEnabled).build()
         val target = Target().identifier("ff-android").name("FF Android")
         target.attributes["location"] = "emea"
 
@@ -44,7 +46,10 @@ class MainActivity : AppCompatActivity() {
         client = CfClient()
 
         // Setup Listener to handle different events emitted by the SDK
-        setupEventListener()
+        // You only need to set this up if streaming/polling is enabled.
+        if (streamingEnabled && pollingEnabled) {
+            setupEventListener()
+        }
         
 
         when (method) {
