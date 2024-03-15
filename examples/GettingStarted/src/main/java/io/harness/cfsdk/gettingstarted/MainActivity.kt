@@ -120,7 +120,6 @@ class MainActivity : AppCompatActivity() {
     //
     // However, if you subscribe to `EVALUATION_RELOAD` which is fired on successful init and then when the SDK
     // polls, you can evaluate the flag there again to get the current value.
-    // eventually get the correct value
     private fun initializeNonBlocking(config: CfConfiguration, target: Target) {
         client.initialize(this, apiKey, config, target)
 
