@@ -76,6 +76,8 @@ class SdkThread implements Runnable {
     private String bearerToken;
     private AuthInfo authInfo;
     private boolean sseRescheduled = false;
+    // Used for emitting the initialize callback only once
+    private boolean isAuthSuccessfulOnce = false;
 
     SdkThread(Context context, String apiKey, CfConfiguration config, Target target, Map<String, Set<EvaluationListener>> evaluationListenerMap, Set<EventsListener> eventsListenerSet, AuthCallback authCallback)  {
         this.context = context;
@@ -153,7 +155,6 @@ class SdkThread implements Runnable {
         try {
             bearerToken = api.authenticate(authRequest).getAuthToken();
         } catch (ApiException ex) {
-            // 1.x.x backwards compatibility - this catch can be removed once the deprecated AuthCallback and AuthResult are removed
             if (authCallback != null && ex.getCode() != 200) {
                 authCallback.authorizationSuccess(null, new AuthResult(false, ex));
             }
@@ -174,11 +175,14 @@ class SdkThread implements Runnable {
             SdkCodes.infoSdkAuthOk();
             initLatch.countDown();
 
-            if (authCallback != null) {
-                authCallback.authorizationSuccess(ai, new AuthResult(true));
+            // Only emit this callback once
+            if (!isAuthSuccessfulOnce) {
+                isAuthSuccessfulOnce = true;
+                if (authCallback != null) {
+                    authCallback.authorizationSuccess(ai, new AuthResult(true));
+                }
             }
         }
-
         return authInfo;
     }
 
