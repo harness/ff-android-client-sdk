@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
     // e.g. FF_API_KEY='my key' ./gradlew installDebug
     private val apiKey: String = BuildConfig.FF_API_KEY
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -114,10 +115,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Highly likely to serve default value of `false` as the SDK will still be initializing.
+    // SDKCODE(eval:6001) will be logged if the default variation is served.
+    //
+    // However, if you subscribe to `EVALUATION_RELOAD` which is fired on successful init and then when the SDK
+    // polls, you can evaluate the flag there again to get the current value.
+    // eventually get the correct value
     private fun initializeNonBlocking(config: CfConfiguration, target: Target) {
         client.initialize(this, apiKey, config, target)
-        // Highly likely to serve default value of `false` as the SDK will still be initializing.
-        // Use callback approach of waitForInit
+
         val flagValue: Boolean = client.boolVariation(flagName, false)
         logMessage("Using callback: $flagName : $flagValue")
     }
