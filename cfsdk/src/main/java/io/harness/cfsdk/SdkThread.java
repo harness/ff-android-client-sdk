@@ -540,6 +540,13 @@ class SdkThread implements Runnable {
                 }
                 waitForNetworkToGoOnline();
                 continue;
+            } catch (ApiException ex) {
+                if (ex.getCode() == 403) {
+                    log.error("Received a 403 Forbidden response. Stopping SDK re-authentication attempts and defaults will be served.", ex);
+                    break;
+                } else {
+                    logExceptionAndWarn("API exception encountered, SDK will attempt to restart:", ex);
+                }
             } catch (Throwable ex) {
                 logExceptionAndWarn("Root SDK exception handler invoked, SDK will be restarted in 1 minute:", ex);
             }
