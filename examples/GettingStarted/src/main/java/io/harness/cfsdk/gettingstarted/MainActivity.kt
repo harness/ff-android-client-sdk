@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeSdk(method: InitMethod) {
-        logMessage("initializing SDK using ${method.toString().lowercase()}")
+        updateTextField("initializing SDK using ${method.toString().lowercase()}")
         // Common configuration and target setup
         val streamingEnabled = true
         val pollingEnabled = true
@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
                 // Setup Listener to handle flag change events.  This fires when a flag is modified.
                 StatusEvent.EVENT_TYPE.EVALUATION_CHANGE-> {
                     flagValue = client.boolVariation(flagName, false)
-                    logMessage("Streamed value for $flagName : $flagValue")
+                    updateTextField("Streamed value for $flagName : $flagValue")
                 }
 
                 // This event is fired on the initial poll when the SDK starts up. So it will
@@ -77,14 +77,14 @@ class MainActivity : AppCompatActivity() {
                 // while streaming recovers from any errors.
                 StatusEvent.EVENT_TYPE.EVALUATION_RELOAD -> {
                     flagValue = client.boolVariation(flagName, false)
-                    logMessage("Polled value for $flagName : $flagValue")
+                    updateTextField("Polled value for $flagName : $flagValue")
                 }
                 // There's been an interruption SSE stream which has since resumed, which means the
                 // cache will have been updated with the latest values, so we can call
                 // bool variation to get the most up-to-date evaluation value.
                 StatusEvent.EVENT_TYPE.SSE_RESUME -> {
                     flagValue = client.boolVariation(flagName, false)
-                    logMessage("$flagName : $flagValue")
+                    updateTextField("$flagName : $flagValue")
                 }
 
                 StatusEvent.EVENT_TYPE.EVALUATION_REMOVE -> {
@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity() {
                             "SDKEvent",
                             "Flag $flagName was deleted in Harness, ensure this is cleaned up in code"
                         )
-                        logMessage("$flagName was deleted in Harness, ensure this is cleaned up in code")
+                        updateTextField("$flagName was deleted in Harness, ensure this is cleaned up in code")
                     }
                 }
 
@@ -108,9 +108,9 @@ class MainActivity : AppCompatActivity() {
         client.initialize(this, apiKey, config, target) { info, result ->
             if (result.isSuccess) {
                 val flagValue: Boolean = client.boolVariation(flagName, false)
-                logMessage("Using callback: $flagName : $flagValue")
+                updateTextField("Using callback: $flagName : $flagValue")
             } else {
-                logMessage("Callback: SDK initialization failed: ${result.error}")
+                updateTextField("Callback: SDK initialization failed: ${result.error}")
             }
         }
     }
@@ -125,7 +125,7 @@ class MainActivity : AppCompatActivity() {
         client.initialize(this, apiKey, config, target)
 
         val flagValue: Boolean = client.boolVariation(flagName, false)
-        logMessage("Using callback: $flagName : $flagValue")
+        updateTextField("Using callback: $flagName : $flagValue")
     }
 
     // Blocking option - will block UI thread! Use callback approach above if you don't require
@@ -137,14 +137,14 @@ class MainActivity : AppCompatActivity() {
 
                 if (success) {
                     val flagValue: Boolean = client.boolVariation(flagName, false)
-                    logMessage("Using callback: $flagName : $flagValue")
+                    updateTextField("Using callback: $flagName : $flagValue")
                 } else {
-                    logMessage("WaitForInit: SDK initialization timed out")
+                    updateTextField("WaitForInit: SDK initialization timed out")
                 }
 
     }
 
-    private fun logMessage(msg: String) {
+    private fun updateTextField(msg: String) {
         val tv1: TextView = findViewById(R.id.textView1)
         runOnUiThread { tv1.text = msg }
     }
