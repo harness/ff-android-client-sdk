@@ -5,19 +5,20 @@ import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import ch.qos.logback.classic.android.BasicLogcatConfigurator
-import io.harness.cfsdk.*
+import io.harness.cfsdk.CfClient
+import io.harness.cfsdk.CfConfiguration
 import io.harness.cfsdk.cloud.model.Target
 import io.harness.cfsdk.cloud.sse.StatusEvent
-
 
 class MainActivity : AppCompatActivity() {
 
     companion object {
         init {
-            BasicLogcatConfigurator.configureDefaultContext() // enable SDK logging to logcat
+            BasicLogcatConfigurator.configureDefaultContext() // Enable SDK logging to logcat
         }
     }
 
+    private lateinit var client: CfClient
     private var flagName: String = BuildConfig.FF_FLAG_NAME.ifEmpty { "harnessappdemodarkmode" }
 
     // The SDK API Key to use for authentication.  Configure it when installing the app by setting FF_API_KEY
@@ -27,72 +28,119 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        printMessage("Starting SDK")
 
+        // Change this to try the different initialization methods
+        initializeSdk(InitMethod.CALLBACK)
+    }
 
-        if (flagName.equals("null")) {
-            flagName = "harnessappdemodarkmode"
-        }
-
-        // Create Default Configuration for the SDK.  We can use this to disable streaming,
-        // change the URL the client connects to etc
-        val sdkConfiguration = CfConfiguration.builder().enableStream(true).build()
-
-        // Create a target (different targets can get different results based on rules.  This include a custom attribute 'location')
+    private fun initializeSdk(method: InitMethod) {
+        logMessage("initializing SDK using ${method.toString().lowercase()}")
+        // Common configuration and target setup
+        val sdkConfiguration = CfConfiguration.builder().enableStream(true).enablePolling(true).build()
         val target = Target().identifier("ff-android").name("FF Android")
         target.attributes["location"] = "emea"
 
-        // Init the default instance of the Feature Flag Client
 
-        val client = CfClient()
-        client.use {
-            client.initialize(this, apiKey, sdkConfiguration, target)
-            if (client.waitForInitialization(60_000)) {
-                Log.i("SDKInit", "Successfully initialized client")
+        client = CfClient()
 
-                // Get initial value of flag and display it
-                var flagValue: Boolean = client.boolVariation(flagName, false)
-                printMessage("$flagName : $flagValue")
+        // Setup Listener to handle different events emitted by the SDK
+        setupEventListener()
+        
 
-                // Setup Listener to handle different events emitted by the SDK
-                client.registerEventsListener { event ->
-                    when (event.eventType) {
-                        // Setup Listener to handle flag change events.  This fires when a flag is modified.
-                        StatusEvent.EVENT_TYPE.EVALUATION_CHANGE -> {
-                            Log.i("SDKEvent", "received ${event.eventType} event for flag")
-                            event.extractEvaluationPayload()
-                            flagValue = client.boolVariation(flagName, false)
-                            printMessage("$flagName : $flagValue")
-                        }
+        when (method) {
+            InitMethod.CALLBACK -> initializeWithCallback(sdkConfiguration, target)
+            InitMethod.WAIT_FOR_INIT -> initializeWithWaitForInit(sdkConfiguration, target)
+            InitMethod.NON_BLOCKING -> initializeNonBlocking(sdkConfiguration, target)
+        }
 
-                        StatusEvent.EVENT_TYPE.EVALUATION_RELOAD -> {
-                            Log.i("SDKEvent", "received ${event.eventType} event for flag")
-                            event.extractEvaluationListPayload()
-                            flagValue = client.boolVariation(flagName, false)
-                            printMessage("$flagName : $flagValue")
-                        }
-                        // There's been an interruption SSE stream which has since resumed, which means the
-                        // cache will have been updated with the latest values, so we can call
-                        // bool variation to get the most up to date evaluation value.
-                        StatusEvent.EVENT_TYPE.SSE_RESUME -> {
-                            Log.i("SDKEvent", "received ${event.eventType} event for flag")
-                            flagValue = client.boolVariation(flagName, false)
-                            printMessage("$flagName : $flagValue")
-                        }
+    }
 
-                        else -> Log.i("SDKEvent", "Got ${event.eventType.name}")
+    private fun setupEventListener() {
+        var flagValue = false
+        client.registerEventsListener { event ->
+            when (event.eventType) {
+                // Setup Listener to handle flag change events.  This fires when a flag is modified.
+                StatusEvent.EVENT_TYPE.EVALUATION_CHANGE-> {
+                    flagValue = client.boolVariation(flagName, false)
+                    logMessage("Streamed value for $flagName : $flagValue")
+                }
+
+                // This event is fired on the initial poll when the SDK starts up. So it will
+                // always be triggered at least once, even if polling is disabled.
+                // It is good to subscribe to this event, because the SDK will fallback to polling
+                // while streaming recovers from any errors.
+                StatusEvent.EVENT_TYPE.EVALUATION_RELOAD -> {
+                    flagValue = client.boolVariation(flagName, false)
+                    logMessage("Polled value for $flagName : $flagValue")
+                }
+                // There's been an interruption SSE stream which has since resumed, which means the
+                // cache will have been updated with the latest values, so we can call
+                // bool variation to get the most up-to-date evaluation value.
+                StatusEvent.EVENT_TYPE.SSE_RESUME -> {
+                    flagValue = client.boolVariation(flagName, false)
+                    logMessage("$flagName : $flagValue")
+                }
+
+                StatusEvent.EVENT_TYPE.EVALUATION_REMOVE -> {
+                    if (event.extractEvaluationPayload().flag == flagName) {
+                        Log.w(
+                            "SDKEvent",
+                            "Flag $flagName was deleted in Harness, ensure this is cleaned up in code"
+                        )
+                        logMessage("$flagName was deleted in Harness, ensure this is cleaned up in code")
                     }
                 }
-            } else {
-                Log.e("SDKInit", "Timed out waiting for client to initialize")
-            }
 
+
+                else -> Log.i("SDKEvent", "Got ${event.eventType.name}")
+            }
         }
     }
 
-    // printMessage uses the UI Thread to update the text on the display
-    private fun printMessage(msg: String) {
+    /* Non-blocking options */
+    private fun initializeWithCallback(config: CfConfiguration, target: Target) {
+        client.initialize(this, apiKey, config, target) { info, result ->
+            if (result.isSuccess) {
+                val flagValue: Boolean = client.boolVariation(flagName, false)
+                logMessage("Using callback: $flagName : $flagValue")
+            } else {
+                logMessage("Callback: SDK initialization failed: ${result.error}")
+            }
+        }
+    }
+
+    private fun initializeNonBlocking(config: CfConfiguration, target: Target) {
+        client.initialize(this, apiKey, config, target)
+        // Highly likely to serve default value of `false` as the SDK will still be initializing.
+        // Use callback approach of waitForInit
+        val flagValue: Boolean = client.boolVariation(flagName, false)
+        logMessage("Using callback: $flagName : $flagValue")
+    }
+
+    // Blocking option - will block UI thread! Use callback approach above if you don't require
+    // blocking option.
+    private fun initializeWithWaitForInit(config: CfConfiguration, target: Target) {
+
+            client.initialize(this, apiKey, config, target)
+            val success = client.waitForInitialization(60_000)
+
+                if (success) {
+                    val flagValue: Boolean = client.boolVariation(flagName, false)
+                    logMessage("Using callback: $flagName : $flagValue")
+                } else {
+                    logMessage("WaitForInit: SDK initialization timed out")
+                }
+
+    }
+
+    private fun logMessage(msg: String) {
         val tv1: TextView = findViewById(R.id.textView1)
         runOnUiThread { tv1.text = msg }
+    }
+
+    enum class InitMethod {
+        CALLBACK,
+        WAIT_FOR_INIT,
+        NON_BLOCKING
     }
 }
