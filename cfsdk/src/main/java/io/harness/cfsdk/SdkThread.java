@@ -539,7 +539,16 @@ class SdkThread implements Runnable {
             } catch (Throwable ex) {
                 logExceptionAndWarn("Root SDK exception handler invoked, SDK will be restarted in 1 minute:", ex);
             }
-            /* should the sdk thread abort unexpectedly it will be restarted here */
+
+            /* should the sdk thread abort, it will conditionally be restarted here */
+
+            // If both streaming and polling are disabled, then we don't need the sdk thread to run anymore
+            if (!config.isStreamEnabled() && !config.isPollingEnabled()) {
+                log.info("Streaming and Polling are disabled. Initial setup complete. Exiting SDK main thread.");
+                break;
+            }
+
+            // Restart the thread here as it has aborted unexpectedly
             try {
                 TimeUnit.MINUTES.sleep(1);
             } catch (InterruptedException e) {
