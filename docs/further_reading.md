@@ -23,8 +23,10 @@ client.initialize(this, apiKey, sdkConfiguration, target)
     } 
 }
 ```
-This non-blocking approach utilizes a callback to notify the application of the SDK's readiness or any errors encountered during initialization.
-* You might get multiple callbacks if there was a failure and the SDK attempts to retry authentication.
+This approach is non-blocking and leverages a callback mechanism to inform the application about the SDK's initialization status. Here's how it works:
+* Success Callback: This callback is invoked once when the SDK is successfully initialized. It signifies that the SDK is ready for use. 
+
+* Failure Callback: This callback may be invoked multiple times if the SDK encounters errors during the initialization process. Each invocation provides an error detailing the cause of failure. The SDK will automatically attempt to retry authentication, leading to multiple invocations of this callback until a successful initialization occurs or the application decides to stop retrying.
 
 #### Without using a callback
 If you don't want to use a callback, you can simply initialize the SDK. Defaults will be served for any variation calls until the SDK can complete initialization.
