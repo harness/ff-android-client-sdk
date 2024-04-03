@@ -2,11 +2,12 @@ package io.harness.cfsdk.cloud.network;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 public abstract class NetworkInfoProviding {
 
     protected volatile boolean lastState;
-    protected final Set<NetworkListener> evaluationsObserver = ConcurrentHashMap.newKeySet();
+    protected final Set<NetworkListener> evaluationsObserver = new CopyOnWriteArraySet<>();;
 
     public abstract boolean isNetworkAvailable();
 
