@@ -15,7 +15,8 @@ import java.util.concurrent.TimeUnit;
 
 import io.harness.cfsdk.CfConfiguration;
 import io.harness.cfsdk.cloud.analytics.model.Analytics;
-import io.harness.cfsdk.cloud.network.NetworkInfoProvider;
+
+import io.harness.cfsdk.cloud.network.NetworkChecker;
 import io.harness.cfsdk.cloud.openapi.client.model.Variation;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.common.SdkCodes;
@@ -24,13 +25,13 @@ public class AnalyticsManager implements Closeable {
 
     private static final Logger log = LoggerFactory.getLogger(AnalyticsManager.class);
 
+    private final Context context;
     private final AnalyticsPublisherService analyticsPublisherService;
     private final ScheduledExecutorService scheduledExecutorService;
     private final FrequencyMap<Analytics> frequencyMap;
     private final CfConfiguration config;
     private final Target target;
-
-    private final NetworkInfoProvider network;
+    private final NetworkChecker networkChecker;
 
     private static class FrequencyMap<K> {
 
@@ -80,13 +81,15 @@ public class AnalyticsManager implements Closeable {
             final Context context,
             final CfConfiguration config,
             final Target target,
-            final AnalyticsPublisherService analyticsPublisherService) {
+            final AnalyticsPublisherService analyticsPublisherService,
+            final NetworkChecker networkChecker) {
+        this.context = context;
         this.frequencyMap = new FrequencyMap<>();
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         this.analyticsPublisherService = analyticsPublisherService;
         this.config = config;
         this.target = target;
-        this.network = new NetworkInfoProvider(context);
+        this.networkChecker = networkChecker;
 
         final long frequencyMs = config.getMetricsPublishingIntervalInMillis();
         scheduledExecutorService.scheduleAtFixedRate(this::postMetricsThread,frequencyMs/2, frequencyMs, TimeUnit.MILLISECONDS);
@@ -97,7 +100,7 @@ public class AnalyticsManager implements Closeable {
         log.debug("Running metrics thread iteration. frequencyMapSize={}", frequencyMap.size());
         Thread.currentThread().setName("Metrics Thread");
 
-        if (!network.isNetworkAvailable()) {
+        if (!networkChecker.isNetworkAvailable(context)) {
             log.info("Network is offline, skipping metrics post");
             return;
         }
