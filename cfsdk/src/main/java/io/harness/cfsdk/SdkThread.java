@@ -96,7 +96,9 @@ class SdkThread implements Runnable {
                - polling()
            Each of these methods block the sdkThread.
            Any spurious exceptions (e.g. socket timeout) will be caught by the root exception
-           handler in run() and this method will be restarted. */
+           handler in run() and this method will be restarted.
+           Make sure any network calls correctly timeout and don't hang because we must not block
+           the sdkThread. */
 
         final AuthInfo authInfo = authenticating(api, apiKey, target);
         if (authInfo == null) {
@@ -571,6 +573,7 @@ class SdkThread implements Runnable {
         do {
             try {
                 if (networkChecker.isNetworkAvailable(context)) {
+                    log.info("Network is online, restarting SDK");
                     return;
                 }
                 SECONDS.sleep(2);
