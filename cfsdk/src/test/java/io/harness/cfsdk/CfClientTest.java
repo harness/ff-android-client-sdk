@@ -64,7 +64,7 @@ import java.util.function.Consumer;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
-import io.harness.cfsdk.cloud.network.NetworkInfoProviding;
+import io.harness.cfsdk.cloud.network.NetworkChecker;
 import io.harness.cfsdk.cloud.network.NewRetryInterceptor;
 import io.harness.cfsdk.cloud.openapi.client.ApiClient;
 import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
@@ -72,7 +72,6 @@ import io.harness.cfsdk.cloud.openapi.metric.model.Metrics;
 import io.harness.cfsdk.cloud.sse.EventsListener;
 import io.harness.cfsdk.cloud.sse.StatusEvent;
 import io.harness.cfsdk.mock.MockedCache;
-import io.harness.cfsdk.mock.MockedNetworkInfoProvider;
 import io.harness.cfsdk.utils.EventsListenerCounter;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.Dispatcher;
@@ -248,6 +247,7 @@ public class CfClientTest {
             mockSvr.start();
 
             try (final CfClient client = new CfClient()) {
+                client.setNetworkChecker(ctx -> true);
                 final CfConfiguration config = configCallback.apply(mockSvr.getHostName(), mockSvr.getPort());
 
                 client.initialize(
@@ -273,6 +273,7 @@ public class CfClientTest {
 
             final EventsListenerCounter eventCounter = new EventsListenerCounter(11); // Make sure this number matches assertions total below
             try (final CfClient client = new CfClient()) {
+                client.setNetworkChecker(ctx -> true);
                 client.registerEventsListener(eventCounter);
 
                 final CfConfiguration config = CfConfiguration.builder()
@@ -376,6 +377,7 @@ public class CfClientTest {
                 when(config.getCache()).thenReturn(makeMockCache());
                 when(config.isDebugEnabled()).thenReturn(true);
 
+                client.setNetworkChecker(context -> true);
                 client.initialize(
                         makeMockContextWithNetworkOnline(),
                         "dummykey",
@@ -416,6 +418,7 @@ public class CfClientTest {
             mockSvr.start();
 
             try (final CfClient client = new CfClient()) {
+                client.setNetworkChecker(ctx -> true);
                 client.registerEventsListener(eventListener);
 
                 final CfConfiguration config = CfConfiguration.builder()
@@ -462,6 +465,7 @@ public class CfClientTest {
 
             final CfConfiguration config = configCallback.apply(mockSvr.getHostName(), mockSvr.getPort());
             try (final CfClient client = new CfClient()) {
+                client.setNetworkChecker(ctx -> true);
                 client.initialize(
                         makeMockContextWithNetworkOnline(),
                         "dummykey",
@@ -507,6 +511,7 @@ public class CfClientTest {
                     .build();
 
             try (CfClient client = new CfClient()) {
+                client.setNetworkChecker(ctx -> true);
                 client.initialize(makeMockContextWithNetworkOnline(), "dummyapikey", config, DUMMY_TARGET);
                 client.waitForInitialization(30_000);
                 client.refreshEvaluations();

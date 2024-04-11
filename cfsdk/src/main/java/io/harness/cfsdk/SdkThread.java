@@ -1,15 +1,12 @@
 package io.harness.cfsdk;
 
 import static java.util.concurrent.ThreadLocalRandom.current;
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import static io.harness.cfsdk.AndroidSdkVersion.ANDROID_SDK_VERSION;
-import static io.harness.cfsdk.cloud.network.NetworkStatus.CONNECTED;
 import static io.harness.cfsdk.utils.CfUtils.EvaluationUtil.areEvaluationsValid;
 
 import android.content.Context;
-
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +34,7 @@ import io.harness.cfsdk.cloud.events.AuthResult;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
-import io.harness.cfsdk.cloud.network.NetworkInfoProvider;
+import io.harness.cfsdk.cloud.network.NetworkChecker;
 import io.harness.cfsdk.cloud.network.NewRetryInterceptor;
 import io.harness.cfsdk.cloud.openapi.client.ApiClient;
 import io.harness.cfsdk.cloud.openapi.client.ApiException;
@@ -66,9 +63,9 @@ class SdkThread implements Runnable {
     private final Executor callbackExecutor = Executors.newSingleThreadExecutor();
     private final Map<String, Set<EvaluationListener>> evaluationListenerMap;
     private final Set<EventsListener> eventsListenerSet;
-    private final NetworkInfoProvider network;
     private final AuthCallback authCallback;
-    private final NetworkInfoProvider networkSleeper;
+    private final NetworkChecker networkChecker;
+
 
     /* ---- Mutable state ---- */
     private final AtomicReference<Instant> lastPollTime = new AtomicReference<>(Instant.EPOCH);
@@ -79,7 +76,7 @@ class SdkThread implements Runnable {
     // Used for emitting the initialize callback only once
     private boolean isAuthSuccessfulOnce = false;
 
-    SdkThread(Context context, String apiKey, CfConfiguration config, Target target, Map<String, Set<EvaluationListener>> evaluationListenerMap, Set<EventsListener> eventsListenerSet, AuthCallback authCallback)  {
+    SdkThread(Context context, String apiKey, CfConfiguration config, Target target, Map<String, Set<EvaluationListener>> evaluationListenerMap, Set<EventsListener> eventsListenerSet, AuthCallback authCallback, NetworkChecker networkChecker)  {
         this.context = context;
         this.apiKey = apiKey;
         this.config = config;
@@ -88,9 +85,8 @@ class SdkThread implements Runnable {
         this.callbackExecutor.execute(() -> Thread.currentThread().setName("CallbackThread"));
         this.evaluationListenerMap = evaluationListenerMap;
         this.eventsListenerSet = eventsListenerSet;
-        this.network = new NetworkInfoProvider(context);
         this.authCallback = authCallback;
-        this.networkSleeper = new NetworkInfoProvider(context);
+        this.networkChecker = networkChecker;
     }
 
     void mainSdkThread(ClientApi api) throws ApiException {
@@ -100,7 +96,9 @@ class SdkThread implements Runnable {
                - polling()
            Each of these methods block the sdkThread.
            Any spurious exceptions (e.g. socket timeout) will be caught by the root exception
-           handler in run() and this method will be restarted. */
+           handler in run() and this method will be restarted.
+           Make sure any network calls correctly timeout and don't hang because we must not block
+           the sdkThread. */
 
         final AuthInfo authInfo = authenticating(api, apiKey, target);
         if (authInfo == null) {
@@ -172,7 +170,7 @@ class SdkThread implements Runnable {
 
             pollOnce(api, authInfo);
 
-            SdkCodes.infoSdkAuthOk();
+            SdkCodes.infoSdkAuthOk(AndroidSdkVersion.ANDROID_SDK_VERSION);
             initLatch.countDown();
 
             // Only emit this callback once
@@ -523,7 +521,7 @@ class SdkThread implements Runnable {
     }
 
     boolean networkUnavailable() {
-        return !network.isNetworkAvailable();
+        return !networkChecker.isNetworkAvailable(context);
     }
 
     static class NetworkOffline extends RuntimeException { NetworkOffline() { super("No Internet"); }}
@@ -571,25 +569,18 @@ class SdkThread implements Runnable {
     private void waitForNetworkToGoOnline() {
         log.info("Network is offline, SDK going to sleep");
 
-        final CountDownLatch networkLatch = new CountDownLatch(1);
-
-        networkSleeper.register(status -> {
-            if (status == CONNECTED) {
-                log.debug("got network event: {}", status);
-                networkLatch.countDown();
-                networkSleeper.unregisterAll();
+        int counter = 30;
+        do {
+            try {
+                if (networkChecker.isNetworkAvailable(context)) {
+                    log.info("Network is online, restarting SDK");
+                    return;
+                }
+                SECONDS.sleep(2);
+            } catch (InterruptedException e) {
+                log.trace("sdk network wait interrupted", e);
             }
-        });
-
-        try {
-            if (networkLatch.await(1, MINUTES)) {
-                log.info("Network connected, wake up SDK");
-            } else {
-                log.info("Wake up SDK/check network");
-            }
-        } catch (InterruptedException e) {
-            logExceptionAndWarn("Network sleep interrupted", e);
-        }
+        } while (counter-- > 0);
     }
 
 }
