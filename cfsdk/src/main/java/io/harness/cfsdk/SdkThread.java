@@ -168,7 +168,7 @@ class SdkThread implements Runnable {
 
             pollOnce(api, authInfo);
 
-            SdkCodes.infoSdkAuthOk();
+            SdkCodes.infoSdkAuthOk(AndroidSdkVersion.ANDROID_SDK_VERSION);
             initLatch.countDown();
 
             // Only emit this callback once

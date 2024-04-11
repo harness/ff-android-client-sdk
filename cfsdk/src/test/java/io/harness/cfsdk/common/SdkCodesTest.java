@@ -17,7 +17,7 @@ public class SdkCodesTest {
             infoPollStarted(123);
             infoSdkInitOk();
             infoSdkWaitingForInit();
-            infoSdkAuthOk();
+            infoSdkAuthOk("1.2.3");
             infoPollingStopped();
             infoStreamConnected();
             infoStreamEventReceived(null);
