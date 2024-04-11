@@ -36,9 +36,9 @@ public class SdkCodes {
       log.info(sdkErrMsg(1003));
   }
 
-  public static void infoSdkAuthOk() {
+  public static void infoSdkAuthOk(String sdkVersion) {
     if (log.isInfoEnabled())
-      log.info(sdkErrMsg(2000));
+      log.info(sdkErrMsg(2000, sdkVersion));
   }
 
   public static void infoPollingStopped() {
@@ -103,7 +103,7 @@ public class SdkCodes {
     put(1002, "The SDK has failed to initialize due to a missing or empty API key");
     put(1003, "The SDK is waiting for initialization to complete");
 
-    put(2000, "Authenticated ok");
+    put(2000, "Authenticated ok, SDK version");
     put(2001, "Authentication failed with a non-recoverable error - defaults will be served");
     put(2003, "Retrying to authenticate");
 

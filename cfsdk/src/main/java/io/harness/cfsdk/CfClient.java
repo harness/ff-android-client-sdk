@@ -26,6 +26,8 @@ import io.harness.cfsdk.cloud.analytics.AnalyticsPublisherService;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
+import io.harness.cfsdk.cloud.network.NetworkChecker;
+import io.harness.cfsdk.cloud.network.Utils;
 import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 import io.harness.cfsdk.cloud.openapi.client.model.Variation;
 import io.harness.cfsdk.cloud.sse.EventsListener;
@@ -41,6 +43,8 @@ public class CfClient implements Closeable, Client {
     private SdkThread sdkThread;
     private AnalyticsManager metricsThread;
     private CfConfiguration configuration;
+
+    private NetworkChecker networkChecker;
 
     public CfClient() {
     }
@@ -90,7 +94,9 @@ public class CfClient implements Closeable, Client {
 
             setTargetDefaults(target);
 
-            sdkThread = new SdkThread(context, apiKey, configuration, target, evaluationListenerSet, eventsListenerSet, authCallback);
+            NetworkChecker netChecker = (networkChecker != null) ? networkChecker : Utils::isNetworkAvailable;
+
+            sdkThread = new SdkThread(context, apiKey, configuration, target, evaluationListenerSet, eventsListenerSet, authCallback, netChecker);
             threadExecutor.execute(sdkThread);
 
             if (configuration.isAnalyticsEnabled()) {
@@ -99,7 +105,7 @@ public class CfClient implements Closeable, Client {
                 }
                 threadExecutor.submit(() -> {
                     sdkThread.waitForInitialization(0);
-                    metricsThread = new AnalyticsManager(context, configuration, target, new AnalyticsPublisherService(configuration, sdkThread.getBearerToken(), sdkThread.getAuthInfo()));
+                    metricsThread = new AnalyticsManager(context, configuration, target, new AnalyticsPublisherService(configuration, sdkThread.getBearerToken(), sdkThread.getAuthInfo()), netChecker);
                 });
             }
 
@@ -356,5 +362,10 @@ public class CfClient implements Closeable, Client {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    void setNetworkChecker(NetworkChecker networkChecker) {
+        // Testing only
+        this.networkChecker = networkChecker;
     }
 }

@@ -44,7 +44,7 @@ public class AnalyticsManagerTest {
         final AnalyticsPublisherService aps = new AnalyticsPublisherService(authInfo, metricsApi);
         final Target target = new Target().identifier("harness");
 
-        final AnalyticsManager processor = new AnalyticsManager(Mockito.mock(Context.class), config, target, aps) {
+        final AnalyticsManager processor = new AnalyticsManager(Mockito.mock(Context.class), config, target, aps, ctx -> true) {
             @Override
             protected AnalyticsPublisherServiceCallback getSendingCallback() {
                 return (success) -> {
@@ -105,7 +105,7 @@ public class AnalyticsManagerTest {
         final MetricsApi metricsApi = Mockito.mock(MetricsApi.class);
         final Target target = new Target().identifier("harness");
         final AnalyticsPublisherService aps = new AnalyticsPublisherService(authInfo, metricsApi);
-        final AnalyticsManager processor = new AnalyticsManager(Mockito.mock(Context.class), config, target, aps);
+        final AnalyticsManager processor = new AnalyticsManager(Mockito.mock(Context.class), config, target, aps, ctx -> true);
 
         final int FLAG_COUNT = 500;
         final int VARIATION_COUNT = 4;
