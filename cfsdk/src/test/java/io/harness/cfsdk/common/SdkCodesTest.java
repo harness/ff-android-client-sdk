@@ -18,6 +18,8 @@ public class SdkCodesTest {
             infoSdkInitOk();
             infoSdkWaitingForInit();
             infoSdkAuthOk("1.2.3");
+            infoSdkClosing();
+            infoSdkClosed();
             infoPollingStopped();
             infoStreamConnected();
             infoStreamEventReceived(null);

@@ -329,65 +329,49 @@ public class CfClient implements Closeable, Client {
 
     @Override
     public void close() {
-        log.debug("Closing SDK");
+        synchronized (initLock) {
+            SdkCodes.infoSdkClosing();
+            if (metricsThread != null) {
+                metricsThread.close();
+            }
 
-        if (metricsThread != null) {
-            metricsThread.close();
-        }
+            if (sdkThread != null) {
+                sdkThread.stop();
+                sdkThread = null;
+            }
 
+            eventsListenerSet.clear();
+            evaluationListenerSet.clear();
 
-        eventsListenerSet.clear();
-        evaluationListenerSet.clear();
+            threadExecutor.shutdownNow();
 
-        // Initiate an orderly shutdown of the executor
-        threadExecutor.shutdownNow();
-
-        try {
-            // Await termination of the executor
-            if (!threadExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                threadExecutor.shutdownNow();
-                if (!threadExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                    log.error("Thread pool did not terminate");
+            synchronized (CfClient.class) {
+                if (instance == this) {
+                    instance = null;
                 }
             }
-        } catch (InterruptedException ie) {
-            threadExecutor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
 
-        synchronized (CfClient.class) {
-            if (instance == this) {
-                instance = null;
-            }
+            SdkCodes.infoSdkClosed();
         }
     }
 
     public Future<Boolean> closeWithFuture() {
         FutureTask<Boolean> closeFuture = new FutureTask<>(() -> {
             synchronized (initLock) {
+                SdkCodes.infoSdkClosing();
+                eventsListenerSet.clear();
+                evaluationListenerSet.clear();
+
                 if (metricsThread != null) {
                     metricsThread.close();
                 }
 
                 if (sdkThread != null) {
-                    sdkThread.stop(); // Ensure the thread stops gracefully
+                    sdkThread.stop();
                     sdkThread = null;
                 }
 
                 threadExecutor.shutdownNow();
-                try {
-                    if (!threadExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                        threadExecutor.shutdownNow();
-                        if (!threadExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                            log.error("Thread pool did not terminate");
-                            throw new RuntimeException("Thread pool did not terminate");
-                        }
-                    }
-                } catch (InterruptedException ie) {
-                    threadExecutor.shutdownNow();
-                    Thread.currentThread().interrupt();
-                    throw ie;
-                }
 
                 synchronized (CfClient.class) {
                     if (instance == this) {
@@ -395,6 +379,7 @@ public class CfClient implements Closeable, Client {
                     }
                 }
             }
+            SdkCodes.infoSdkClosed();
             return true;
         });
 
