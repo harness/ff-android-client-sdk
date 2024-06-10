@@ -5,7 +5,9 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static io.harness.cfsdk.utils.CfUtils.Text.isEmpty;
 
 import android.content.Context;
+
 import androidx.annotation.Nullable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -37,6 +39,7 @@ import io.harness.cfsdk.cloud.openapi.client.model.Variation;
 import io.harness.cfsdk.cloud.sse.EventsListener;
 import io.harness.cfsdk.common.SdkCodes;
 import io.harness.cfsdk.cloud.events.AuthCallback;
+
 public class CfClient implements Closeable, Client {
 
     private static final Logger log = LoggerFactory.getLogger(CfClient.class);
@@ -310,7 +313,7 @@ public class CfClient implements Closeable, Client {
     @Deprecated
     @Override
     public void initialize(final Context context, final String apiKey, final CfConfiguration config,
-            final Target target, final CloudCache cloudCache, @Nullable final AuthCallback authCallback) throws IllegalStateException {
+                           final Target target, final CloudCache cloudCache, @Nullable final AuthCallback authCallback) throws IllegalStateException {
         initializeInternal(context, apiKey, config, target, cloudCache, authCallback);
     }
 
@@ -323,7 +326,7 @@ public class CfClient implements Closeable, Client {
     @Deprecated
     @Override
     public void initialize(final Context context, final String apiKey, final CfConfiguration config,
-            final Target target, final CloudCache cloudCache) throws IllegalStateException {
+                           final Target target, final CloudCache cloudCache) throws IllegalStateException {
         initializeInternal(context, apiKey, config, target, cloudCache, null);
     }
 
