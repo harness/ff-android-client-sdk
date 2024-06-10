@@ -17,14 +17,18 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
 import io.harness.cfsdk.cloud.analytics.AnalyticsPublisherService;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
-import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkChecker;
 import io.harness.cfsdk.cloud.network.Utils;
@@ -40,11 +44,16 @@ public class CfClient implements Closeable, Client {
     private final Set<EventsListener> eventsListenerSet = Collections.synchronizedSet(new LinkedHashSet<>());
     private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet = new ConcurrentHashMap<>();
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(3);
+    private final ExecutorService shutdownExecutor = Executors.newSingleThreadExecutor();
+
     private SdkThread sdkThread;
     private AnalyticsManager metricsThread;
     private CfConfiguration configuration;
 
     private NetworkChecker networkChecker;
+
+    private final Object initLock = new Object();
+
 
     public CfClient() {
     }
@@ -68,7 +77,9 @@ public class CfClient implements Closeable, Client {
             final Target target
 
     ) throws IllegalStateException {
-        initializeInternal(context, apiKey, configuration, target, null, null);
+        synchronized (initLock) {
+            initializeInternal(context, apiKey, configuration, target, null, null);
+        }
     }
 
     private void initializeInternal(final Context context, final String apiKey, final CfConfiguration config, final Target target, final CloudCache cloudCache, @Nullable final AuthCallback authCallback) {
@@ -324,13 +335,71 @@ public class CfClient implements Closeable, Client {
             metricsThread.close();
         }
 
+
+        eventsListenerSet.clear();
+        evaluationListenerSet.clear();
+
+        // Initiate an orderly shutdown of the executor
         threadExecutor.shutdownNow();
+
+        try {
+            // Await termination of the executor
+            if (!threadExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                threadExecutor.shutdownNow();
+                if (!threadExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    log.error("Thread pool did not terminate");
+                }
+            }
+        } catch (InterruptedException ie) {
+            threadExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
 
         synchronized (CfClient.class) {
             if (instance == this) {
                 instance = null;
             }
         }
+    }
+
+    public Future<Boolean> closeWithFuture() {
+        FutureTask<Boolean> closeFuture = new FutureTask<>(() -> {
+            synchronized (initLock) {
+                if (metricsThread != null) {
+                    metricsThread.close();
+                }
+
+                if (sdkThread != null) {
+                    sdkThread.stop(); // Ensure the thread stops gracefully
+                    sdkThread = null;
+                }
+
+                threadExecutor.shutdownNow();
+                try {
+                    if (!threadExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                        threadExecutor.shutdownNow();
+                        if (!threadExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                            log.error("Thread pool did not terminate");
+                            throw new RuntimeException("Thread pool did not terminate");
+                        }
+                    }
+                } catch (InterruptedException ie) {
+                    threadExecutor.shutdownNow();
+                    Thread.currentThread().interrupt();
+                    throw ie;
+                }
+
+                synchronized (CfClient.class) {
+                    if (instance == this) {
+                        instance = null;
+                    }
+                }
+            }
+            return true;
+        });
+
+        shutdownExecutor.submit(closeFuture);
+        return closeFuture;
     }
 
     void setTargetDefaults(Target target) {

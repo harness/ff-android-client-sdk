@@ -149,12 +149,22 @@ public class AnalyticsManager implements Closeable {
             log.trace("registerEvaluation: Variation={} NewMapSize={} NewTotalEvaluations={}", variation.getIdentifier(), frequencyMap.size(), frequencyMap.sum());
     }
 
-    @Override
     public void close() {
-        log.debug("destroying");
+        log.debug("Closing Metrics thread");
 
         flushMetrics();
         scheduledExecutorService.shutdown();
+        try {
+            if (!scheduledExecutorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                scheduledExecutorService.shutdownNow();
+                if (!scheduledExecutorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                    log.error("Metrics thread pool did not terminate");
+                }
+            }
+        } catch (InterruptedException ex) {
+            log.warn("Timed out waiting for metrics to flush on close", ex);
+            Thread.currentThread().interrupt();
+        }
         SdkCodes.infoMetricsThreadExited();
     }
 

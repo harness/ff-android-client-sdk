@@ -76,6 +76,9 @@ class SdkThread implements Runnable {
     // Used for emitting the initialize callback only once
     private boolean isAuthSuccessfulOnce = false;
 
+    private volatile boolean running = true;
+
+
     SdkThread(Context context, String apiKey, CfConfiguration config, Target target, Map<String, Set<EvaluationListener>> evaluationListenerMap, Set<EventsListener> eventsListenerSet, AuthCallback authCallback, NetworkChecker networkChecker)  {
         this.context = context;
         this.apiKey = apiKey;
@@ -563,8 +566,10 @@ class SdkThread implements Runnable {
             } catch (InterruptedException e) {
                 log.trace("sdk restart delay interrupted", e);
             }
-        } while (true);
+        } while (running && !Thread.currentThread().isInterrupted());
     }
+
+
 
     private void waitForNetworkToGoOnline() {
         log.info("Network is offline, SDK going to sleep");
@@ -581,6 +586,11 @@ class SdkThread implements Runnable {
                 log.trace("sdk network wait interrupted", e);
             }
         } while (counter-- > 0);
+    }
+
+    void stop() {
+        running = false;
+        Thread.currentThread().interrupt();
     }
 
 }
