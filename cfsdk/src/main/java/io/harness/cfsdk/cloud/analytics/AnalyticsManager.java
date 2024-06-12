@@ -151,20 +151,8 @@ public class AnalyticsManager implements Closeable {
 
     public void close() {
         log.debug("Closing Metrics thread");
-
         flushMetrics();
-        scheduledExecutorService.shutdown();
-        try {
-            if (!scheduledExecutorService.awaitTermination(5, TimeUnit.SECONDS)) {
-                scheduledExecutorService.shutdownNow();
-                if (!scheduledExecutorService.awaitTermination(5, TimeUnit.SECONDS)) {
-                    log.error("Metrics thread pool did not terminate");
-                }
-            }
-        } catch (InterruptedException ex) {
-            log.warn("Timed out waiting for metrics to flush on close", ex);
-            Thread.currentThread().interrupt();
-        }
+        scheduledExecutorService.shutdownNow();
         SdkCodes.infoMetricsThreadExited();
     }
 

@@ -339,7 +339,6 @@ public class CfClient implements Closeable, Client {
             }
 
             if (sdkThread != null) {
-                sdkThread.stop();
                 sdkThread = null;
             }
 
@@ -370,7 +369,6 @@ public class CfClient implements Closeable, Client {
                 }
 
                 if (sdkThread != null) {
-                    sdkThread.stop();
                     sdkThread = null;
                 }
 
