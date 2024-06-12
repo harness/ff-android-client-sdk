@@ -6,6 +6,9 @@ import androidx.annotation.Nullable;
 
 import org.json.JSONObject;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.events.AuthCallback;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
@@ -141,6 +144,12 @@ public interface Client extends AutoCloseable {
      * @since 1.2.0
      */
     void close();
+
+    /**
+     * Like {@link #close()} except returns a Future to indicate completion
+     * @since 2.2.1
+     */
+    Future<Boolean> closeWithFuture();
 
     /**
      * Deprecated. Use {@link io.harness.cfsdk.CfClient#initialize(Context, String, CfConfiguration, Target)} instead.

@@ -5,7 +5,9 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static io.harness.cfsdk.utils.CfUtils.Text.isEmpty;
 
 import android.content.Context;
+
 import androidx.annotation.Nullable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -17,14 +19,18 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
 import io.harness.cfsdk.cloud.analytics.AnalyticsPublisherService;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
-import io.harness.cfsdk.cloud.model.AuthInfo;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkChecker;
 import io.harness.cfsdk.cloud.network.Utils;
@@ -33,6 +39,7 @@ import io.harness.cfsdk.cloud.openapi.client.model.Variation;
 import io.harness.cfsdk.cloud.sse.EventsListener;
 import io.harness.cfsdk.common.SdkCodes;
 import io.harness.cfsdk.cloud.events.AuthCallback;
+
 public class CfClient implements Closeable, Client {
 
     private static final Logger log = LoggerFactory.getLogger(CfClient.class);
@@ -40,11 +47,16 @@ public class CfClient implements Closeable, Client {
     private final Set<EventsListener> eventsListenerSet = Collections.synchronizedSet(new LinkedHashSet<>());
     private final ConcurrentHashMap<String, Set<EvaluationListener>> evaluationListenerSet = new ConcurrentHashMap<>();
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(3);
+    private final ExecutorService shutdownExecutor = Executors.newSingleThreadExecutor();
+
     private SdkThread sdkThread;
     private AnalyticsManager metricsThread;
     private CfConfiguration configuration;
 
     private NetworkChecker networkChecker;
+
+    private final Object initLock = new Object();
+
 
     public CfClient() {
     }
@@ -68,7 +80,9 @@ public class CfClient implements Closeable, Client {
             final Target target
 
     ) throws IllegalStateException {
-        initializeInternal(context, apiKey, configuration, target, null, null);
+        synchronized (initLock) {
+            initializeInternal(context, apiKey, configuration, target, null, null);
+        }
     }
 
     private void initializeInternal(final Context context, final String apiKey, final CfConfiguration config, final Target target, final CloudCache cloudCache, @Nullable final AuthCallback authCallback) {
@@ -299,7 +313,7 @@ public class CfClient implements Closeable, Client {
     @Deprecated
     @Override
     public void initialize(final Context context, final String apiKey, final CfConfiguration config,
-            final Target target, final CloudCache cloudCache, @Nullable final AuthCallback authCallback) throws IllegalStateException {
+                           final Target target, final CloudCache cloudCache, @Nullable final AuthCallback authCallback) throws IllegalStateException {
         initializeInternal(context, apiKey, config, target, cloudCache, authCallback);
     }
 
@@ -312,25 +326,66 @@ public class CfClient implements Closeable, Client {
     @Deprecated
     @Override
     public void initialize(final Context context, final String apiKey, final CfConfiguration config,
-            final Target target, final CloudCache cloudCache) throws IllegalStateException {
+                           final Target target, final CloudCache cloudCache) throws IllegalStateException {
         initializeInternal(context, apiKey, config, target, cloudCache, null);
     }
 
     @Override
     public void close() {
-        log.debug("Closing SDK");
-
-        if (metricsThread != null) {
-            metricsThread.close();
-        }
-
-        threadExecutor.shutdownNow();
-
-        synchronized (CfClient.class) {
-            if (instance == this) {
-                instance = null;
+        synchronized (initLock) {
+            SdkCodes.infoSdkClosing();
+            if (metricsThread != null) {
+                metricsThread.close();
             }
+
+            if (sdkThread != null) {
+                sdkThread = null;
+            }
+
+            eventsListenerSet.clear();
+            evaluationListenerSet.clear();
+
+            threadExecutor.shutdownNow();
+
+            synchronized (CfClient.class) {
+                if (instance == this) {
+                    instance = null;
+                }
+            }
+
+            SdkCodes.infoSdkClosed();
         }
+    }
+
+    public Future<Boolean> closeWithFuture() {
+        FutureTask<Boolean> closeFuture = new FutureTask<>(() -> {
+            synchronized (initLock) {
+                SdkCodes.infoSdkClosing();
+                eventsListenerSet.clear();
+                evaluationListenerSet.clear();
+
+                if (metricsThread != null) {
+                    metricsThread.close();
+                }
+
+                if (sdkThread != null) {
+                    sdkThread = null;
+                }
+
+                threadExecutor.shutdownNow();
+
+                synchronized (CfClient.class) {
+                    if (instance == this) {
+                        instance = null;
+                    }
+                }
+            }
+            SdkCodes.infoSdkClosed();
+            return true;
+        });
+
+        shutdownExecutor.submit(closeFuture);
+        return closeFuture;
     }
 
     void setTargetDefaults(Target target) {

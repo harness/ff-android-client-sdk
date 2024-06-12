@@ -149,12 +149,10 @@ public class AnalyticsManager implements Closeable {
             log.trace("registerEvaluation: Variation={} NewMapSize={} NewTotalEvaluations={}", variation.getIdentifier(), frequencyMap.size(), frequencyMap.sum());
     }
 
-    @Override
     public void close() {
-        log.debug("destroying");
-
+        log.debug("Closing Metrics thread");
         flushMetrics();
-        scheduledExecutorService.shutdown();
+        scheduledExecutorService.shutdownNow();
         SdkCodes.infoMetricsThreadExited();
     }
 

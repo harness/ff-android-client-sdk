@@ -41,6 +41,16 @@ public class SdkCodes {
       log.info(sdkErrMsg(2000, sdkVersion));
   }
 
+  public static void infoSdkClosing() {
+    if (log.isInfoEnabled())
+      log.info(sdkErrMsg(3000));
+  }
+
+  public static void infoSdkClosed() {
+    if (log.isInfoEnabled())
+      log.info(sdkErrMsg(3001));
+  }
+
   public static void infoPollingStopped() {
     if (log.isInfoEnabled())
       log.info(sdkErrMsg(4001));
@@ -110,6 +120,9 @@ public class SdkCodes {
     put(4000, "Polling started, intervalMs:");
     put(4001, "Polling stopped");
 
+    put(3000, "Closing SDK");
+    put(3001, "SDK Closed successfully");
+
     put(5000, "SSE stream connected ok");
     put(5001, "SSE stream disconnected, reason:");
     put(5002, "SSE event received:");
@@ -141,6 +154,7 @@ public class SdkCodes {
   private static String getErrClass(int errorCode) {
     if (errorCode >= 1000 && errorCode <= 1999) return "init";
     else if (errorCode >= 2000 && errorCode <= 2999) return "auth";
+    else if (errorCode >= 3000 && errorCode <= 3999) return "close";
     else if (errorCode >= 4000 && errorCode <= 4999) return "poll";
     else if (errorCode >= 5000 && errorCode <= 5999) return "stream";
     else if (errorCode >= 6000 && errorCode <= 6999) return "eval";

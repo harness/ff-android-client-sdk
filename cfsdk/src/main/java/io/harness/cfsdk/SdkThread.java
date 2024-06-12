@@ -563,8 +563,10 @@ class SdkThread implements Runnable {
             } catch (InterruptedException e) {
                 log.trace("sdk restart delay interrupted", e);
             }
-        } while (true);
+        } while (!Thread.currentThread().isInterrupted());
     }
+
+
 
     private void waitForNetworkToGoOnline() {
         log.info("Network is offline, SDK going to sleep");
