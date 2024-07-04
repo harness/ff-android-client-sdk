@@ -1,7 +1,6 @@
 package io.harness.cfsdk;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-
 import static io.harness.cfsdk.utils.CfUtils.Text.isEmpty;
 
 import android.content.Context;
@@ -14,22 +13,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
-import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
 import io.harness.cfsdk.cloud.analytics.AnalyticsPublisherService;
+import io.harness.cfsdk.cloud.cache.CloudCache;
+import io.harness.cfsdk.cloud.events.AuthCallback;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkChecker;
@@ -38,7 +35,6 @@ import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 import io.harness.cfsdk.cloud.openapi.client.model.Variation;
 import io.harness.cfsdk.cloud.sse.EventsListener;
 import io.harness.cfsdk.common.SdkCodes;
-import io.harness.cfsdk.cloud.events.AuthCallback;
 
 public class CfClient implements Closeable, Client {
 

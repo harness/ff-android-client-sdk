@@ -1,17 +1,8 @@
 package io.harness.cfsdk.cloud.cache;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
-import static io.harness.cfsdk.AndroidSdkVersion.ANDROID_SDK_VERSION;
-
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +12,6 @@ import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 
 public class DefaultCache implements CloudCache {
 
-    public static final String METADATA_KEY_LAST_UPDATED = "LAST_UPDATED";
     private final Map<String, Evaluation> evaluations;
 
 
@@ -63,7 +53,6 @@ public class DefaultCache implements CloudCache {
     public void clear(String env) {
         evaluations.clear();
     }
-
 
 
     private String makeKey(String env, String key) {

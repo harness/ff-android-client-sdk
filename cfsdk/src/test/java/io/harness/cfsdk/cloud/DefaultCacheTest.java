@@ -3,18 +3,11 @@ package io.harness.cfsdk.cloud;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static io.harness.cfsdk.cloud.cache.DefaultCache.METADATA_KEY_LAST_UPDATED;
-
-import android.content.Context;
 
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import io.harness.cfsdk.cloud.cache.DefaultCache;
 import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
