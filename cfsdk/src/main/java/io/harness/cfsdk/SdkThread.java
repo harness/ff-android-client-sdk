@@ -137,6 +137,9 @@ class SdkThread implements Runnable {
 
         if (networkUnavailable()) {
             log.info("Will not auth, network offline");
+            if (authCallback != null && !isAuthSuccessfulOnce) {
+                authCallback.authorizationSuccess(null, new AuthResult(false, new NetworkOffline()));
+            }
             throw new NetworkOffline();
         }
 
