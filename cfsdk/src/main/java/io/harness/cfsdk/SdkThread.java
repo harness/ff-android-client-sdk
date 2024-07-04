@@ -81,7 +81,7 @@ class SdkThread implements Runnable {
         this.apiKey = apiKey;
         this.config = config;
         this.target = target;
-        this.cache = (config.getCache() != null) ? config.getCache() : new DefaultCache(context, target.getIdentifier(), apiKey);
+        this.cache = (config.getCache() != null) ? config.getCache() : new DefaultCache();
         this.callbackExecutor.execute(() -> Thread.currentThread().setName("CallbackThread"));
         this.evaluationListenerMap = evaluationListenerMap;
         this.eventsListenerSet = eventsListenerSet;

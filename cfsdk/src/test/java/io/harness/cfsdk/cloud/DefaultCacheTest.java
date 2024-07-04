@@ -8,56 +8,23 @@ import static org.mockito.Mockito.mock;
 import static io.harness.cfsdk.cloud.cache.DefaultCache.METADATA_KEY_LAST_UPDATED;
 
 import android.content.Context;
+
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import io.harness.cfsdk.cloud.cache.DefaultCache;
 import io.harness.cfsdk.cloud.openapi.client.model.Evaluation;
 
 public class DefaultCacheTest {
 
-    static class TestBackendCache implements DefaultCache.InternalCache {
-
-        private final Map<String, Map<String, Evaluation>> map = new HashMap<>();
-        Map<String, String> metadata;
-
-        @Override
-        public void saveAll(String key, Map<String, Evaluation> evaluations) {
-            map.put(key, new HashMap<>(evaluations));
-        }
-
-        @Override
-        public Map<String, Evaluation> loadAll(String key, Map<String, Evaluation> defaultMap) {
-            Map<String, Evaluation> m = map.get(key);
-            return (m == null) ? new HashMap<>() : new HashMap<>(m);
-        }
-
-        @Override
-        public void deleteAll() {
-            map.clear();
-        }
-
-        @Override
-        public void init(Context appContext) {
-        }
-
-        @Override
-        public void updateMetadata(String cacheId, Map<String, String> metadata) {
-            this.metadata = metadata;
-        }
-    }
-
-    private TestBackendCache backingCache = new TestBackendCache();
 
     @Test
     public void testCache() {
-
-        Context mockContext = mock(Context.class);
-        DefaultCache cache = new DefaultCache(mockContext, backingCache, "dummyTargetId", "dummyApyKey");
-
+        DefaultCache cache = new DefaultCache();
         String env = "dummyenv";
 
         Evaluation eval1 = new Evaluation().flag("flag1");
@@ -100,11 +67,6 @@ public class DefaultCacheTest {
         assertNull(cache.getEvaluation(env, "dummykey4"));
         assertNull(cache.getEvaluation(env, "dummykey5"));
         assertNull(cache.getEvaluation(env, "dummykey6"));
-
-        assertNotNull(backingCache.metadata);
-        assertEquals(1, backingCache.metadata.size());
-        assertTrue(backingCache.metadata.containsKey(METADATA_KEY_LAST_UPDATED + '.' + env));
-
     }
 
 }
