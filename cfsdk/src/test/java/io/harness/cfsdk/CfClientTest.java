@@ -333,6 +333,42 @@ public class CfClientTest {
         assertEquals(60, cache.getCacheHitCountForEvaluation("testFlag"));
     }
 
+    @Test
+    public void shouldUseDefaultCacheWhenCustomCacheNotProvided() throws Exception {
+        final MockWebServerDispatcher dispatcher = new MockWebServerDispatcher();
+        dispatcher.moreEvaluations.add(new Evaluation().flag("testFlag").kind("boolean").value("true").identifier("testFlag"));
+
+        try (MockWebServer mockSvr = new MockWebServer()) {
+            mockSvr.setDispatcher(dispatcher);
+            mockSvr.start();
+
+            try (final CfClient client = new CfClient()) {
+                client.setNetworkChecker(ctx -> true);
+
+                final CfConfiguration config = CfConfiguration.builder()
+                        .baseUrl(makeServerUrl(mockSvr.getHostName(), mockSvr.getPort()))
+                        .eventUrl(makeServerUrl(mockSvr.getHostName(), mockSvr.getPort()))
+                        .enableAnalytics(false)
+                        .enableStream(true)
+                        .debug(true)
+                        .build();
+
+                client.initialize(
+                        makeMockContextWithNetworkOnline(),
+                        "dummykey",
+                        config,
+                        DUMMY_TARGET
+                );
+
+                assertTrue(client.waitForInitialization(30_000));
+
+                // Assert the evaluations are correct
+                boolean evalResult = client.boolVariation("testFlag", false);
+                assertTrue(evalResult);
+            }
+        }
+    }
+
     private CloudCache makeMockCache() {
         final CloudCache cache = new MockedCache();
         cache.saveEvaluation("Production", "anyone@anywhere.com", new Evaluation().value("dummy"));

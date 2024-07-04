@@ -24,7 +24,7 @@ client.initialize(this, apiKey, sdkConfiguration, target)
 }
 ```
 This approach is non-blocking and leverages a callback mechanism to inform the application about the SDK's initialization status. Here's how it works:
-* Success Callback: This callback is invoked once when the SDK is successfully initialized. It signifies that the SDK is ready for use. 
+* Success Callback: This callback is invoked once when the SDK is successfully initialized. It signifies that the SDK is ready for use.  If the SDK disconnects from Harness SaaS after this point, it will be able to use cached values for evaluations and will attempt to reconnect.
 
 * Failure Callback: This callback may be invoked multiple times if the SDK encounters errors during the initialization process. Each invocation provides an error detailing the cause of failure. The SDK will automatically attempt to retry authentication, leading to multiple invocations of this callback until a successful initialization occurs.
 
@@ -39,8 +39,11 @@ client.initialize(this, apiKey, sdkConfiguration, target)
 ### Synchronous (Blocking) Initialization
 For scenarios where it's critical to have feature flags loaded and evaluated before proceeding, the SDK offers a blocking initialization method.
 This approach ensures that the SDK is fully authenticated and the feature flags are populated from the cache or network before moving forward.
+If the SDK disconnects from Harness SaaS after successfully initializing, it will be able to use cached values for evaluations and will attempt to reconnect.
 
-This will block the UI thread, so use synchros initialization only if absolutely required.
+This will block the UI thread, so use synchronous initialization only if absolutely required. It is recommended to provide a timeout to this call, so in the event
+the SDK is unable to initialize in a set time, then default variations can be used.  
+The SDK will retry to initialize in the background after a timeout has occurred, but default variations will be served until it can initialize. 
 
 Usage:
 
