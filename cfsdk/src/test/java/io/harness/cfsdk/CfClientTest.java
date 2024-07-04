@@ -336,7 +336,7 @@ public class CfClientTest {
     @Test
     public void shouldUseDefaultCacheWhenCustomCacheNotProvided() throws Exception {
         final MockWebServerDispatcher dispatcher = new MockWebServerDispatcher();
-        dispatcher.moreEvaluations.add(new Evaluation().flag("testFlag").kind("boolean").value("false").identifier("testFlag"));
+        dispatcher.moreEvaluations.add(new Evaluation().flag("testFlag").kind("boolean").value("true").identifier("testFlag"));
 
         try (MockWebServer mockSvr = new MockWebServer()) {
             mockSvr.setDispatcher(dispatcher);
