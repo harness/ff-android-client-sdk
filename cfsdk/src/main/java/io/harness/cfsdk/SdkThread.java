@@ -166,7 +166,7 @@ class SdkThread implements Runnable {
             bearerToken = api.authenticate(authRequest).getAuthToken();
         } catch (ApiException ex) {
             if (ex.getCause() instanceof InterruptedIOException) {
-                log.debug("Streaming interrupted, not retrying");
+                log.debug("Authentication interrupted, not retrying");
                 throw new InterruptedException();
             }
             if (authCallback != null && ex.getCode() != 200 && !isAuthSuccessfulOnce) {
