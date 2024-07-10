@@ -25,6 +25,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.harness.cfsdk.cloud.AuthResponseDecoder;
@@ -66,6 +67,8 @@ class SdkThread implements Runnable {
     private final Set<EventsListener> eventsListenerSet;
     private final AuthCallback authCallback;
     private final NetworkChecker networkChecker;
+    private final AtomicBoolean running; // Add AtomicBoolean running flag
+
 
 
     /* ---- Mutable state ---- */
@@ -83,6 +86,7 @@ class SdkThread implements Runnable {
         this.config = config;
         this.target = target;
         this.cache = (config.getCache() != null) ? config.getCache() : new DefaultCache();
+        this.running = new AtomicBoolean(true);
         this.callbackExecutor.execute(() -> Thread.currentThread().setName("CallbackThread"));
         this.evaluationListenerMap = evaluationListenerMap;
         this.eventsListenerSet = eventsListenerSet;
@@ -585,7 +589,7 @@ class SdkThread implements Runnable {
                 log.trace("sdk restart delay interrupted", e);
                 break;
             }
-        } while (!Thread.currentThread().isInterrupted());
+        } while (running.get() && !Thread.currentThread().isInterrupted());
     }
 
 
@@ -605,6 +609,10 @@ class SdkThread implements Runnable {
                 log.trace("sdk network wait interrupted", e);
             }
         } while (counter-- > 0);
+    }
+
+    public void stopRunning() {
+        running.set(false);
     }
 
 }
