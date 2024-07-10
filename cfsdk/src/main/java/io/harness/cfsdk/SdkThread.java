@@ -11,6 +11,7 @@ import android.content.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InterruptedIOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
@@ -89,7 +90,7 @@ class SdkThread implements Runnable {
         this.networkChecker = networkChecker;
     }
 
-    void mainSdkThread(ClientApi api) throws ApiException {
+    void mainSdkThread(ClientApi api) throws ApiException, InterruptedException {
         /* For SDK v2 we have three states the SDK can be in:
                - authenticating()
                - streaming()
@@ -109,7 +110,12 @@ class SdkThread implements Runnable {
         try {
             fallbackToPolling = !streaming(api, authInfo);
         } catch (Throwable ex) {
+            if (ex.getCause() instanceof InterruptedIOException) {
+                log.debug("Streaming interrupted, not retrying");
+                throw new InterruptedException();
+            }
             fallbackToPolling = true;
+            logExceptionAndWarn("Streaming failed, fallback to polling", ex);
         }
 
         if (fallbackToPolling && config.isPollingEnabled()) {
@@ -121,6 +127,9 @@ class SdkThread implements Runnable {
 
                 polling(api, authInfo, pollDelayInSeconds);
 
+            } catch (InterruptedException ex) {
+                log.info("Polling interrupted, not retrying");
+                throw ex;
             } catch (Throwable ex) {
                 logExceptionAndWarn("Polling failed", ex);
             } finally {
@@ -548,6 +557,10 @@ class SdkThread implements Runnable {
                 } else {
                     logExceptionAndWarn("API exception encountered, SDK will be restarted in 1 minute:", ex);
                 }
+
+            } catch (InterruptedException ex) {
+                log.debug("Exiting SDK Thread");
+                break;
             } catch (Throwable ex) {
                 logExceptionAndWarn("Root SDK exception handler invoked, SDK will be restarted in 1 minute:", ex);
             }
@@ -565,6 +578,7 @@ class SdkThread implements Runnable {
                 TimeUnit.MINUTES.sleep(1);
             } catch (InterruptedException e) {
                 log.trace("sdk restart delay interrupted", e);
+                break;
             }
         } while (!Thread.currentThread().isInterrupted());
     }

@@ -5,6 +5,7 @@ import android.text.format.DateUtils;
 import java.io.IOException;
 
 
+import java.io.InterruptedIOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -61,6 +62,8 @@ public class NewRetryInterceptor implements Interceptor {
               "Connection to {} was successful after {} attempts", chain.request().url(), tryCount);
         }
 
+      } catch (InterruptedIOException ex) {
+        throw ex;
       } catch (Exception ex) {
         log.trace("Error while attempting to make request", ex);
         msg = ex.getClass().getSimpleName() + ": " + ex.getMessage();

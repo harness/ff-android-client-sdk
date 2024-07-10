@@ -92,13 +92,18 @@ public class AnalyticsManager implements Closeable {
         this.networkChecker = networkChecker;
 
         final long frequencyMs = config.getMetricsPublishingIntervalInMillis();
-        scheduledExecutorService.scheduleAtFixedRate(this::postMetricsThread,frequencyMs/2, frequencyMs, TimeUnit.MILLISECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(this::postMetricsThread,frequencyMs/2, frequencyMs, TimeUnit.MILLISECONDS);
         SdkCodes.infoMetricsThreadStarted((int)frequencyMs/1000);
     }
 
     public void postMetricsThread() {
         log.debug("Running metrics thread iteration. frequencyMapSize={}", frequencyMap.size());
         Thread.currentThread().setName("Metrics Thread");
+
+        if (Thread.currentThread().isInterrupted()) {
+            log.info("Metrics thread was interrupted, stopping execution");
+            return;
+        }
 
         if (!networkChecker.isNetworkAvailable(context)) {
             log.info("Network is offline, skipping metrics post");
