@@ -67,7 +67,7 @@ class SdkThread implements Runnable {
     private final Set<EventsListener> eventsListenerSet;
     private final AuthCallback authCallback;
     private final NetworkChecker networkChecker;
-    private final AtomicBoolean running; // Add AtomicBoolean running flag
+    private final AtomicBoolean running;
 
 
 
