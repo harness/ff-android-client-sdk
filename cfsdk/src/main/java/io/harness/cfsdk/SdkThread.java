@@ -142,7 +142,7 @@ class SdkThread implements Runnable {
         }
     }
 
-    AuthInfo authenticating(ClientApi api, String apiKey, Target target) throws ApiException {
+    AuthInfo authenticating(ClientApi api, String apiKey, Target target) throws ApiException, InterruptedException {
 
         if (networkUnavailable()) {
             log.info("Will not auth, network offline");
@@ -165,6 +165,10 @@ class SdkThread implements Runnable {
         try {
             bearerToken = api.authenticate(authRequest).getAuthToken();
         } catch (ApiException ex) {
+            if (ex.getCause() instanceof InterruptedIOException) {
+                log.debug("Streaming interrupted, not retrying");
+                throw new InterruptedException();
+            }
             if (authCallback != null && ex.getCode() != 200 && !isAuthSuccessfulOnce) {
                 authCallback.authorizationSuccess(null, new AuthResult(false, ex));
             }
@@ -565,7 +569,8 @@ class SdkThread implements Runnable {
                 logExceptionAndWarn("Root SDK exception handler invoked, SDK will be restarted in 1 minute:", ex);
             }
 
-            /* should the sdk thread abort, it will conditionally be restarted here */
+            /* should the sdk thread abort, except for interruptions which mean the SDK client has been closed,
+            it will conditionally be restarted here */
 
             // If both streaming and polling are disabled, then we don't need the sdk thread to run anymore
             if (!config.isStreamEnabled() && !config.isPollingEnabled()) {
