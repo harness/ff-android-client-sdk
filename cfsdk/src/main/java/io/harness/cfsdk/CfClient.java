@@ -27,6 +27,7 @@ import io.harness.cfsdk.cloud.analytics.AnalyticsManager;
 import io.harness.cfsdk.cloud.analytics.AnalyticsPublisherService;
 import io.harness.cfsdk.cloud.cache.CloudCache;
 import io.harness.cfsdk.cloud.events.AuthCallback;
+import io.harness.cfsdk.cloud.events.AuthResult;
 import io.harness.cfsdk.cloud.events.EvaluationListener;
 import io.harness.cfsdk.cloud.model.Target;
 import io.harness.cfsdk.cloud.network.NetworkChecker;
@@ -121,6 +122,9 @@ public class CfClient implements Closeable, Client {
 
         } catch (Exception e) {
             log.warn(e.getMessage(), e);
+            if (authCallback != null) {
+                authCallback.authorizationSuccess(null, new AuthResult(false, e));
+            }
         }
     }
 
