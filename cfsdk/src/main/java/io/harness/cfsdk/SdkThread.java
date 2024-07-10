@@ -11,6 +11,7 @@ import android.content.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InterruptedIOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
@@ -24,6 +25,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.harness.cfsdk.cloud.AuthResponseDecoder;
@@ -65,6 +67,8 @@ class SdkThread implements Runnable {
     private final Set<EventsListener> eventsListenerSet;
     private final AuthCallback authCallback;
     private final NetworkChecker networkChecker;
+    private final AtomicBoolean running;
+
 
 
     /* ---- Mutable state ---- */
@@ -82,6 +86,7 @@ class SdkThread implements Runnable {
         this.config = config;
         this.target = target;
         this.cache = (config.getCache() != null) ? config.getCache() : new DefaultCache();
+        this.running = new AtomicBoolean(true);
         this.callbackExecutor.execute(() -> Thread.currentThread().setName("CallbackThread"));
         this.evaluationListenerMap = evaluationListenerMap;
         this.eventsListenerSet = eventsListenerSet;
@@ -89,7 +94,7 @@ class SdkThread implements Runnable {
         this.networkChecker = networkChecker;
     }
 
-    void mainSdkThread(ClientApi api) throws ApiException {
+    void mainSdkThread(ClientApi api) throws ApiException, InterruptedException {
         /* For SDK v2 we have three states the SDK can be in:
                - authenticating()
                - streaming()
@@ -109,7 +114,12 @@ class SdkThread implements Runnable {
         try {
             fallbackToPolling = !streaming(api, authInfo);
         } catch (Throwable ex) {
+            if (ex.getCause() instanceof InterruptedIOException) {
+                log.debug("Streaming interrupted, not retrying");
+                throw new InterruptedException();
+            }
             fallbackToPolling = true;
+            logExceptionAndWarn("Streaming failed, fallback to polling", ex);
         }
 
         if (fallbackToPolling && config.isPollingEnabled()) {
@@ -121,6 +131,9 @@ class SdkThread implements Runnable {
 
                 polling(api, authInfo, pollDelayInSeconds);
 
+            } catch (InterruptedException ex) {
+                log.info("Polling interrupted, not retrying");
+                throw ex;
             } catch (Throwable ex) {
                 logExceptionAndWarn("Polling failed", ex);
             } finally {
@@ -133,7 +146,7 @@ class SdkThread implements Runnable {
         }
     }
 
-    AuthInfo authenticating(ClientApi api, String apiKey, Target target) throws ApiException {
+    AuthInfo authenticating(ClientApi api, String apiKey, Target target) throws ApiException, InterruptedException {
 
         if (networkUnavailable()) {
             log.info("Will not auth, network offline");
@@ -156,6 +169,10 @@ class SdkThread implements Runnable {
         try {
             bearerToken = api.authenticate(authRequest).getAuthToken();
         } catch (ApiException ex) {
+            if (ex.getCause() instanceof InterruptedIOException) {
+                log.debug("Authentication interrupted, not retrying");
+                throw new InterruptedException();
+            }
             if (authCallback != null && ex.getCode() != 200 && !isAuthSuccessfulOnce) {
                 authCallback.authorizationSuccess(null, new AuthResult(false, ex));
             }
@@ -548,11 +565,16 @@ class SdkThread implements Runnable {
                 } else {
                     logExceptionAndWarn("API exception encountered, SDK will be restarted in 1 minute:", ex);
                 }
+
+            } catch (InterruptedException ex) {
+                log.debug("Exiting SDK Thread");
+                break;
             } catch (Throwable ex) {
                 logExceptionAndWarn("Root SDK exception handler invoked, SDK will be restarted in 1 minute:", ex);
             }
 
-            /* should the sdk thread abort, it will conditionally be restarted here */
+            /* should the sdk thread abort, except for interruptions which mean the SDK client has been closed,
+            it will conditionally be restarted here */
 
             // If both streaming and polling are disabled, then we don't need the sdk thread to run anymore
             if (!config.isStreamEnabled() && !config.isPollingEnabled()) {
@@ -565,8 +587,9 @@ class SdkThread implements Runnable {
                 TimeUnit.MINUTES.sleep(1);
             } catch (InterruptedException e) {
                 log.trace("sdk restart delay interrupted", e);
+                break;
             }
-        } while (!Thread.currentThread().isInterrupted());
+        } while (running.get() && !Thread.currentThread().isInterrupted());
     }
 
 
@@ -586,6 +609,10 @@ class SdkThread implements Runnable {
                 log.trace("sdk network wait interrupted", e);
             }
         } while (counter-- > 0);
+    }
+
+    public void stopRunning() {
+        running.set(false);
     }
 
 }
