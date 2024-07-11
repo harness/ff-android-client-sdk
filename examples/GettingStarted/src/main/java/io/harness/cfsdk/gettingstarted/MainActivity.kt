@@ -18,60 +18,81 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private lateinit var client: CfClient
-    private var flagName: String = BuildConfig.FF_FLAG_NAME.ifEmpty { "harnessappdemodarkmode" }
+    private var client1: CfClient? = null
+    private var client2: CfClient? = null
+    private var activeClient: CfClient? = null
+    private var flagName: String = ""
 
-    // The SDK API Key to use for authentication.  Configure it when installing the app by setting FF_API_KEY
-    // e.g. FF_API_KEY='my key' ./gradlew installDebug
-    private val apiKey: String = BuildConfig.FF_API_KEY
 
-    enum class InitMethod {
-        CALLBACK,
-        WAIT_FOR_INIT,
-        NON_BLOCKING
-    }
+    private val client1APIKey: String = ""
+    private val client2APIKey: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Change this to try the different initialization methods
-        initializeSdk(InitMethod.CALLBACK)
+        // Use Client 1
+        initializeClient(client1, client1APIKey, "https://config.ff.harness.io/api/1.0", "https://events.ff.harness.io/api/1.0")
+        useClient(client1)
+
+        // Close Client 1 and use Client 2
+        client1?.close()
+        initializeClient(client2, client2APIKey, "https://config.ff.harness.io/api/1.0", "https://events.ff.harness.io/api/1.0")
+        useClient(client2)
+
+        // Close Client 2 and go back to Client 1
+        client2?.close()
+        initializeClient(client1, client1APIKey, "https://config.ff.harness.io/api/1.0", "https://events.ff.harness.io/api/1.0")
+        useClient(client1)
     }
 
-    private fun initializeSdk(method: InitMethod) {
-        updateTextField("initializing SDK using ${method.toString().lowercase()}")
-        // Common configuration and target setup
-        val streamingEnabled = true
-        val pollingEnabled = true
-        val sdkConfiguration = CfConfiguration.builder().enableStream(streamingEnabled).enablePolling(pollingEnabled).build()
-        val target = Target().identifier("ff-android").name("FF Android")
-        target.attributes["location"] = "emea"
+    private fun initializeClient(client: CfClient?, apiKey: String, baseUrl: String, eventUrl: String) {
+        val config = createConfig(baseUrl, eventUrl)
+        val target = createTarget()
 
-
-        client = CfClient()
-
-        // Setup Listener to handle different events emitted by the SDK
-        // You only need to set this up if streaming/polling is enabled.
-        if (streamingEnabled && pollingEnabled) {
-            setupEventListener()
+        if (client == client1) {
+            client1 = createClient(apiKey, config, target)
+        } else if (client == client2) {
+            client2 = createClient(apiKey, config, target)
         }
-
-
-        when (method) {
-            InitMethod.CALLBACK -> initializeWithCallback(sdkConfiguration, target)
-            InitMethod.WAIT_FOR_INIT -> initializeWithWaitForInit(sdkConfiguration, target)
-            InitMethod.NON_BLOCKING -> initializeNonBlocking(sdkConfiguration, target)
-        }
-
     }
 
-    private fun setupEventListener() {
+    private fun createConfig(baseUrl: String, eventUrl: String): CfConfiguration {
+        return CfConfiguration.builder()
+            .baseUrl(baseUrl)
+            .eventUrl(eventUrl)
+            .enableStream(true)
+            .enablePolling(true)
+            .build()
+    }
+
+    private fun createTarget(): Target {
+        return Target().identifier("ff-android").name("FF Android").apply {
+            attributes["location"] = "emea"
+        }
+    }
+
+    private fun createClient(apiKey: String, config: CfConfiguration, target: Target): CfClient {
+        val client = CfClient()
+        client.initialize(this, apiKey, config, target) { info, result ->
+            if (result.isSuccess) {
+                val flagValue: Boolean = client.boolVariation(flagName, false)
+                updateTextField("Initialized client with ${config.baseURL}: $flagName : $flagValue")
+            } else {
+                updateTextField("Failed to initialize client with ${config.baseURL}: ${result.error}")
+            }
+        }
+
+        setupEventListener(client)
+        return client
+    }
+
+    private fun setupEventListener(client: CfClient) {
         var flagValue = false
         client.registerEventsListener { event ->
             when (event.eventType) {
-                // Setup Listener to handle flag change events.  This fires when a flag is modified.
-                StatusEvent.EVENT_TYPE.EVALUATION_CHANGE-> {
+                // Setup Listener to handle flag change events. This fires when a flag is modified.
+                StatusEvent.EVENT_TYPE.EVALUATION_CHANGE -> {
                     flagValue = client.boolVariation(flagName, false)
                     updateTextField("Streamed value for $flagName : $flagValue")
                 }
@@ -102,56 +123,19 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-
                 else -> Log.i("SDKEvent", "Got ${event.eventType.name}")
             }
         }
     }
 
-    /* Non-blocking options */
-    private fun initializeWithCallback(config: CfConfiguration, target: Target) {
-        client.initialize(this, apiKey, config, target) { info, result ->
-            if (result.isSuccess) {
-                val flagValue: Boolean = client.boolVariation(flagName, false)
-                updateTextField("Using callback: $flagName : $flagValue")
-            } else {
-                updateTextField("Callback: SDK initialization failed: ${result.error}")
-            }
-        }
-    }
-
-    // Highly likely to serve default value of `false` as the SDK will still be initializing.
-    // SDKCODE(eval:6001) will be logged if the default variation is served.
-    //
-    // However, if you subscribe to `EVALUATION_RELOAD` which is fired on successful init and then when the SDK
-    // polls, you can evaluate the flag there again to get the current value.
-    private fun initializeNonBlocking(config: CfConfiguration, target: Target) {
-        client.initialize(this, apiKey, config, target)
-
-        val flagValue: Boolean = client.boolVariation(flagName, false)
-        updateTextField("Using non-blocking: $flagName : $flagValue")
-    }
-
-    // Blocking option - will block UI thread! Use callback approach above if you don't require
-    // blocking option.
-    private fun initializeWithWaitForInit(config: CfConfiguration, target: Target) {
-
-        client.initialize(this, apiKey, config, target)
-        val success = client.waitForInitialization(60_000)
-
-        if (success) {
-            val flagValue: Boolean = client.boolVariation(flagName, false)
-            updateTextField("Using callback: $flagName : $flagValue")
-        } else {
-            updateTextField("WaitForInit: SDK initialization timed out")
-        }
-
+    private fun useClient(client: CfClient?) {
+        activeClient = client
+        val flagValue: Boolean = activeClient?.boolVariation(flagName, false) ?: false
+        updateTextField("Flag value: $flagName : $flagValue")
     }
 
     private fun updateTextField(msg: String) {
         val tv1: TextView = findViewById(R.id.textView1)
         runOnUiThread { tv1.text = msg }
     }
-
-
 }
