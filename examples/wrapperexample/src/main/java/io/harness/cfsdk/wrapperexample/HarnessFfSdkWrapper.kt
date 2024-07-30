@@ -49,7 +49,7 @@ class HarnessFfSdkWrapper(
                 isInitialized.set(true)
                 callback(true, null)
             } else {
-                callback(false, null)
+                callback(false, result.error.toString())
             }
         }
     }
