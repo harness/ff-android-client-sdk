@@ -6,6 +6,7 @@ import io.harness.cfsdk.CfConfiguration
 import io.harness.cfsdk.cloud.model.Target
 import io.harness.cfsdk.cloud.sse.EventsListener
 import org.json.JSONObject
+import java.io.Closeable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -18,9 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @property client The instance of the Harness FF SDK client.
  * @property flagIds The map of flag IDs to their data.
  */
-class HarnessFfSdkWrapper(
-
-) {
+class HarnessFfSdkWrapper : Closeable {
 
     private val client: CfClient = CfClient.getInstance()
     private val flagIds: ConcurrentHashMap<String, FlagData> = ConcurrentHashMap()
@@ -333,6 +332,15 @@ class HarnessFfSdkWrapper(
      */
     fun removeEventListener(listener: EventsListener) {
         client.unregisterEventsListener(listener)
+    }
+
+
+    /**
+     * Closes the Harness SDk
+     *
+     */
+    override fun close() {
+        client.close()
     }
 
     /**
