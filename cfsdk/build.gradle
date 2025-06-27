@@ -9,6 +9,7 @@ buildscript {
 
 plugins {
     id 'com.android.library'
+    id "com.vanniktech.maven.publish" version "0.33.0"
 }
 
 subprojects {
@@ -56,7 +57,40 @@ android {
     }
 }
 
-apply from: "${rootProject.projectDir}/cfsdk/publish-mavencentral.gradle"
+import com.vanniktech.maven.publish.SonatypeHost
+import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
+
+mavenPublishing {
+    coordinates("io.harness", "ff-android-client-sdk", libs.versions.sdk.get())
+
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
+    configure(new AndroidSingleVariantLibrary("release", true, true))
+
+    pom {
+        name = "ff-android-client-sdk"
+        description = 'This is the official Android SDK for Harness Feature Flags Service'
+        url = 'https://github.com/harness/ff-android-client-sdk'
+        licenses {
+            license {
+                name = 'Apache-2.0 License'
+                url = 'https://github.com/harness/ff-android-client-sdk/blob/main/LICENSE'
+            }
+        }
+        developers {
+            developer {
+                id = 'andybharness'
+                name = 'Andrew Bell'
+                email = 'andrew.bell@harness.io'
+            }
+        }
+        scm {
+            connection = 'scm:git:https://github.com/harness/ff-android-client-sdk.git'
+            developerConnection = 'scm:git:ssh://github.com/harness/ff-android-client-sdk.git'
+            url = 'https://github.com/harness/ff-android-client-sdk/tree/main'
+        }
+    }
+}
 
 dependencies {
 
