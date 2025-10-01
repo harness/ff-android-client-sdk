@@ -29,8 +29,6 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode getVersionCode(libs.versions.sdk.get())
-        versionName libs.versions.sdk.get()
         consumerProguardFiles "consumer-rules.pro"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
