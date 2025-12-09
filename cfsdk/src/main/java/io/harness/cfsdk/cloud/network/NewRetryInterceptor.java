@@ -1,19 +1,14 @@
 package io.harness.cfsdk.cloud.network;
 
-import android.text.format.DateUtils;
-
 import java.io.IOException;
-
-
 import java.io.InterruptedIOException;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.*;
@@ -82,7 +77,12 @@ public class NewRetryInterceptor implements Interceptor {
           backOffDelayMs = retryAfterHeaderValue * 1000L;
         } else {
           // Else fallback to a randomized exponential backoff
-          backOffDelayMs = retryBackoffDelay * tryCount;
+          if (tryCount == 1) {
+            int initialDelayMs = ThreadLocalRandom.current().nextInt(2_000, 30_000);
+            backOffDelayMs = retryBackoffDelay + initialDelayMs;
+          } else {
+            backOffDelayMs = retryBackoffDelay * tryCount;
+          }
         }
 
         limitReached = tryCount >= maxTryCount;

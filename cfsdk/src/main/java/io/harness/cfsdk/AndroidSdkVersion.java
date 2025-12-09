@@ -1,5 +1,5 @@
 package io.harness.cfsdk;
 
 public class AndroidSdkVersion {
-    public static final String ANDROID_SDK_VERSION = "2.2.6";
+    public static final String ANDROID_SDK_VERSION = "2.2.7";
 }
